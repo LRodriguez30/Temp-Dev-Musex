@@ -1,0 +1,2132 @@
+/* =============================================================
+   MUSEX — BOTTOM PLAYER
+   Reproductor principal fijo en la parte inferior.
+============================================================= */
+
+:host {
+  --musex-green: var(--musex-accent);
+
+  --player-bg: rgba(13, 14, 16, 0.94);
+  --player-border: rgba(255, 255, 255, 0.08);
+
+  --text-primary: rgba(255, 255, 255, 0.94);
+  --text-secondary: rgba(255, 255, 255, 0.5);
+  --text-muted: rgba(255, 255, 255, 0.28);
+
+  font-family: "Outfit", "Inter", system-ui, sans-serif;
+}
+
+
+/* =============================================================
+   PLAYER CONTAINER
+============================================================= */
+
+.bottom-player {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  z-index: 40;
+
+  height: 88px;
+
+  background: var(--player-bg);
+
+  border-top: 1px solid var(--player-border);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  box-shadow:
+    0 -8px 30px rgba(0, 0, 0, 0.22);
+
+  isolation: isolate;
+}
+
+
+/* Línea superior de identidad Musex */
+
+.bottom-player::before {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 2px;
+
+  background: var(--musex-green);
+
+  opacity: 0.72;
+
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--musex-accent) 18%, transparent);
+
+  pointer-events: none;
+}
+
+
+/* =============================================================
+   MAIN CONTENT
+============================================================= */
+
+.bottom-player-content {
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+  height: 100%;
+
+  gap: 20px;
+
+  padding: 0 18px;
+
+  box-sizing: border-box;
+}
+
+
+/* =============================================================
+   CURRENT TRACK
+============================================================= */
+
+.bottom-current {
+  display: flex;
+  align-items: center;
+
+  width: 330px;
+  min-width: 330px;
+
+  gap: 14px;
+
+  min-height: 0;
+}
+
+
+/* -------------------------------------------------------------
+   Cover
+------------------------------------------------------------- */
+
+.bottom-cover {
+  position: relative;
+
+  flex-shrink: 0;
+
+  width: 60px;
+  height: 60px;
+
+  overflow: hidden;
+
+  border: 2px solid rgba(19, 24, 11, 0.65);
+  border-radius: 100%;
+
+  background: #111214;
+
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.35),
+    0 0 10px color-mix(in srgb, var(--musex-accent) 12%, transparent);
+
+  isolation: isolate;
+}
+
+.bottom-cover-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.bottom-cover-icon {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottom-cover-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.bottom-cover img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  transition:
+    transform 220ms ease,
+    filter 220ms ease;
+}
+
+.bottom-cover:hover img {
+  transform: scale(1.045);
+}
+
+
+/* -------------------------------------------------------------
+   Mini equalizer
+------------------------------------------------------------- */
+
+.bottom-playing-indicator {
+  position: absolute;
+
+  left: 5px;
+  bottom: 5px;
+
+  display: flex;
+  align-items: flex-end;
+
+  gap: 2px;
+
+  height: 13px;
+  padding: 3px 4px;
+
+  border-radius: 4px;
+
+  background: rgba(8, 9, 8, 0.72);
+
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+
+  pointer-events: none;
+}
+
+.bottom-playing-indicator span {
+  display: block;
+
+  width: 2px;
+
+  border-radius: 2px;
+
+  background: var(--musex-green);
+
+  box-shadow:
+    0 0 5px color-mix(in srgb, var(--musex-accent) 45%, transparent);
+
+  animation: bottom-equalizer 850ms ease-in-out infinite alternate;
+}
+
+.bottom-playing-indicator span:nth-child(1) {
+  height: 5px;
+  animation-delay: -120ms;
+}
+
+.bottom-playing-indicator span:nth-child(2) {
+  height: 10px;
+  animation-delay: -320ms;
+}
+
+.bottom-playing-indicator span:nth-child(3) {
+  height: 7px;
+  animation-delay: -520ms;
+}
+
+
+/* =============================================================
+   TRACK INFORMATION
+============================================================= */
+
+.bottom-meta {
+  flex: 1;
+
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+
+.bottom-title {
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--text-primary);
+
+  font-size: 15px;
+  font-weight: 600;
+
+  line-height: 1.25;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+.bottom-artist {
+  margin: 5px 0 0;
+
+  overflow: hidden;
+
+  color: var(--text-secondary);
+
+  font-size: 12px;
+  font-weight: 400;
+
+  line-height: 1.2;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+/* =============================================================
+   FAVORITE BUTTON
+============================================================= */
+
+.bottom-favorite {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  width: 34px;
+  height: 34px;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: transparent;
+
+  color: var(--text-muted);
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+.bottom-favorite:hover {
+  color: rgba(255, 255, 255, 0.82);
+
+  background: rgba(255, 255, 255, 0.06);
+
+  transform: translateY(-1px);
+}
+
+.bottom-favorite:active {
+  transform: scale(0.92);
+}
+
+.bottom-favorite svg {
+  width: 17px;
+  height: 17px;
+
+  transition:
+    fill 160ms ease,
+    stroke 160ms ease,
+    transform 180ms ease;
+}
+
+.bottom-favorite.active {
+  color: var(--musex-green);
+}
+
+.bottom-favorite.active svg {
+  fill: color-mix(in srgb, var(--musex-accent) 12%, transparent);
+
+  filter:
+    drop-shadow(0 0 5px color-mix(in srgb, var(--musex-accent) 18%, transparent));
+
+  animation: favorite-pop 220ms ease;
+}
+
+
+/* =============================================================
+   CENTER PLAYER
+============================================================= */
+
+.bottom-center {
+  display: flex;
+  flex: 1;
+
+  min-width: 0;
+
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+}
+
+
+/* =============================================================
+   PLAYER CONTROLS
+============================================================= */
+
+.bottom-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  height: 38px;
+}
+
+
+/* -------------------------------------------------------------
+   Generic control
+------------------------------------------------------------- */
+
+.bottom-control {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  height: 34px;
+
+  flex-shrink: 0;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.46);
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+.bottom-control svg {
+  width: 17px;
+  height: 17px;
+
+  transition:
+    transform 160ms ease,
+    opacity 160ms ease;
+}
+
+.bottom-control:hover {
+  color: rgba(255, 255, 255, 0.88);
+
+  background: rgba(255, 255, 255, 0.055);
+
+  transform: translateY(-1px);
+}
+
+.bottom-control:active {
+  transform: scale(0.91);
+}
+
+
+/* Active states */
+
+.bottom-control.active {
+  color: var(--musex-green);
+}
+
+.bottom-control.active:hover {
+  color: var(--musex-green);
+
+  background: color-mix(in srgb, var(--musex-accent) 7%, transparent);
+}
+
+
+/* Disabled */
+
+.bottom-control.disabled,
+.bottom-control:disabled {
+  color: rgba(255, 255, 255, 0.16);
+
+  cursor: default;
+
+  pointer-events: none;
+}
+
+
+/* =============================================================
+   PLAY BUTTON
+============================================================= */
+
+.bottom-play {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 42px;
+  height: 42px;
+
+  flex-shrink: 0;
+
+  margin: 0 3px;
+  padding: 0;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: var(--musex-green);
+
+  color: #080908;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 14px color-mix(in srgb, var(--musex-accent) 13%, transparent);
+
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.bottom-play svg {
+  width: 18px;
+  height: 18px;
+
+  transition: transform 160ms ease;
+}
+
+.bottom-play:hover {
+  transform: scale(1.055);
+
+  box-shadow:
+    0 5px 18px color-mix(in srgb, var(--musex-accent) 22%, transparent);
+}
+
+.bottom-play:active {
+  transform: scale(0.94);
+}
+
+
+/* Pulse sutil mientras reproduce */
+
+.bottom-play.playing::before {
+  content: "";
+
+  position: absolute;
+
+  inset: -4px;
+
+  border: 1px solid color-mix(in srgb, var(--musex-accent) 18%, transparent);
+
+  border-radius: 50%;
+
+  animation: player-pulse 1.8s ease-out infinite;
+
+  pointer-events: none;
+}
+
+
+/* =============================================================
+   REPEAT CONTROL
+============================================================= */
+
+.repeat-control {
+  position: relative;
+}
+
+
+/*
+ * El icono base sigue siendo el mismo.
+ * El pequeño indicador permite distinguir:
+ *
+ * 1 = repetir canción actual
+ * Q = repetir cola completa
+ */
+
+.repeat-mode-badge {
+  position: absolute;
+
+  right: 2px;
+  bottom: 1px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 11px;
+  height: 11px;
+
+  border-radius: 3px;
+
+  background: var(--musex-green);
+
+  color: #080908;
+
+  font-family:
+    "Courier New",
+    "Lucida Console",
+    monospace;
+
+  font-size: 7px;
+  font-weight: 900;
+
+  line-height: 1;
+
+  box-shadow:
+    0 0 6px color-mix(in srgb, var(--musex-accent) 18%, transparent);
+
+  pointer-events: none;
+}
+
+.repeat-control.repeat-track svg {
+  transform: scale(1.01);
+}
+
+.repeat-control.repeat-queue svg {
+  transform: scale(1.01);
+}
+
+
+/* =============================================================
+   PROGRESS
+============================================================= */
+
+.bottom-progress {
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+  max-width: 680px;
+
+  gap: 11px;
+}
+
+
+/* -------------------------------------------------------------
+   Time display
+------------------------------------------------------------- */
+
+.player-time {
+  flex-shrink: 0;
+
+  width: 50px;
+
+  font-family:
+    "Courier New",
+    "Lucida Console",
+    monospace;
+
+  font-size: 15px;
+  font-weight: 800;
+
+  line-height: 1;
+
+  font-variant-numeric: tabular-nums;
+
+  user-select: none;
+}
+
+.player-time-current {
+  color: color-mix(in srgb, var(--musex-accent) 78%, transparent);
+
+  text-align: right;
+
+  text-shadow:
+    0 0 7px color-mix(in srgb, var(--musex-accent) 16%, transparent);
+}
+
+.player-time-duration {
+  color: color-mix(in srgb, var(--musex-accent) 34%, transparent);
+
+  text-align: left;
+}
+
+
+/* =============================================================
+   PROGRESS RANGE
+============================================================= */
+
+.player-progress {
+  --progress: 0%;
+
+  flex: 1;
+
+  min-width: 0;
+
+  height: 4px;
+
+  margin: 0;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  border-radius: 999px;
+
+  background:
+    linear-gradient(
+      to right,
+      var(--musex-green) 0%,
+      var(--musex-green) var(--progress),
+      rgba(255, 255, 255, 0.10) var(--progress),
+      rgba(255, 255, 255, 0.10) 100%
+    );
+
+  outline: none;
+
+  cursor: pointer;
+}
+
+
+/* Chrome / Edge / Safari */
+
+.player-progress::-webkit-slider-runnable-track {
+  height: 4px;
+
+  border-radius: 999px;
+
+  background: transparent;
+}
+
+.player-progress::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 9px;
+  height: 9px;
+
+  margin-top: -2.5px;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: var(--musex-green);
+
+  box-shadow:
+    0 0 7px color-mix(in srgb, var(--musex-accent) 35%, transparent);
+
+  opacity: 0;
+
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease;
+}
+
+.player-progress:hover::-webkit-slider-thumb,
+.player-progress:active::-webkit-slider-thumb {
+  opacity: 1;
+}
+
+.player-progress:hover::-webkit-slider-thumb {
+  transform: scale(1.12);
+}
+
+
+/* Firefox */
+
+.player-progress::-moz-range-track {
+  height: 4px;
+
+  border: 0;
+  border-radius: 999px;
+
+  background: transparent;
+}
+
+.player-progress::-moz-range-progress {
+  height: 4px;
+
+  border-radius: 999px;
+
+  background: var(--musex-green);
+}
+
+.player-progress::-moz-range-thumb {
+  width: 9px;
+  height: 9px;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: var(--musex-green);
+
+  box-shadow:
+    0 0 7px color-mix(in srgb, var(--musex-accent) 35%, transparent);
+
+  opacity: 0;
+}
+
+.player-progress:hover::-moz-range-thumb,
+.player-progress:active::-moz-range-thumb {
+  opacity: 1;
+}
+
+
+/* =============================================================
+   EXTRA CONTROLS
+============================================================= */
+
+.bottom-extra {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  width: 220px;
+  min-width: 220px;
+
+  gap: 4px;
+}
+
+
+/* -------------------------------------------------------------
+   Volume
+------------------------------------------------------------- */
+
+.volume-range {
+  --volume: 100%;
+
+  width: 76px;
+  height: 4px;
+
+  flex-shrink: 0;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  border-radius: 999px;
+
+  background:
+    linear-gradient(
+      to right,
+      var(--musex-green) 0%,
+      var(--musex-green) var(--volume),
+      rgba(255, 255, 255, 0.10) var(--volume),
+      rgba(255, 255, 255, 0.10) 100%
+    );
+
+  outline: none;
+
+  cursor: pointer;
+}
+
+
+/* Chrome / Edge / Safari */
+
+.volume-range::-webkit-slider-runnable-track {
+  height: 4px;
+
+  border-radius: 999px;
+
+  background: transparent;
+}
+
+.volume-range::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 8px;
+  height: 8px;
+
+  margin-top: -2px;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: var(--musex-green);
+
+  box-shadow:
+    0 0 6px color-mix(in srgb, var(--musex-accent) 28%, transparent);
+
+  opacity: 0;
+
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease;
+}
+
+.volume-range:hover::-webkit-slider-thumb {
+  opacity: 1;
+
+  transform: scale(1.1);
+}
+
+
+/* Firefox */
+
+.volume-range::-moz-range-track {
+  height: 4px;
+
+  border: 0;
+  border-radius: 999px;
+
+  background: transparent;
+}
+
+.volume-range::-moz-range-progress {
+  height: 4px;
+
+  border-radius: 999px;
+
+  background: var(--musex-green);
+}
+
+.volume-range::-moz-range-thumb {
+  width: 8px;
+  height: 8px;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: var(--musex-green);
+
+  opacity: 0;
+}
+
+.volume-range:hover::-moz-range-thumb {
+  opacity: 1;
+}
+
+.bottom-default-disc {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* =============================================================
+   RETRO MUSIC VISUALIZER
+============================================================= */
+
+.bottom-center {
+  position: relative;
+}
+
+.bottom-visualizer {
+  position: absolute;
+
+  inset: 0;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  gap: 5px;
+  padding: 8px 6px 0;
+
+  overflow: hidden;
+
+  opacity: 0.13;
+
+  pointer-events: none;
+
+  z-index: 0;
+
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 3%,
+    black 97%,
+    transparent 100%
+  );
+
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 3%,
+    black 97%,
+    transparent 100%
+  );
+}
+
+.visualizer-bar {
+  flex: 1;
+
+  min-width: 8px;
+  max-width: 20px;
+
+  height: var(--bar-height);
+
+  background: var(--musex-accent);
+
+  border-radius: 1px 1px 0 0;
+
+  transform-origin: bottom;
+
+  animation:
+    musexVisualizer
+    var(--bar-duration)
+    steps(6)
+    infinite alternate;
+
+  animation-delay: var(--bar-delay);
+}
+
+.full-player-visualizer {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  gap: 8px;
+
+  opacity: 0.055;
+
+  pointer-events: none;
+
+  overflow: hidden;
+}
+
+/* =============================================================
+   FULL PLAYER
+============================================================= */
+
+.full-player {
+  position: fixed;
+  inset: 0;
+
+  z-index: 100;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 50% 35%,
+      color-mix(in srgb, var(--musex-accent) 4%, transparent),
+      transparent 38%
+    ),
+    #0d0e10;
+
+  color: var(--text-primary);
+
+  isolation: isolate;
+}
+
+
+/* =============================================================
+   HEADER
+============================================================= */
+
+.full-player-header {
+  position: relative;
+  z-index: 3;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+  height: 72px;
+
+  padding: 0 28px;
+
+  box-sizing: border-box;
+
+  border-bottom: 1px solid var(--player-border);
+}
+
+
+.full-player-header::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 2px;
+
+  background: var(--musex-green);
+
+  opacity: 0.72;
+
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--musex-accent) 18%, transparent);
+}
+
+
+.full-player-label {
+  color: var(--text-muted);
+
+  font-size: 10px;
+  font-weight: 700;
+
+  letter-spacing: 0.18em;
+}
+
+
+.full-player-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 38px;
+  height: 38px;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.45);
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+
+.full-player-close:hover {
+  color: rgba(255, 255, 255, 0.9);
+
+  background: rgba(255, 255, 255, 0.055);
+
+  transform: translateY(-1px);
+}
+
+
+.full-player-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+
+/* =============================================================
+   MAIN
+============================================================= */
+
+.full-player-main {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  width: min(720px, calc(100% - 40px));
+
+  margin: auto;
+
+  padding: 30px 0 50px;
+}
+
+
+/* =============================================================
+   COVER
+============================================================= */
+
+.full-player-cover {
+  position: relative;
+
+  width: min(390px, 48vh);
+  aspect-ratio: 1;
+
+  overflow: hidden;
+
+  border-radius: 50%;
+
+  background: #111214;
+
+  box-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.45),
+    0 0 40px color-mix(in srgb, var(--musex-accent) 7%, transparent);
+
+  isolation: isolate;
+}
+
+
+.full-player-cover-image {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+
+.full-player-cover-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+}
+
+
+.full-player-cover-icon svg {
+  width: 110px;
+  height: 110px;
+}
+
+
+.full-player-default-disc {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+}
+
+
+.full-player-playing {
+  position: absolute;
+
+  left: 16px;
+  bottom: 16px;
+
+  display: flex;
+  align-items: flex-end;
+
+  gap: 3px;
+
+  height: 24px;
+
+  padding: 5px 7px;
+
+  border-radius: 5px;
+
+  background: rgba(8, 9, 8, 0.72);
+
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+
+.full-player-playing span {
+  display: block;
+
+  width: 3px;
+
+  border-radius: 2px;
+
+  background: var(--musex-green);
+
+  box-shadow:
+    0 0 6px color-mix(in srgb, var(--musex-accent) 40%, transparent);
+
+  animation:
+    bottom-equalizer
+    850ms
+    ease-in-out
+    infinite
+    alternate;
+}
+
+
+.full-player-playing span:nth-child(1) {
+  height: 8px;
+  animation-delay: -120ms;
+}
+
+.full-player-playing span:nth-child(2) {
+  height: 17px;
+  animation-delay: -320ms;
+}
+
+.full-player-playing span:nth-child(3) {
+  height: 11px;
+  animation-delay: -520ms;
+}
+
+
+/* =============================================================
+   INFORMATION
+============================================================= */
+
+.full-player-info {
+  width: 100%;
+
+  margin-top: 30px;
+}
+
+
+.full-player-title-row {
+  display: flex;
+  align-items: center;
+
+  gap: 20px;
+}
+
+
+.full-player-text {
+  flex: 1;
+
+  min-width: 0;
+}
+
+
+.full-player-text h1 {
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--text-primary);
+
+  font-size: 25px;
+  font-weight: 600;
+
+  line-height: 1.2;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+.full-player-text p {
+  margin: 7px 0 0;
+
+  overflow: hidden;
+
+  color: var(--text-secondary);
+
+  font-size: 14px;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+/* =============================================================
+   FAVORITE
+============================================================= */
+
+.full-player-favorite {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 38px;
+  height: 38px;
+
+  flex-shrink: 0;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: transparent;
+
+  color: var(--text-muted);
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+
+.full-player-favorite:hover {
+  color: rgba(255, 255, 255, 0.85);
+
+  background: rgba(255, 255, 255, 0.055);
+}
+
+
+.full-player-favorite.active {
+  color: var(--musex-green);
+}
+
+
+.full-player-favorite svg {
+  width: 19px;
+  height: 19px;
+}
+
+
+/* =============================================================
+   PROGRESS
+============================================================= */
+
+.full-player-progress {
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+
+  margin-top: 24px;
+
+  gap: 12px;
+}
+
+
+.full-player-time {
+  flex-shrink: 0;
+
+  width: 45px;
+
+  color: color-mix(in srgb, var(--musex-accent) 58%, transparent);
+
+  font-family:
+    "Courier New",
+    "Lucida Console",
+    monospace;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  font-variant-numeric: tabular-nums;
+}
+
+
+.full-player-time:last-child {
+  text-align: right;
+}
+
+
+/* =============================================================
+   PROGRESS RANGE
+============================================================= */
+
+.full-player-progress-range {
+  --progress: 0%;
+
+  flex: 1;
+
+  height: 4px;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  border-radius: 999px;
+
+  background:
+    linear-gradient(
+      to right,
+      var(--musex-green) 0%,
+      var(--musex-green) var(--progress),
+      rgba(255, 255, 255, 0.10) var(--progress),
+      rgba(255, 255, 255, 0.10) 100%
+    );
+
+  cursor: pointer;
+}
+
+
+.full-player-progress-range::-webkit-slider-runnable-track {
+  height: 4px;
+
+  background: transparent;
+}
+
+
+.full-player-progress-range::-webkit-slider-thumb {
+  appearance: none;
+
+  width: 10px;
+  height: 10px;
+
+  margin-top: -3px;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: var(--musex-green);
+
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--musex-accent) 35%, transparent);
+}
+
+
+.full-player-progress-range::-moz-range-track {
+  height: 4px;
+
+  border: 0;
+
+  background: transparent;
+}
+
+
+.full-player-progress-range::-moz-range-progress {
+  height: 4px;
+
+  border-radius: 999px;
+
+  background: var(--musex-green);
+}
+
+
+.full-player-progress-range::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: var(--musex-green);
+}
+
+
+/* =============================================================
+   CONTROLS
+============================================================= */
+
+.full-player-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 18px;
+
+  margin-top: 26px;
+}
+
+
+.full-player-control {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 40px;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.46);
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+
+.full-player-control:hover {
+  color: rgba(255, 255, 255, 0.9);
+
+  background: rgba(255, 255, 255, 0.055);
+
+  transform: translateY(-1px);
+}
+
+
+.full-player-control.active {
+  color: var(--musex-green);
+}
+
+
+.full-player-control svg {
+  width: 18px;
+  height: 18px;
+}
+
+
+.full-player-play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 58px;
+  height: 58px;
+
+  margin: 0 8px;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: var(--musex-green);
+
+  color: #080908;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 7px 25px color-mix(in srgb, var(--musex-accent) 16%, transparent);
+
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+
+.full-player-play:hover {
+  transform: scale(1.055);
+
+  box-shadow:
+    0 8px 30px color-mix(in srgb, var(--musex-accent) 25%, transparent);
+}
+
+
+.full-player-play:active {
+  transform: scale(0.94);
+}
+
+
+.full-player-play svg {
+  width: 22px;
+  height: 22px;
+}
+
+
+/* =============================================================
+   REPEAT BADGE
+============================================================= */
+
+.full-repeat-badge {
+  position: absolute;
+
+  right: 3px;
+  bottom: 3px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 12px;
+  height: 12px;
+
+  border-radius: 3px;
+
+  background: var(--musex-green);
+
+  color: #080908;
+
+  font-family:
+    "Courier New",
+    monospace;
+
+  font-size: 7px;
+  font-weight: 900;
+}
+
+
+/* =============================================================
+   EXTRA
+============================================================= */
+
+.full-player-extra {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  margin-top: 22px;
+}
+
+
+.full-player-volume {
+  --volume: 100%;
+
+  width: 100px;
+  height: 4px;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  border-radius: 999px;
+
+  background:
+    linear-gradient(
+      to right,
+      var(--musex-green) 0%,
+      var(--musex-green) var(--volume),
+      rgba(255, 255, 255, 0.10) var(--volume),
+      rgba(255, 255, 255, 0.10) 100%
+    );
+
+  cursor: pointer;
+}
+
+
+.full-player-volume::-webkit-slider-runnable-track {
+  height: 4px;
+
+  background: transparent;
+}
+
+
+.full-player-volume::-webkit-slider-thumb {
+  appearance: none;
+
+  width: 8px;
+  height: 8px;
+
+  margin-top: -2px;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: var(--musex-green);
+}
+
+
+/* =============================================================
+   FULL PLAYER VISUALIZER
+============================================================= */
+
+.full-player-visualizer {
+  position: absolute;
+  inset: 72px 0 0;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  gap: 10px;
+
+  padding: 0 30px;
+
+  overflow: hidden;
+
+  opacity: 0.06;
+
+  pointer-events: none;
+
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 12%,
+    black 88%,
+    transparent
+  );
+
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 12%,
+    black 88%,
+    transparent
+  );
+}
+
+
+.full-visualizer-bar {
+  flex: 1;
+
+  max-width: 35px;
+
+  height: var(--bar-height);
+
+  background: var(--musex-green);
+
+  border-radius: 2px 2px 0 0;
+
+  transform-origin: bottom;
+
+  animation:
+    musexVisualizer
+    var(--bar-duration)
+    steps(6)
+    infinite alternate;
+
+  animation-delay: var(--bar-delay);
+}
+
+
+/* =============================================================
+   RESPONSIVE
+============================================================= */
+
+@media (max-width: 700px) {
+
+  .full-player-header {
+    padding: 0 16px;
+  }
+
+  .full-player-main {
+    width: calc(100% - 32px);
+
+    padding-top: 20px;
+  }
+
+  .full-player-cover {
+    width: min(330px, 55vh);
+  }
+
+  .full-player-text h1 {
+    font-size: 21px;
+  }
+
+  .full-player-controls {
+    gap: 8px;
+  }
+}
+
+
+@media (max-height: 700px) {
+
+  .full-player-main {
+    padding-top: 10px;
+    padding-bottom: 20px;
+  }
+
+  .full-player-cover {
+    width: min(280px, 42vh);
+  }
+
+  .full-player-info {
+    margin-top: 18px;
+  }
+
+  .full-player-progress {
+    margin-top: 16px;
+  }
+
+  .full-player-controls {
+    margin-top: 16px;
+  }
+
+  .full-player-extra {
+    margin-top: 10px;
+  }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+
+  .full-player-close,
+  .full-player-control,
+  .full-player-play,
+  .full-player-favorite {
+    transition: none;
+  }
+
+  .full-player-playing span,
+  .full-visualizer-bar {
+    animation: none;
+  }
+}
+
+/* =============================================================
+   RETRO EQUALIZER
+============================================================= */
+
+@keyframes musexVisualizer {
+
+  0% {
+    transform: scaleY(0.15);
+  }
+
+  20% {
+    transform: scaleY(0.55);
+  }
+
+  40% {
+    transform: scaleY(0.25);
+  }
+
+  60% {
+    transform: scaleY(0.85);
+  }
+
+  80% {
+    transform: scaleY(0.45);
+  }
+
+  100% {
+    transform: scaleY(1);
+  }
+
+}
+
+/* =============================================================
+   PLAYER CONTENT ABOVE THE VISUALIZER
+============================================================= */
+
+.bottom-controls,
+.bottom-progress {
+  position: relative;
+  z-index: 1;
+}
+
+/* =============================================================
+   ANIMATIONS
+============================================================= */
+
+@keyframes bottom-equalizer {
+  0% {
+    transform: scaleY(0.45);
+  }
+
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+
+@keyframes favorite-pop {
+  0% {
+    transform: scale(0.75);
+  }
+
+  65% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+
+@keyframes player-pulse {
+  0% {
+    opacity: 0.65;
+    transform: scale(0.96);
+  }
+
+  70% {
+    opacity: 0;
+    transform: scale(1.14);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.14);
+  }
+}
+
+
+/* =============================================================
+   RESPONSIVE — 1200px
+============================================================= */
+
+@media (max-width: 1200px) {
+
+  .bottom-player-content {
+    gap: 16px;
+
+    padding: 0 15px;
+  }
+
+  .bottom-extra {
+    width: 150px;
+    min-width: 150px;
+  }
+
+  .volume-range {
+    width: 55px;
+  }
+
+  .bottom-progress {
+    max-width: 560px;
+  }
+}
+
+
+/* =============================================================
+   RESPONSIVE — 1000px
+============================================================= */
+
+@media (max-width: 1000px) {
+
+  .bottom-player-content {
+    gap: 13px;
+  }
+
+  .bottom-current {
+    width: 230px;
+    min-width: 230px;
+  }
+
+  .bottom-cover {
+    width: 54px;
+    height: 54px;
+  }
+
+  .bottom-title {
+    font-size: 14px;
+  }
+
+  .bottom-artist {
+    font-size: 11px;
+  }
+
+  .bottom-extra {
+    width: 105px;
+    min-width: 105px;
+  }
+
+  .bottom-extra .bottom-control:last-child {
+    display: none;
+  }
+
+  .volume-range {
+    width: 45px;
+  }
+
+  .bottom-controls {
+    gap: 7px;
+  }
+
+  .bottom-control {
+    width: 32px;
+    height: 32px;
+  }
+
+  .bottom-control svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .bottom-play {
+    width: 40px;
+    height: 40px;
+  }
+
+  .bottom-play svg {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+
+/* =============================================================
+   RESPONSIVE — 800px
+============================================================= */
+
+@media (max-width: 800px) {
+
+  .bottom-player-content {
+    gap: 12px;
+
+    padding: 0 12px;
+  }
+
+  .bottom-current {
+    width: 180px;
+    min-width: 180px;
+  }
+
+  .bottom-cover {
+    width: 50px;
+    height: 50px;
+
+    border-radius: 9px;
+  }
+
+  .bottom-title {
+    font-size: 13px;
+  }
+
+  .bottom-artist {
+    margin-top: 4px;
+
+    font-size: 11px;
+  }
+
+  .bottom-favorite {
+    display: none;
+  }
+
+  .bottom-extra {
+    display: none;
+  }
+
+  .bottom-controls {
+    gap: 6px;
+  }
+
+  .bottom-control {
+    width: 31px;
+    height: 31px;
+  }
+
+  .bottom-control svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .bottom-play {
+    width: 39px;
+    height: 39px;
+
+    margin: 0 2px;
+  }
+
+  .bottom-play svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .bottom-progress {
+    max-width: 100%;
+  }
+
+  .player-time {
+    width: 43px;
+
+    font-size: 13px;
+  }
+
+  .repeat-mode-badge {
+    right: 1px;
+    bottom: 0;
+
+    width: 10px;
+    height: 10px;
+
+    font-size: 6px;
+  }
+}
+
+
+/* =============================================================
+   RESPONSIVE — 650px
+============================================================= */
+
+/*
+ * En pantallas pequeñas el Bottom Player deja de ser útil
+ * como barra completa y se oculta para dejar espacio a la UI.
+ */
+
+@media (max-width: 650px) {
+
+  .bottom-player {
+    display: none;
+  }
+}
+
+
+/* =============================================================
+   REDUCED MOTION
+============================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .bottom-cover img,
+  .bottom-favorite,
+  .bottom-favorite svg,
+  .bottom-control,
+  .bottom-control svg,
+  .bottom-play,
+  .bottom-play svg,
+  .player-progress::-webkit-slider-thumb,
+  .volume-range::-webkit-slider-thumb {
+    transition: none;
+  }
+
+  .bottom-playing-indicator span,
+  .bottom-favorite.active svg,
+  .bottom-play.playing::before {
+    animation: none;
+  }
+}

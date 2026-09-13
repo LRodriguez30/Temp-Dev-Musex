@@ -1,0 +1,45 @@
+<article
+  class="card group min-w-0 cursor-pointer rounded-xl border border-transparent bg-[#151719] p-3 transition-ui"
+  (click)="selectPlaylist()"
+>
+  <!-- Portada -->
+  <div class="relative aspect-square overflow-hidden rounded-lg bg-[#1b1d20]">
+
+    @if (playlist.coverType === 'image' && playlist.image) {
+
+      <img [src]="playlist.image" [alt]="playlist.name" class="h-full w-full object-cover" />
+
+    } @else {
+
+      <div class="flex h-full w-full items-center justify-center" [style.background]="(playlist.coverColor || 'var(--musex-accent)') + '1a'">
+        <svg viewBox="0 0 24 24" class="h-10 w-10" fill="none" [attr.stroke]="playlist.coverColor || 'var(--musex-accent)'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path [attr.d]="getIconPath(playlist.coverIcon)"></path>
+        </svg>
+      </div>
+
+    }
+
+    <!-- Botón de reproducción -->
+    <button
+      type="button"
+      class="absolute bottom-2 right-2 flex h-10 w-10 translate-y-1 items-center justify-center rounded-full bg-[var(--musex-accent)] text-black opacity-0 shadow-lg transition-ui group-hover:translate-y-0 group-hover:opacity-100"
+      aria-label="Reproducir playlist"
+      (click)="$event.stopPropagation(); selectPlaylist()"
+    >
+      <svg viewBox="0 0 24 24" class="ml-0.5 h-5 w-5" fill="currentColor" aria-hidden="true">
+        <path d="M8 5.5v13l10-6.5z"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Información -->
+  <div class="min-w-0 px-0.5 pt-3">
+    <h3 class="truncate text-sm font-semibold text-white">
+      {{ playlist.name }}
+    </h3>
+
+    <p class="mt-1 truncate text-xs text-zinc-400">
+      {{ playlist.count }} {{ playlist.count === 1 ? 'canción' : 'canciones' }}
+    </p>
+  </div>
+</article>

@@ -1,0 +1,81 @@
+<!-- ============================================================
+     MUSEX - ROOT COMPONENT
+     Punto de entrada visual de la aplicación Angular.
+     
+     El contenido de la aplicación se determina mediante el
+     sistema de enrutamiento.
+============================================================= -->
+
+<!-- ============================================================
+     MUSEX - AUDIO TEST
+     ------------------------------------------------------------
+     Vista temporal para comprobar la comunicación:
+
+     Angular
+        ↓
+     Tauri
+        ↓
+     Rust
+        ↓
+     Rodio
+        ↓
+     Dispositivo de audio
+============================================================= -->
+
+<!-- <div class="flex min-h-screen items-center justify-center bg-[#0d0e10] p-6">
+  <section class="w-full max-w-md rounded-2xl border border-[#292b2f] bg-[#111214] p-6">
+
+    <div class="mb-6">
+      <p class="text-xs font-medium uppercase tracking-wider text-[var(--musex-accent)]">
+        Musex
+      </p>
+
+      <h1 class="mt-2 text-2xl font-semibold text-white">
+        Prueba de reproducción
+      </h1>
+
+      <p class="mt-2 text-sm text-zinc-400">
+        Prueba temporal del reproductor de audio mediante Tauri y Rodio.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+
+      <button
+        type="button"
+        class="rounded-xl bg-[var(--musex-accent)] px-4 py-3 text-sm font-semibold text-black transition-ui hover:brightness-110"
+        (click)="play()"
+      >
+        Reproducir
+      </button>
+
+      <button
+        type="button"
+        class="rounded-xl border border-[#292b2f] bg-[#18191c] px-4 py-3 text-sm font-medium text-white transition-ui hover:bg-[#202125]"
+        (click)="pause()"
+      >
+        Pausar
+      </button>
+
+      <button
+        type="button"
+        class="rounded-xl border border-[#292b2f] bg-[#18191c] px-4 py-3 text-sm font-medium text-white transition-ui hover:bg-[#202125]"
+        (click)="resume()"
+      >
+        Reanudar
+      </button>
+
+      <button
+        type="button"
+        class="rounded-xl border border-[#292b2f] bg-[#18191c] px-4 py-3 text-sm font-medium text-white transition-ui hover:bg-[#202125]"
+        (click)="stop()"
+      >
+        Detener
+      </button>
+
+    </div>
+
+  </section>
+</div> -->
+
+<router-outlet></router-outlet>

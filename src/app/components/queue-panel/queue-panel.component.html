@@ -1,0 +1,245 @@
+@if (queuePanelService.open()) {
+<div class="fixed inset-x-0 bottom-[88px] top-0 z-[60] overflow-hidden bg-[#0d0e10]"
+    (click)="handleBackdropClick($event)">
+    <aside class="relative flex h-full w-full flex-col overflow-hidden bg-[#0d0e10]">
+
+        <!-- =========================================================
+           FONDO AMBIENTAL
+           Capa tenue para evitar un fondo completamente plano.
+           Las formas principales permanecen detrás del contenido.
+      ========================================================== -->
+
+        <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+
+            <!-- Luz ambiental izquierda -->
+            <div class="absolute -left-32 top-[18%] h-[520px] w-[520px] rounded-full bg-[var(--musex-accent)]/[0.012] blur-3xl">
+            </div>
+
+            <!-- Luz ambiental derecha -->
+            <div class="absolute -right-40 bottom-[8%] h-[500px] w-[500px] rounded-full bg-[var(--musex-accent)]/[0.01] blur-3xl">
+            </div>
+
+            <!-- Variación tonal central -->
+            <div
+                class="absolute left-1/2 top-[35%] h-[420px] w-[700px] -translate-x-1/2 rounded-full bg-white/[0.008] blur-3xl">
+            </div>
+
+
+            <!-- =====================================================
+             ILUSTRACIÓN IZQUIERDA
+        ====================================================== -->
+
+            <div
+                class="absolute -left-[170px] top-[18%] h-[520px] w-[520px] rounded-full border-[2px] border-[var(--musex-accent)]/[0.055]">
+            </div>
+
+            <div
+                class="absolute -left-[125px] top-[25%] h-[430px] w-[430px] rounded-full border border-[var(--musex-accent)]/[0.035]">
+            </div>
+
+            <div class="absolute -left-[75px] top-[32%] h-[330px] w-[330px] rounded-full border border-white/[0.025]">
+            </div>
+
+            <!-- Agujero central -->
+            <div
+                class="absolute left-[48px] top-[calc(18%+226px)] h-16 w-16 rounded-full border border-[var(--musex-accent)]/[0.045]">
+            </div>
+
+            <!-- Brazo del tocadiscos -->
+            <div class="absolute left-[135px] top-[22%] h-[230px] w-px origin-top rotate-[28deg] bg-[var(--musex-accent)]/[0.055]">
+            </div>
+
+            <div class="absolute left-[246px] top-[34%] h-3 w-3 rounded-full border border-[var(--musex-accent)]/[0.08]"></div>
+
+
+            <!-- Notas musicales -->
+            <div class="absolute left-[8%] top-[12%] text-[150px] font-light leading-none text-[var(--musex-accent)]/[0.045]">
+                ♪
+            </div>
+
+            <div class="absolute bottom-[15%] left-[13%] text-[110px] font-light leading-none text-[var(--musex-accent)]/[0.035]">
+                ♫
+            </div>
+
+
+            <!-- =====================================================
+             ILUSTRACIÓN DERECHA
+        ====================================================== -->
+
+            <div
+                class="absolute -right-[100px] top-[14%] h-[360px] w-[360px] rotate-[18deg] border-2 border-[var(--musex-accent)]/[0.045]">
+            </div>
+
+            <div class="absolute -right-[40px] top-[20%] h-[290px] w-[290px] rotate-[18deg] border border-white/[0.03]">
+            </div>
+
+            <div
+                class="absolute right-[7%] top-[25%] h-[190px] w-[190px] rotate-[18deg] border border-[var(--musex-accent)]/[0.035]">
+            </div>
+
+
+            <!-- Disco derecho -->
+            <div
+                class="absolute -right-[190px] bottom-[4%] h-[510px] w-[510px] rounded-full border-[2px] border-[var(--musex-accent)]/[0.045]">
+            </div>
+
+            <div
+                class="absolute -right-[145px] bottom-[10%] h-[410px] w-[410px] rounded-full border border-[var(--musex-accent)]/[0.03]">
+            </div>
+
+            <!-- Nota derecha -->
+            <div class="absolute bottom-[18%] right-[10%] text-[150px] font-light leading-none text-[var(--musex-accent)]/[0.04]">
+                ♪
+            </div>
+
+
+            <!-- Trazos musicales -->
+            <div class="absolute left-[4%] top-[70%] h-px w-[260px] rotate-[22deg] bg-[var(--musex-accent)]/[0.055]"></div>
+
+            <div class="absolute right-[4%] top-[64%] h-px w-[280px] -rotate-[24deg] bg-[var(--musex-accent)]/[0.045]"></div>
+
+            <!-- Detalles geométricos -->
+            <div class="absolute left-[24%] top-[17%] h-4 w-4 rotate-45 border border-[var(--musex-accent)]/[0.06]"></div>
+
+            <div class="absolute bottom-[20%] right-[25%] h-5 w-5 rotate-45 border border-[var(--musex-accent)]/[0.05]"></div>
+
+        </div>
+
+
+        <!-- =========================================================
+           ENCABEZADO
+      ========================================================== -->
+
+        <header
+            class="relative z-10 flex h-[76px] shrink-0 items-center justify-between border-b border-white/[0.08] bg-[#0d0e10]/90 px-4 backdrop-blur-sm sm:px-6 md:px-8">
+
+            <div class="flex min-w-0 items-center gap-4">
+
+                <!-- Icono principal -->
+                <div
+                    class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.045] text-white/75">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg>
+                </div>
+
+
+                <!-- Títulos -->
+                <div class="min-w-0">
+
+                    <h2 class="truncate text-[17px] font-semibold tracking-[-0.01em] text-white">
+                        Cola de reproducción
+                    </h2>
+
+                    <p class="mt-1 text-[12px] font-normal tracking-wide text-white/45">
+                        Canciones en espera
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+             CERRAR
+        ====================================================== -->
+
+            <button type="button"
+                class="icon-btn flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-transparent text-white/55 transition-ui hover:border-white/[0.08] hover:bg-white/[0.04] hover:text-white focus:border-white/[0.08] focus:bg-white/[0.04] focus:text-white"
+                title="Cerrar cola" aria-label="Cerrar cola" (click)="close()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+
+        </header>
+
+
+        <!-- =========================================================
+           CONTENIDO
+      ========================================================== -->
+
+        <div class="scroll-area relative z-10 min-h-0 flex-1 overflow-y-auto">
+
+            <div class="mx-auto w-full max-w-[1100px] px-4 py-7 sm:px-6 md:px-8 md:py-9">
+
+                <!-- Título de sección -->
+                <div class="queue-page-heading mb-6 px-2">
+
+                    <div>
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--musex-accent)]/55">
+                            En cola
+                        </p>
+
+                        <p class="mt-1.5 text-[13px] text-white/35">
+                            Orden de reproducción
+                        </p>
+                    </div>
+
+                    <div class="queue-page-indicator">
+                        <span class="queue-page-indicator-dot"></span>
+                        <span>Reproducción activa</span>
+                    </div>
+
+                </div>
+
+
+                <!-- =========================================================
+                    CONTENEDOR DE LA COLA
+                ========================================================== -->
+
+                <div class="queue-page-container">
+
+                    <!-- Acento superior -->
+                    <div
+                        class="queue-page-accent"
+                        aria-hidden="true"
+                    ></div>
+
+                    <!-- Brillo interior -->
+                    <div
+                        class="queue-page-inner-glow"
+                        aria-hidden="true"
+                    ></div>
+
+                    <!-- Encabezado de tabla -->
+                    <div class="queue-page-table-header">
+
+                        <span>
+                            #
+                        </span>
+
+                        <span>
+                            Canción
+                        </span>
+
+                        <span class="queue-header-duration">
+                            Duración
+                        </span>
+
+                        <span></span>
+
+                    </div>
+
+                    <!-- Cola -->
+                    <div class="queue-page-content">
+                        <app-queue></app-queue>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+</div>
+}

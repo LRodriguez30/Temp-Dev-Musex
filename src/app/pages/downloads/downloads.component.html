@@ -1,0 +1,412 @@
+<!-- =========================================================
+     DOWNLOADS VIEW
+     ---------------------------------------------------------
+     Gestión de descargas de Musex.
+
+     La vista coordina la interacción visual y delega
+     las operaciones en DownloadService.
+========================================================== -->
+
+<section class="view h-full overflow-y-auto scroll-area">
+
+  <div class="content-pad mx-auto max-w-[1060px] px-4 pb-12 pt-6 sm:px-7 sm:pt-8">
+
+    <!-- =======================================================
+         PAGE HEADER
+    ======================================================== -->
+
+    <header class="downloads-header flex items-start justify-between gap-4">
+
+      <div class="min-w-0">
+
+        <h1 class="text-[24px] font-semibold tracking-tight sm:text-[25px]">
+          Descargas
+        </h1>
+
+        <p class="mt-1 max-w-[620px] text-sm text-zinc-400">
+          Gestiona enlaces, conversiones y archivos descargados.
+        </p>
+
+      </div>
+
+
+      <!-- Configuración -->
+
+      <button type="button" class="
+          icon-btn transition-ui
+          rounded-full p-1 text-zinc-500
+        " aria-label="Configuración de descargas" title="Configuración de descargas" (click)="openDownloadSettings()">
+        <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"></circle>
+
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.6.24 1.01.83 1 1.51V11a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 0Z">
+          </path>
+        </svg>
+      </button>
+
+    </header>
+
+
+    <!-- =======================================================
+         URL DOWNLOADER
+    ======================================================== -->
+
+    <section
+      class="downloads-url-panel mt-7 overflow-hidden rounded-xl border border-[#292b30] bg-[#131517] p-4 sm:p-5">
+
+      <!-- Section header -->
+
+      <div class="downloads-section-header flex items-start gap-3">
+
+        <div
+          class="downloads-section-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--musex-accent-soft)] text-[var(--musex-accent)]">
+
+          <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3v12"></path>
+            <path d="m7 10 5 5 5-5"></path>
+            <path d="M5 21h14"></path>
+          </svg>
+
+        </div>
+
+        <div class="min-w-0">
+
+          <h2 class="text-base font-semibold">
+            Descargar desde URL
+          </h2>
+
+          <p class="mt-1 text-xs text-zinc-500">
+            Agrega un enlace de una fuente compatible.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           DOWNLOAD FORM
+      ====================================================== -->
+
+      <form class="downloads-url-form mt-5" (ngSubmit)="addDownload()">
+
+        <div class="flex flex-col gap-3 sm:flex-row">
+
+          <!-- URL input -->
+
+          <div class="relative min-w-0 flex-1">
+
+            <input [(ngModel)]="downloadUrl" name="downloadUrl" type="url" autocomplete="off" spellcheck="false"
+              placeholder="Pega aquí una URL..." aria-label="URL de descarga"
+              class="downloads-url-input min-w-0 w-full rounded-lg border border-[#303236] bg-[#0d0e10] px-4 py-3 text-sm text-white outline-none transition-ui placeholder:text-zinc-600 focus:border-[var(--musex-accent)]">
+
+          </div>
+
+
+          <!-- Descargar -->
+
+          <button type="submit" [disabled]="!downloadUrl.trim()"
+            class="downloads-submit transition-ui flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-[var(--musex-accent)] px-5 text-sm font-semibold text-black hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40">
+
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" aria-hidden="true">
+              <path d="M12 5v14"></path>
+              <path d="M5 12h14"></path>
+            </svg>
+
+            <span>
+              Descargar
+            </span>
+
+          </button>
+
+        </div>
+
+
+        <!-- ===================================================
+             URL STATUS
+        ==================================================== -->
+
+        @if (downloadUrl.trim()) {
+
+        @if (isValidDownloadUrl(downloadUrl.trim())) {
+
+        <div
+          class="downloads-url-status downloads-url-valid mt-3 flex items-center gap-2 text-xs text-[var(--musex-accent)]">
+
+          <span class="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--musex-accent-soft)]">
+
+            <svg viewBox="0 0 24 24" class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m5 12 4 4L19 6"></path>
+            </svg>
+
+          </span>
+
+          <span>
+            Fuente compatible detectada.
+          </span>
+
+        </div>
+
+        } @else {
+
+        <div class="downloads-url-status downloads-url-invalid mt-3 flex items-center gap-2 text-xs text-zinc-500">
+
+          <span class="flex h-5 w-5 items-center justify-center rounded-full border border-[#303236]">
+
+            <svg viewBox="0 0 24 24" class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 8v4"></path>
+              <path d="M12 16h.01"></path>
+              <circle cx="12" cy="12" r="9"></circle>
+            </svg>
+
+          </span>
+
+          <span>
+            Introduce una URL de YouTube o Newgrounds compatible.
+          </span>
+
+        </div>
+
+        }
+
+        }
+
+
+        <!-- ===================================================
+             SOURCE PRESETS
+        ==================================================== -->
+
+        <div class="downloads-presets mt-4 flex flex-wrap items-center gap-2">
+
+          <span class="mr-1 text-xs text-zinc-600">
+            Fuentes:
+          </span>
+
+
+          <!-- YouTube -->
+
+          <button type="button"
+            class="download-preset transition-ui rounded-full border border-[#292b30] bg-[#17191b] px-3 py-1.5 text-xs text-zinc-400 hover:border-[#3a3d42] hover:text-white"
+            title="Preparar enlace de YouTube" (click)="selectPreset('youtube')">
+            YouTube
+          </button>
+
+
+          <!-- Newgrounds -->
+
+          <button type="button"
+            class="download-preset transition-ui rounded-full border border-[#292b30] bg-[#17191b] px-3 py-1.5 text-xs text-zinc-400 hover:border-[#3a3d42] hover:text-white"
+            title="Preparar enlace de Newgrounds" (click)="selectPreset('newgrounds')">
+            Newgrounds
+          </button>
+
+        </div>
+
+      </form>
+
+    </section>
+
+
+    <!-- =======================================================
+         LOCAL FILE IMPORT
+    ======================================================== -->
+
+    <section class="downloads-import mt-5">
+
+      <app-drop-zone (filesSelected)="importFiles($event)"></app-drop-zone>
+
+    </section>
+
+
+    <!-- =======================================================
+         DOWNLOAD QUEUE
+    ======================================================== -->
+
+    <section class="downloads-queue mt-8">
+
+      <!-- Queue header -->
+
+      <div class="downloads-list-header mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+
+        <div class="min-w-0">
+
+          <div class="flex flex-wrap items-center gap-2">
+
+            <h2 class="text-[20px] font-semibold">
+              Cola de descargas
+            </h2>
+
+            @if (downloads().length > 0) {
+
+            <span
+              class="downloads-count rounded-full border border-[#292b30] bg-[#17191b] px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+              {{ downloads().length }}
+            </span>
+
+            }
+
+          </div>
+
+          <p class="mt-1 text-xs text-zinc-500">
+            {{ downloadSummary }}
+          </p>
+
+        </div>
+
+
+        <!-- Queue actions -->
+
+        <div class="downloads-actions flex flex-wrap items-center gap-2">
+
+          <button type="button" [disabled]="downloads().length === 0"
+            class="transition-ui rounded-lg border border-[#292b30] px-3 py-2 text-xs font-medium text-zinc-400 hover:border-[#3a3d42] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+            (click)="clearDownloads()">
+            Limpiar
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- Queue content -->
+
+      <div class="downloads-list space-y-3">
+
+        @if (downloads().length === 0) {
+
+        <!-- Empty queue -->
+
+        <div class="downloads-empty-state rounded-xl border border-[#202225] bg-[#111214] px-5 py-12 text-center">
+
+          <div
+            class="downloads-empty-icon mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-[#292b30] bg-[#17191b] text-zinc-600">
+
+            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3v12"></path>
+              <path d="m7 10 5 5 5-5"></path>
+              <path d="M5 21h14"></path>
+            </svg>
+
+          </div>
+
+          <p class="mt-3 text-sm font-medium text-zinc-400">
+            No hay descargas activas.
+          </p>
+
+          <p class="mt-1 text-xs text-zinc-600">
+            Agrega una URL para comenzar una nueva descarga.
+          </p>
+
+        </div>
+
+        } @else {
+
+        @for (download of downloads(); track download.id) {
+
+        <app-download-item [download]="download" (pause)="togglePause($event)"
+          (cancel)="cancelDownload($event)"></app-download-item>
+
+        }
+
+        }
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         COMPLETED DOWNLOADS
+    ======================================================== -->
+
+    <section class="downloads-completed mt-10">
+
+      <!-- Completed header -->
+
+      <div class="downloads-list-header mb-4 flex flex-col gap-1">
+
+        <div class="flex flex-wrap items-center gap-2">
+
+          <h2 class="text-[20px] font-semibold">
+            Descargas completadas
+          </h2>
+
+          @if (completedDownloads().length > 0) {
+
+          <span
+            class="downloads-count rounded-full border border-[#292b30] bg-[#17191b] px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+            {{ completedDownloads().length }}
+          </span>
+
+          }
+
+        </div>
+
+        <p class="text-xs text-zinc-500">
+          Archivos que ya están disponibles localmente.
+        </p>
+
+      </div>
+
+
+      <!-- Completed files -->
+
+      <div class="downloads-list space-y-3">
+
+        @if (completedDownloads().length === 0) {
+
+        <!-- Empty completed state -->
+
+        <div class="downloads-empty-state rounded-xl border border-[#202225] bg-[#111214] px-5 py-12 text-center">
+
+          <div
+            class="downloads-empty-icon mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-[#292b30] bg-[#17191b] text-zinc-600">
+
+            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12.5 9 16l10-10"></path>
+              <path d="M5 21h14"></path>
+            </svg>
+
+          </div>
+
+          <p class="mt-3 text-sm font-medium text-zinc-400">
+            Todavía no hay descargas completadas.
+          </p>
+
+          <p class="mt-1 text-xs text-zinc-600">
+            Los archivos terminados aparecerán aquí.
+          </p>
+
+        </div>
+
+        } @else {
+
+        @for (
+        download of completedDownloads();
+        track download.id
+        ) {
+
+        <app-completed-download [download]="download" (play)="playCompleted($event)"
+          (openLocation)="openCompletedLocation($event)" (remove)="removeCompleted($event)"
+          (addToLibrary)="addToLibrary($event)"></app-completed-download>
+
+        }
+
+        }
+
+      </div>
+
+    </section>
+
+  </div>
+
+</section>

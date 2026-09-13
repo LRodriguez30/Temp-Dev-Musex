@@ -1,0 +1,224 @@
+<!-- =========================================================
+     DOWNLOAD ITEM
+     ---------------------------------------------------------
+     Representa una descarga individual dentro de la cola.
+
+     El progreso y la etapa son proporcionados por
+     DownloadService a partir de los eventos enviados
+     por Rust/Tauri.
+========================================================== -->
+
+<article
+  class="download-item group flex min-w-0 flex-col gap-4 border-b border-[#202225] py-4 sm:flex-row sm:items-center"
+>
+
+  <!-- =======================================================
+       INFORMACIÓN DE LA DESCARGA
+  ======================================================== -->
+
+  <div class="flex min-w-0 flex-1 items-center gap-3">
+
+    <!-- Icono de descarga -->
+
+    <div
+      class="download-item-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#292b30] bg-[#17191b] text-zinc-500 transition-ui group-hover:border-[var(--musex-accent)]/25 group-hover:bg-[var(--musex-accent-soft)] group-hover:text-[var(--musex-accent)]"
+    >
+
+      <svg
+        viewBox="0 0 24 24"
+        class="h-5 w-5"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M12 3v12"></path>
+        <path d="m7 10 5 5 5-5"></path>
+        <path d="M5 21h14"></path>
+      </svg>
+
+    </div>
+
+
+    <!-- Nombre y proveedor -->
+
+    <div class="min-w-0 flex-1">
+
+      <p
+        class="truncate text-sm font-medium text-white transition-ui group-hover:text-[var(--musex-accent)]"
+        [title]="download.title"
+      >
+        {{ download.title }}
+      </p>
+
+      <p
+        class="mt-1 truncate text-xs text-zinc-500"
+        [title]="download.provider | titlecase"
+      >
+        {{ download.provider | titlecase }}
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- =======================================================
+       ESTADO Y PROGRESO
+  ======================================================== -->
+
+  <div
+    class="w-full min-w-0 sm:w-[260px] sm:shrink-0"
+  >
+
+    <!-- Estado general y porcentaje -->
+
+    <div
+      class="mb-1.5 flex items-center justify-between gap-3"
+    >
+
+      <span
+        class="truncate text-xs text-zinc-400"
+        [title]="stageLabel"
+      >
+        {{ stageLabel }}
+      </span>
+
+      <span
+        class="shrink-0 font-mono text-[11px] tabular-nums text-zinc-500"
+      >
+        {{ download.progress | number:'1.0-1' }}%
+      </span>
+
+    </div>
+
+
+    <!-- Barra de progreso -->
+
+    <div
+      class="progress h-1.5 w-full overflow-hidden rounded-full bg-[#292b2f]"
+      role="progressbar"
+      [attr.aria-valuenow]="download.progress"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      [attr.aria-label]="'Progreso de ' + download.title"
+    >
+
+      <span
+        class="block h-full rounded-full bg-[var(--musex-accent)] transition-[width] duration-200"
+        [style.width.%]="download.progress"
+      ></span>
+
+    </div>
+
+
+    <!-- Estado general -->
+
+    <p
+      class="mt-1.5 truncate text-[11px] text-zinc-600"
+      [title]="statusLabel"
+    >
+      {{ statusLabel }}
+    </p>
+
+  </div>
+
+
+  <!-- =======================================================
+       ACCIONES
+  ======================================================== -->
+
+  <div
+    class="flex shrink-0 items-center justify-end gap-1"
+  >
+
+    <!-- Pausar / reanudar -->
+
+    @if (canPause) {
+
+      <button
+        type="button"
+        class="download-action icon-btn flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-ui"
+        [attr.aria-label]="pauseLabel"
+        [attr.title]="pauseLabel"
+        (click)="togglePause()"
+      >
+
+        @if (download.status === 'paused') {
+
+          <!-- Reanudar -->
+
+          <svg
+            viewBox="0 0 24 24"
+            class="h-4 w-4"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M8 5.5v13l10-6.5z"></path>
+          </svg>
+
+        } @else {
+
+          <!-- Pausar -->
+
+          <svg
+            viewBox="0 0 24 24"
+            class="h-4 w-4"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <rect
+              x="6"
+              y="5"
+              width="4"
+              height="14"
+              rx="1"
+            ></rect>
+
+            <rect
+              x="14"
+              y="5"
+              width="4"
+              height="14"
+              rx="1"
+            ></rect>
+          </svg>
+
+        }
+
+      </button>
+
+    }
+
+
+    <!-- Cancelar -->
+
+    <button
+      type="button"
+      class="download-action icon-btn flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-ui"
+      aria-label="Cancelar descarga"
+      title="Cancelar descarga"
+      (click)="cancelDownload()"
+    >
+
+      <svg
+        viewBox="0 0 24 24"
+        class="h-4 w-4"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M18 6 6 18"></path>
+        <path d="m6 6 12 12"></path>
+      </svg>
+
+    </button>
+
+  </div>
+
+</article>

@@ -1,0 +1,126 @@
+<!-- =========================================================
+     HISTORY VIEW
+     ---------------------------------------------------------
+     Historial de Musex: descargas persistidas y (próximamente)
+     actividad de reproducción.
+========================================================== -->
+
+<section class="view h-full overflow-y-auto scroll-area">
+  <div class="content-pad mx-auto max-w-[1060px] px-7 pb-12 pt-8">
+
+    <!-- =======================================================
+         HEADER
+    ======================================================== -->
+    <div class="flex items-end justify-between">
+
+      <div>
+        <h1 class="text-[25px] font-semibold tracking-tight">
+          Historial
+        </h1>
+
+        <p class="mt-1 text-sm text-zinc-400">
+          Descargas completadas anteriormente.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        [disabled]="downloadHistory().length === 0"
+        class="transition-ui flex h-10 items-center gap-2 rounded-lg border border-[#292b30] px-4 text-sm font-medium text-zinc-400 hover:border-[#3a3d42] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+        (click)="clearHistory()"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          class="h-[17px] w-[17px]"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M3 6h18"></path>
+          <path d="M8 6V4h8v2"></path>
+          <path d="M19 6l-1 15H6L5 6"></path>
+          <path d="M10 11v6"></path>
+          <path d="M14 11v6"></path>
+        </svg>
+
+        Borrar historial
+      </button>
+
+    </div>
+
+
+    <!-- =======================================================
+         HISTORY LIST
+    ======================================================== -->
+    <section class="mt-8">
+
+      @if (loading()) {
+
+        <div class="rounded-xl border border-[#292b30] bg-[#131517] px-5 py-12 text-center text-sm text-zinc-500">
+          Cargando historial...
+        </div>
+
+      } @else if (downloadHistory().length === 0) {
+
+        <div class="rounded-xl border border-[#202225] bg-[#111214] px-5 py-12 text-center">
+          <p class="text-sm font-medium text-zinc-400">
+            Todavía no hay descargas en el historial.
+          </p>
+          <p class="mt-1 text-xs text-zinc-600">
+            Las descargas completadas aparecerán aquí.
+          </p>
+        </div>
+
+      } @else {
+
+        <div class="divide-y divide-[#202225] overflow-hidden rounded-xl border border-[#292b30] bg-[#131517]">
+
+          @for (entry of downloadHistory(); track entry.id) {
+
+            <div class="flex items-center gap-3 px-4 py-3">
+
+              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--musex-accent-soft)] text-[var(--musex-accent)]">
+                <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 3v12"></path>
+                  <path d="m7 10 5 5 5-5"></path>
+                  <path d="M5 21h14"></path>
+                </svg>
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-medium text-white" [title]="entry.title">
+                  {{ entry.title }}
+                </p>
+                <p class="mt-0.5 truncate text-xs text-zinc-500">
+                  {{ entry.source | titlecase }} · {{ entry.completedAt | date:'d MMM, HH:mm' }}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                class="icon-btn flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-zinc-500 hover:text-white"
+                aria-label="Eliminar del historial"
+                title="Eliminar del historial"
+                (click)="removeEntry(entry.id)"
+              >
+                <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M18 6 6 18"></path>
+                  <path d="m6 6 12 12"></path>
+                </svg>
+              </button>
+
+            </div>
+
+          }
+
+        </div>
+
+      }
+
+    </section>
+
+  </div>
+</section>

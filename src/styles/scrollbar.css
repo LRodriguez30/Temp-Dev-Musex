@@ -1,0 +1,25 @@
+/* styles/_scrollbar.css */
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0d0e10;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--musex-accent) 35%, transparent);
+
+  border: 1px solid #0d0e10;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--musex-accent);
+}
+
+::-webkit-scrollbar-corner {
+  background: #0d0e10;
+}

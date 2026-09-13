@@ -1,0 +1,15 @@
+/*
+ * El modal utiliza los estilos globales de Musex para
+ * fondo, desenfoque, transiciones y apariencia general.
+ *
+ * Este archivo queda reservado para comportamientos específicos
+ * que no puedan resolverse mediante Tailwind CSS.
+ */
+
+/*
+ * Evita que el contenido del modal provoque un desplazamiento
+ * horizontal accidental en pantallas pequeñas.
+ */
+:host {
+  display: contents;
+}

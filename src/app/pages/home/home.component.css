@@ -1,0 +1,25 @@
+/* =============================================================
+   RECENTLY PLAYED
+============================================================= */
+
+.recently-played-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #292b30 transparent;
+}
+
+.recently-played-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.recently-played-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.recently-played-scroll::-webkit-scrollbar-thumb {
+  background: #292b30;
+  border-radius: 999px;
+}
+
+.recently-played-scroll::-webkit-scrollbar-thumb:hover {
+  background: #3a3d43;
+}

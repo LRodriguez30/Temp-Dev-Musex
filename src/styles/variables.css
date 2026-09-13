@@ -1,0 +1,19 @@
+/* styles/_variables.css */
+
+:root {
+  --musex-accent: var(--musex-accent);
+
+  --musex-ink: #0d0e10;
+  --musex-panel: #111214;
+  --musex-panel-2: #17191b;
+  --musex-line: #292b30;
+
+  --musex-text: #f5f5f5;
+
+  --musex-transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}

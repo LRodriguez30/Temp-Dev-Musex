@@ -1,0 +1,627 @@
+/* =============================================================
+   DOWNLOADS VIEW
+   -------------------------------------------------------------
+   Estilos generales de la vista de descargas de Musex.
+   La interfaz mantiene una estética oscura, limpia y técnica,
+   utilizando el verde Musex como color de interacción.
+============================================================= */
+
+:host {
+  --musex-green: var(--musex-accent, var(--musex-accent));
+
+  --downloads-bg: #0d0e10;
+  --downloads-panel: #131517;
+  --downloads-panel-soft: #111214;
+
+  --downloads-border: #292b30;
+  --downloads-border-soft: #202225;
+  --downloads-border-hover: #3a3d42;
+
+  --text-primary: rgba(255, 255, 255, 0.94);
+  --text-secondary: rgba(255, 255, 255, 0.55);
+  --text-muted: rgba(255, 255, 255, 0.32);
+
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+
+  font-family:
+    "Outfit",
+    "Inter",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+
+/* =============================================================
+   MAIN SCROLL AREA
+============================================================= */
+
+.view {
+  color: var(--text-primary);
+  background: var(--downloads-bg);
+}
+
+.scroll-area {
+  scrollbar-width: thin;
+  scrollbar-color: #292b30 transparent;
+}
+
+.scroll-area::-webkit-scrollbar {
+  width: 7px;
+}
+
+.scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-area::-webkit-scrollbar-thumb {
+  background: #292b30;
+  border-radius: 999px;
+}
+
+.scroll-area::-webkit-scrollbar-thumb:hover {
+  background: #3a3d42;
+}
+
+
+/* =============================================================
+   PAGE CONTENT
+============================================================= */
+
+.content-pad {
+  position: relative;
+}
+
+
+/* =============================================================
+   PAGE HEADER
+============================================================= */
+
+.content-pad > div:first-child {
+  position: relative;
+}
+
+.content-pad > div:first-child h1 {
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.content-pad > div:first-child p {
+  line-height: 1.5;
+}
+
+
+/* =============================================================
+   SETTINGS BUTTON
+============================================================= */
+
+.icon-btn {
+  border: 1px solid transparent;
+
+  background: transparent;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.icon-btn:hover {
+  border-color: var(--downloads-border);
+  background: #17191b;
+}
+
+.icon-btn:active {
+  transform: scale(0.94);
+}
+
+.icon-btn:focus-visible {
+  outline: none;
+
+  border-color: rgba(156, 255, 0, 0.55);
+
+  box-shadow:
+    0 0 0 3px rgba(156, 255, 0, 0.08);
+}
+
+
+/* =============================================================
+   URL DOWNLOADER
+============================================================= */
+
+.content-pad > section:first-of-type {
+  position: relative;
+
+  overflow: hidden;
+
+  border-color: var(--downloads-border);
+
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(
+        in srgb,
+        var(--musex-accent) 2.5%,
+        transparent
+      ),
+      transparent 38%
+    ),
+    var(--downloads-panel);
+
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.16);
+
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+
+/*
+ * Small Musex accent line.
+ * Keeps the section visually connected to the rest of the app.
+ */
+
+.content-pad > section:first-of-type::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 2px;
+
+  background: linear-gradient(
+    to right,
+    color-mix(
+      in srgb,
+      var(--musex-accent) 75%,
+      transparent
+    ),
+    color-mix(
+      in srgb,
+      var(--musex-accent) 16%,
+      transparent
+    ) 45%,
+    transparent 80%
+  );
+
+  opacity: 0.7;
+}
+
+
+/* =============================================================
+   DOWNLOAD ICON
+============================================================= */
+
+.content-pad > section:first-of-type .musex-accent-panel {
+  border: 1px solid rgba(156, 255, 0, 0.08);
+  box-shadow: inset 0 0 18px rgba(156, 255, 0, 0.025);
+}
+
+
+/* =============================================================
+   URL INPUT
+============================================================= */
+
+.content-pad input[name="downloadUrl"] {
+  min-height: 46px;
+
+  border-color: #303236;
+
+  background: #0d0e10;
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.content-pad input[name="downloadUrl"]:hover {
+  border-color: #383b40;
+}
+
+.content-pad input[name="downloadUrl"]:focus {
+  border-color: var(--musex-green);
+
+  background: #0f1012;
+
+  box-shadow:
+    0 0 0 3px rgba(156, 255, 0, 0.06),
+    0 0 20px rgba(156, 255, 0, 0.025);
+}
+
+.content-pad input[name="downloadUrl"]::selection {
+  color: #0d0e10;
+  background: var(--musex-green);
+}
+
+
+/* =============================================================
+   DOWNLOAD BUTTON
+============================================================= */
+
+.content-pad form button[type="submit"] {
+  min-height: 46px;
+
+  box-shadow:
+    0 4px 14px rgba(156, 255, 0, 0.08);
+
+  transition:
+    transform 160ms ease,
+    filter 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease;
+}
+
+.content-pad form button[type="submit"]:not(:disabled):hover {
+  filter: brightness(1.05);
+
+  box-shadow:
+    0 5px 18px rgba(156, 255, 0, 0.14);
+}
+
+.content-pad form button[type="submit"]:not(:disabled):active {
+  transform: translateY(1px) scale(0.985);
+}
+
+.content-pad form button[type="submit"]:focus-visible {
+  outline: none;
+
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--musex-accent) 12%, transparent),
+    0 5px 18px color-mix(in srgb, var(--musex-accent) 12%, transparent);
+}
+
+
+/* =============================================================
+   URL STATUS
+============================================================= */
+
+.content-pad form > div[class*="text-[var(--musex-accent)]"] {
+  animation: downloadStatusIn 180ms ease-out;
+}
+
+@keyframes downloadStatusIn {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =============================================================
+   SOURCE PRESETS
+============================================================= */
+
+.content-pad form button[type="button"] {
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+.content-pad form button[type="button"]:hover {
+  background: #1a1c1f;
+}
+
+.content-pad form button[type="button"]:active {
+  transform: translateY(1px);
+}
+
+.content-pad form button[type="button"]:focus-visible {
+  outline: none;
+
+  border-color: rgba(156, 255, 0, 0.4);
+
+  box-shadow:
+    0 0 0 3px rgba(156, 255, 0, 0.06);
+}
+
+
+/* =============================================================
+   DROP ZONE WRAPPER
+============================================================= */
+
+.content-pad > div.mt-5 {
+  position: relative;
+}
+
+
+/* =============================================================
+   DOWNLOAD SECTIONS
+============================================================= */
+
+.content-pad section h2 {
+  color: var(--text-primary);
+
+  line-height: 1.2;
+}
+
+.content-pad section h2 + p {
+  line-height: 1.5;
+}
+
+
+/* =============================================================
+   DOWNLOAD COUNTERS
+============================================================= */
+
+.content-pad section span.rounded-full {
+  font-family:
+    "Courier New",
+    "Lucida Console",
+    monospace;
+
+  letter-spacing: 0.03em;
+}
+
+
+/* =============================================================
+   CLEAR DOWNLOADS BUTTON
+============================================================= */
+
+.content-pad section button:not([type="submit"]) {
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+.content-pad section button:not([type="submit"]):hover:not(:disabled) {
+  background: #17191b;
+}
+
+.content-pad section button:not([type="submit"]):active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.content-pad section button:not([type="submit"]):focus-visible {
+  outline: none;
+
+  border-color: rgba(156, 255, 0, 0.4);
+
+  box-shadow:
+    0 0 0 3px rgba(156, 255, 0, 0.06);
+}
+
+
+/* =============================================================
+   EMPTY STATES
+============================================================= */
+
+.content-pad section .bg-\[\#111214\] {
+  position: relative;
+
+  overflow: hidden;
+
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.content-pad section .bg-\[\#111214\]:hover {
+  border-color: #25282c;
+}
+
+
+/*
+ * Subtle technical grid used only in empty states.
+ * It keeps large empty areas from feeling completely flat.
+ */
+
+.content-pad section .bg-\[\#111214\]::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  opacity: 0.18;
+
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px
+    );
+
+  background-size: 28px 28px;
+
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 30%,
+    black 70%,
+    transparent
+  );
+
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 30%,
+    black 70%,
+    transparent
+  );
+}
+
+
+/*
+ * Keep the empty-state content above the decorative grid.
+ */
+
+.content-pad section .bg-\[\#111214\] > * {
+  position: relative;
+  z-index: 1;
+}
+
+
+/* =============================================================
+   EMPTY STATE ICONS
+============================================================= */
+
+.content-pad section .bg-\[\#111214\] .bg-\[\#17191b\] {
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.content-pad section .bg-\[\#111214\]:hover .bg-\[\#17191b\] {
+  border-color: #34373c;
+
+  color: #70747b;
+
+  transform: translateY(-1px);
+}
+
+
+/* =============================================================
+   DOWNLOAD ITEM CONTAINERS
+============================================================= */
+
+.content-pad app-download-item,
+.content-pad app-completed-download {
+  display: block;
+}
+
+
+/* =============================================================
+   SECTION SEPARATION
+============================================================= */
+
+.content-pad > section:nth-of-type(2),
+.content-pad > section:nth-of-type(3) {
+  position: relative;
+}
+
+
+/*
+ * Very subtle separator before the download history.
+ */
+
+.content-pad > section:nth-of-type(3)::before {
+  content: "";
+
+  position: absolute;
+
+  top: -22px;
+  left: 0;
+  right: 0;
+
+  height: 1px;
+
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.055) 20%,
+    rgba(255, 255, 255, 0.055) 80%,
+    transparent
+  );
+}
+
+
+/* =============================================================
+   RESPONSIVE
+============================================================= */
+
+@media (max-width: 700px) {
+
+  .content-pad {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .content-pad > div:first-child h1 {
+    font-size: 23px;
+  }
+
+  .content-pad > section:first-of-type {
+    border-radius: 12px;
+  }
+
+}
+
+
+@media (max-width: 520px) {
+
+  .content-pad {
+    padding-top: 20px;
+    padding-bottom: 40px;
+  }
+
+  .content-pad > div:first-child {
+    gap: 12px;
+  }
+
+  .icon-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .content-pad > section:first-of-type {
+    padding: 16px;
+  }
+
+}
+
+
+@media (max-width: 420px) {
+
+  .content-pad {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .content-pad > div:first-child h1 {
+    font-size: 22px;
+  }
+
+  .content-pad > div:first-child p {
+    font-size: 13px;
+  }
+
+}
+
+
+/* =============================================================
+   REDUCED MOTION
+============================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .icon-btn,
+  .content-pad form button,
+  .content-pad form button[type="button"],
+  .content-pad section button,
+  .content-pad input,
+  .content-pad section .bg-\[\#111214\] .bg-\[\#17191b\] {
+    transition: none;
+  }
+
+  .content-pad form > div[class*="text-[var(--musex-accent)]"] {
+    animation: none;
+  }
+
+}

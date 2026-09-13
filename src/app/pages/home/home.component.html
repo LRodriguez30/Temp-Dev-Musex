@@ -1,0 +1,514 @@
+<!-- =========================================================
+     HOME VIEW
+     ---------------------------------------------------------
+     Vista principal de Musex.
+     Prioriza:
+     - Continuar escuchando
+     - Escuchado recientemente
+     - Playlists
+     - Recomendaciones personalizadas
+========================================================== -->
+
+<section class="view h-full overflow-y-auto scroll-area">
+  <div class="content-pad mx-auto max-w-[1060px] px-7 pb-12 pt-8">
+
+    <!-- =======================================================
+         HEADER
+    ======================================================== -->
+    <div class="flex items-end justify-between gap-4">
+
+      <div class="min-w-0">
+        <h1 class="text-[25px] font-semibold tracking-tight">
+          {{ getGreeting() }}
+        </h1>
+
+        <p class="mt-1 text-[15px] text-zinc-300">
+          ¿Qué quieres escuchar hoy?
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="transition-ui flex h-11 shrink-0 items-center gap-2 rounded-full bg-[var(--musex-accent)] px-5 text-sm font-semibold text-black hover:brightness-105"
+        (click)="playMix()"
+        aria-label="Reproducir mezcla aleatoria"
+      >
+        <!-- Shuffle -->
+        <svg
+          viewBox="0 0 24 24"
+          class="h-[18px] w-[18px]"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M16 3h5v5"></path>
+          <path d="M4 20 21 3"></path>
+          <path d="M21 16v5h-5"></path>
+          <path d="m15 15 6 6"></path>
+          <path d="m4 4 5 5"></path>
+        </svg>
+
+        Aleatorio
+      </button>
+
+    </div>
+
+
+    <!-- =======================================================
+         CONTINUE LISTENING
+    ======================================================== -->
+    <section class="mt-8">
+
+      <div class="mb-5 flex items-center justify-between gap-4">
+
+        <h2 class="text-[20px] font-semibold">
+          Continuar escuchando
+        </h2>
+
+        <button
+          type="button"
+          class="flex shrink-0 items-center gap-2 text-sm font-medium text-[var(--musex-accent)]"
+          data-action="continue-listening"
+        >
+          Ver todo
+
+          <!-- Chevron right -->
+          <svg
+            viewBox="0 0 24 24"
+            class="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m9 18 6-6-6-6"></path>
+          </svg>
+        </button>
+
+      </div>
+
+
+      <!--
+        Por ahora utilizamos la primera canción reciente
+        como punto de continuación.
+        Posteriormente esta sección puede utilizar el
+        estado real del reproductor.
+      -->
+      @if (continueListeningTrack) {
+
+        <app-song-card
+          [track]="continueListeningTrack"
+          [favorite]="isFavorite(continueListeningTrack.id)"
+          (play)="playTrack(continueListeningTrack.id)"
+          (favoriteToggle)="toggleFavorite(continueListeningTrack.id)"
+          (addToPlaylist)="openAddToPlaylist($event)"
+        ></app-song-card>
+
+      } @else {
+
+        <div
+          class="flex min-h-[150px] items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900/30"
+        >
+          <p class="text-sm text-zinc-500">
+            Empieza a reproducir música y aparecerá aquí.
+          </p>
+        </div>
+
+      }
+
+    </section>
+
+
+    <!-- =======================================================
+        RECENTLY PLAYED
+    ======================================================== -->
+    <section class="mt-10">
+
+      <!-- HEADER -->
+
+      <div class="mb-5 flex items-center justify-between gap-4">
+
+        <div class="min-w-0">
+
+          <h2 class="text-[20px] font-semibold">
+            Escuchado recientemente
+          </h2>
+
+          <p class="mt-1 truncate text-sm text-zinc-500">
+            Tus últimas canciones reproducidas
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="flex shrink-0 items-center gap-2 text-sm font-medium text-[var(--musex-accent)]"
+          data-action="see-recent"
+        >
+
+          Ver todo
+
+          <svg
+            viewBox="0 0 24 24"
+            class="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m9 18 6-6-6-6"></path>
+          </svg>
+
+        </button>
+
+      </div>
+
+
+      <!-- =====================================================
+          HORIZONTAL SCROLL
+      ====================================================== -->
+
+      @if (recentTracks.length > 0) {
+
+        <div
+          class="recently-played-scroll flex gap-4 overflow-x-auto pb-3"
+        >
+
+          @for (
+            track of recentTracks;
+            track track.id
+          ) {
+
+            <div
+              class="w-[280px] shrink-0 sm:w-[320px] lg:w-[350px]"
+            >
+
+              <app-song-card
+                [track]="track"
+                [favorite]="isFavorite(track.id)"
+                (play)="playTrack(track.id)"
+                (favoriteToggle)="toggleFavorite(track.id)"
+                (addToPlaylist)="openAddToPlaylist($event)"
+              ></app-song-card>
+
+            </div>
+
+          }
+
+        </div>
+
+      } @else {
+
+        <!-- EMPTY STATE -->
+
+        <div
+          class="flex min-h-[150px] items-center justify-center rounded-2xl border border-zinc-800 bg-[#111214] px-6 text-center"
+        >
+
+          <div>
+
+            <div
+              class="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-zinc-900 text-zinc-600"
+            >
+
+              <svg
+                viewBox="0 0 24 24"
+                class="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+
+                <path d="M9 18V5l12-2v13"></path>
+
+                <circle
+                  cx="6"
+                  cy="18"
+                  r="3"
+                ></circle>
+
+                <circle
+                  cx="18"
+                  cy="16"
+                  r="3"
+                ></circle>
+
+              </svg>
+
+            </div>
+
+            <p class="mt-3 text-sm text-zinc-500">
+              Todavía no has reproducido ninguna canción.
+            </p>
+
+          </div>
+
+        </div>
+
+      }
+
+    </section>
+
+
+    <!-- =======================================================
+         PLAYLISTS
+    ======================================================== -->
+    <section class="mt-10">
+
+      <div class="mb-5 flex items-center justify-between gap-4">
+
+        <h2 class="text-[20px] font-semibold">
+          Tus playlists
+        </h2>
+
+        <button
+          type="button"
+          class="flex shrink-0 items-center gap-2 text-sm font-medium text-[var(--musex-accent)]"
+          data-action="all-playlists"
+        >
+          Ver todo
+
+          <!-- Chevron right -->
+          <svg
+            viewBox="0 0 24 24"
+            class="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m9 18 6-6-6-6"></path>
+          </svg>
+        </button>
+
+      </div>
+
+
+      <div
+        class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+      >
+
+        @for (playlist of playlists(); track playlist.id) {
+
+          <app-playlist-card
+            [playlist]="playlist"
+          ></app-playlist-card>
+
+        }
+
+        @if (playlists().length === 0) {
+
+          <div class="col-span-full py-10 text-center">
+            <p class="text-sm text-zinc-500">
+              No hay playlists disponibles.
+            </p>
+          </div>
+
+        }
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         FOR YOU
+    ======================================================== -->
+    <section class="mt-10">
+
+      <div class="mb-5">
+
+        <h2 class="text-[20px] font-semibold">
+          Para ti
+        </h2>
+
+        <p class="mt-1 text-sm text-zinc-500">
+          Música basada en lo que escuchas
+        </p>
+
+      </div>
+
+
+      <div
+        class="grid grid-cols-1 gap-4 sm:grid-cols-2"
+      >
+
+        <!-- Descubrimiento -->
+        <app-recommendation-card
+          title="Descubrimiento"
+          subtitle="Canciones que podrían gustarte"
+          (open)="playMix()"
+        ></app-recommendation-card>
+
+
+        <!-- Sesión nocturna -->
+        <app-recommendation-card
+          title="Sesión nocturna"
+          subtitle="Una selección para escuchar con calma"
+          (open)="playMix()"
+        ></app-recommendation-card>
+
+      </div>
+
+    </section>
+
+  </div>
+</section>
+
+@if (trackForPlaylist) {
+
+  <div
+    class="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm"
+    (click)="closeAddToPlaylist()"
+  >
+
+    <div
+      class="w-full max-w-[420px] rounded-2xl border border-zinc-800 bg-[#111214] p-5 shadow-2xl"
+      (click)="$event.stopPropagation()"
+    >
+
+      <!-- Header -->
+      <div class="flex items-start justify-between gap-4">
+
+        <div class="min-w-0">
+
+          <h3 class="text-lg font-semibold">
+            Agregar a playlist
+          </h3>
+
+          <p class="mt-1 truncate text-sm text-zinc-500">
+            {{ trackForPlaylist.title }}
+          </p>
+
+        </div>
+
+        <button
+          type="button"
+          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-zinc-800 hover:text-white"
+          (click)="closeAddToPlaylist()"
+          aria-label="Cerrar"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M6 6l12 12"></path>
+            <path d="M18 6 6 18"></path>
+          </svg>
+        </button>
+
+      </div>
+
+
+      <!-- Playlists -->
+      <div class="mt-5 space-y-2">
+
+        @for (playlist of playlists(); track playlist.id) {
+
+          <button
+            type="button"
+            class="flex w-full items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-left transition hover:border-zinc-700 hover:bg-zinc-800"
+            (click)="addTrackToPlaylist(playlist.id)"
+          >
+
+            <!-- Playlist cover -->
+            <div
+              class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-800"
+            >
+
+              @if (playlist.image) {
+
+                <img
+                  [src]="playlist.image"
+                  [alt]="playlist.name"
+                  class="h-full w-full object-cover"
+                />
+
+              } @else {
+
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-5 w-5 text-zinc-500"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M9 18V5l12-2v13"></path>
+                  <circle cx="6" cy="18" r="3"></circle>
+                  <circle cx="18" cy="16" r="3"></circle>
+                </svg>
+
+              }
+
+            </div>
+
+
+            <!-- Information -->
+            <div class="min-w-0 flex-1">
+
+              <p class="truncate text-sm font-medium text-zinc-100">
+                {{ playlist.name }}
+              </p>
+
+              <p class="mt-0.5 text-xs text-zinc-500">
+                {{ playlist.count }} canciones
+              </p>
+
+            </div>
+
+
+            <!-- Chevron -->
+            <svg
+              viewBox="0 0 24 24"
+              class="h-4 w-4 shrink-0 text-zinc-600"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m9 18 6-6-6-6"></path>
+            </svg>
+
+          </button>
+
+        }
+
+        @if (playlists().length === 0) {
+
+          <div class="py-8 text-center">
+
+            <p class="text-sm text-zinc-500">
+              No tienes playlists disponibles.
+            </p>
+
+          </div>
+
+        }
+
+      </div>
+
+    </div>
+
+  </div>
+
+}

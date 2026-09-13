@@ -1,0 +1,19 @@
+/* styles/_utilities.css */
+
+.glass {
+  background: rgba(13, 14, 16, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.transition-ui {
+  transition: var(--musex-transition);
+}
+
+.hidden-view {
+  display: none !important;
+}
+
+.scroll-area {
+  scrollbar-gutter: stable;
+}

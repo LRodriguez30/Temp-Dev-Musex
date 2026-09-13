@@ -1,0 +1,496 @@
+<!-- =========================================================
+     MUSEX — FAVORITES VIEW
+     ---------------------------------------------------------
+     Colección dinámica de canciones favoritas.
+========================================================== -->
+
+<section
+  class="
+    view
+    h-full
+    overflow-y-auto
+    scroll-area
+  "
+>
+  <div
+    class="
+      content-pad
+      mx-auto
+      w-full
+      max-w-[1060px]
+      px-4
+      pb-10
+      pt-6
+      sm:px-6
+      sm:pt-8
+      lg:px-7
+    "
+  >
+
+    <!-- =======================================================
+         HEADER
+    ======================================================== -->
+
+    <header
+      class="
+        flex
+        flex-col
+        gap-5
+        sm:flex-row
+        sm:items-end
+        sm:justify-between
+      "
+    >
+
+      <!-- =====================================================
+           TITLE
+      ====================================================== -->
+
+      <div class="min-w-0">
+
+        <p
+          class="
+            text-[10px]
+            font-semibold
+            uppercase
+            tracking-[0.18em]
+            text-[var(--musex-accent)]
+            sm:text-xs
+          "
+        >
+          Colección
+        </p>
+
+        <h1
+          class="
+            mt-1.5
+            text-[24px]
+            font-semibold
+            tracking-tight
+            text-white
+            sm:mt-2
+            sm:text-[26px]
+          "
+        >
+          Favoritos
+        </h1>
+
+        <p
+          class="
+            mt-1
+            text-xs
+            text-zinc-500
+            sm:text-sm
+          "
+        >
+          {{ favoriteCount() }}
+
+          {{
+            favoriteCount() === 1
+              ? 'canción favorita'
+              : 'canciones favoritas'
+          }}
+        </p>
+
+      </div>
+
+
+      <!-- =====================================================
+           PLAY FAVORITES
+      ====================================================== -->
+
+      @if (favorites().length > 0) {
+
+        <button
+          type="button"
+          class="
+            transition-ui
+            flex
+            h-10
+            w-full
+            shrink-0
+            items-center
+            justify-center
+            gap-2
+            rounded-lg
+            bg-[var(--musex-accent)]
+            px-5
+            text-xs
+            font-bold
+            uppercase
+            tracking-[0.04em]
+            text-black
+            shadow-[0_0_18px_rgba(156,255,0,0.08)]
+            transition-all
+            hover:brightness-105
+            active:scale-[0.98]
+            sm:w-auto
+            sm:rounded-full
+            sm:text-sm
+            sm:normal-case
+            sm:tracking-normal
+          "
+          (click)="playFavorites()"
+        >
+
+          <svg
+            viewBox="0 0 24 24"
+            class="
+              h-[16px]
+              w-[16px]
+              shrink-0
+            "
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              d="M8 5.5v13L19 12 8 5.5Z"
+            ></path>
+          </svg>
+
+          <span>
+            Reproducir
+          </span>
+
+        </button>
+
+      }
+
+    </header>
+
+
+    <!-- =======================================================
+         FAVORITES CONTENT
+    ======================================================== -->
+
+    @if (favorites().length > 0) {
+
+      <section
+        class="
+          mt-7
+          sm:mt-8
+        "
+      >
+
+        <!-- ===================================================
+             TOOLBAR
+        ==================================================== -->
+
+        <div
+          class="
+            flex
+            flex-col
+            gap-3
+            border-b
+            border-[#292b30]
+            pb-3
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
+          "
+        >
+
+          <!-- =================================================
+               RESULT COUNT
+          ================================================== -->
+
+          <div
+            class="
+              flex
+              min-w-0
+              items-center
+              gap-2
+            "
+          >
+
+            <span
+              class="
+                font-mono
+                text-[9px]
+                font-bold
+                uppercase
+                tracking-[0.12em]
+                text-[var(--musex-accent)]/60
+              "
+            >
+              FAVORITES
+            </span>
+
+            <span
+              class="
+                h-1
+                w-1
+                rounded-full
+                bg-[#292b30]
+              "
+            ></span>
+
+            <span
+              class="
+                text-[11px]
+                text-zinc-500
+              "
+            >
+              {{ tracks.length }}
+
+              {{
+                tracks.length === 1
+                  ? 'canción'
+                  : 'canciones'
+              }}
+            </span>
+
+          </div>
+
+
+          <!-- =================================================
+               SORT
+          ================================================== -->
+
+          <div
+            class="
+              flex
+              w-full
+              items-center
+              justify-between
+              gap-2
+              sm:w-auto
+              sm:justify-end
+            "
+          >
+
+            <span
+              class="
+                text-[9px]
+                font-semibold
+                uppercase
+                tracking-[0.12em]
+                text-zinc-600
+              "
+            >
+              Ordenar por
+            </span>
+
+            <div class="relative">
+
+              <select
+                [(ngModel)]="sortBy"
+                class="
+                  h-9
+                  min-w-[125px]
+                  appearance-none
+                  rounded-lg
+                  border
+                  border-[#292b30]
+                  bg-[#131517]
+                  pl-3
+                  pr-8
+                  text-xs
+                  font-medium
+                  text-zinc-300
+                  outline-none
+                  transition
+                  hover:border-[#3a3d43]
+                  focus:border-[var(--musex-accent)]/40
+                  focus:ring-1
+                  focus:ring-[var(--musex-accent)]/10
+                "
+                aria-label="Ordenar favoritos"
+              >
+
+                <option
+                  value="title"
+                  class="bg-[#131517]"
+                >
+                  Título
+                </option>
+
+                <option
+                  value="artist"
+                  class="bg-[#131517]"
+                >
+                  Artista
+                </option>
+
+                <option
+                  value="recent"
+                  class="bg-[#131517]"
+                >
+                  Recientes
+                </option>
+
+              </select>
+
+
+              <!-- SELECT ARROW -->
+
+              <svg
+                viewBox="0 0 24 24"
+                class="
+                  pointer-events-none
+                  absolute
+                  right-2.5
+                  top-1/2
+                  h-3.5
+                  w-3.5
+                  -translate-y-1/2
+                  text-zinc-600
+                "
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                aria-hidden="true"
+              >
+                <path
+                  d="m7 9 5 5 5-5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></path>
+              </svg>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- ===================================================
+             MUSIC TABLE
+        ==================================================== -->
+
+        <div class="mt-3">
+
+          <app-music-table
+            [tracks]="tracks"
+            (play)="playTrack($event)"
+          ></app-music-table>
+
+        </div>
+
+      </section>
+
+    } @else {
+
+      <!-- =====================================================
+           EMPTY STATE
+      ====================================================== -->
+
+      <section
+        class="
+          mt-7
+          flex
+          min-h-[300px]
+          items-center
+          justify-center
+          rounded-xl
+          border
+          border-[#292b30]
+          bg-[#131517]
+          px-6
+          sm:mt-8
+          sm:min-h-[360px]
+        "
+      >
+
+        <div
+          class="
+            flex
+            w-full
+            max-w-[360px]
+            flex-col
+            items-center
+            text-center
+          "
+        >
+
+          <!-- =================================================
+               EMPTY STAR
+          ================================================== -->
+
+          <div
+            class="
+              flex
+              h-14
+              w-14
+              items-center
+              justify-center
+              rounded-2xl
+              border
+              border-[var(--musex-accent)]/10
+              bg-[var(--musex-accent)]/[0.06]
+              text-[var(--musex-accent)]
+              shadow-[0_0_24px_rgba(156,255,0,0.04)]
+            "
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              class="h-7 w-7"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+
+              <path
+                d="
+                  M12 2.5
+                  l2.94 5.95
+                  6.56.95
+                  -4.75 4.63
+                  1.12 6.54
+                  L12 17.48
+                  6.13 20.57
+                  7.25 14.03
+                  2.5 9.4
+                  9.06 8.45
+                  12 2.5Z
+                "
+              ></path>
+
+            </svg>
+
+          </div>
+
+
+          <!-- =================================================
+               EMPTY TITLE
+          ================================================== -->
+
+          <h2
+            class="
+              mt-5
+              text-base
+              font-semibold
+              text-white
+            "
+          >
+            Aún no tienes favoritos
+          </h2>
+
+
+          <!-- =================================================
+               EMPTY DESCRIPTION
+          ================================================== -->
+
+          <p
+            class="
+              mt-2
+              max-w-[320px]
+              text-xs
+              leading-6
+              text-zinc-500
+              sm:text-sm
+            "
+          >
+            Las canciones que marques con estrella
+            aparecerán aquí.
+          </p>
+
+        </div>
+
+      </section>
+
+    }
+
+  </div>
+</section>

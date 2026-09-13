@@ -1,0 +1,13 @@
+<!-- theme-settings-modal.component.html -->
+<app-modal [open]="true" title="Personalizar Musex" subtitle="Color de acento" (closed)="closed.emit()">
+
+  <label class="block">
+    <span class="text-xs font-medium uppercase tracking-wide text-zinc-500">Color de Musex</span>
+    <input type="color" [value]="theme().accentColor" (input)="setAccent($any($event.target).value)" class="mt-2 h-10 w-full rounded-lg" />
+  </label>
+
+  <button type="button" class="mt-5 w-full rounded-lg border border-[#292b30] py-2 text-sm text-zinc-400 hover:text-white" (click)="reset()">
+    Restaurar verde original
+  </button>
+
+</app-modal>

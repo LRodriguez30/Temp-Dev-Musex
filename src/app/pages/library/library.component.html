@@ -1,0 +1,600 @@
+<!-- =========================================================
+     LIBRARY VIEW
+     ---------------------------------------------------------
+     Biblioteca local de Musex.
+========================================================== -->
+
+<section
+  class="
+    view h-full overflow-y-auto scroll-area
+  "
+>
+
+  <div
+    class="
+      library-page mx-auto max-w-[1320px]
+      px-8 pb-16 pt-10
+    "
+  >
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header class="library-header">
+
+      <div class="library-heading">
+
+        <div class="library-eyebrow">
+
+          <span class="library-eyebrow-dot"></span>
+
+          <span>
+            COLECCIÓN LOCAL
+          </span>
+
+        </div>
+
+        <h1 class="library-title">
+          Biblioteca
+        </h1>
+
+        <p class="library-description">
+          Tu colección musical, organizada en un solo lugar.
+        </p>
+
+      </div>
+
+
+      <!-- IMPORT -->
+
+      <div class="library-import">
+
+        <button
+          type="button"
+          class="library-import-button"
+          (click)="selectMusicFiles()"
+          [disabled]="importing"
+        >
+
+          <span class="library-import-icon">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 3v12"></path>
+              <path d="m7 8 5-5 5 5"></path>
+              <path d="M5 21h14"></path>
+              <path d="M5 17v4"></path>
+              <path d="M19 17v4"></path>
+            </svg>
+
+          </span>
+
+          <span>
+            {{ importing ? 'Importando...' : 'Importar música' }}
+          </span>
+
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         ERROR DE ESCANEO
+    ====================================================== -->
+
+    @if (scanError) {
+
+      <div class="library-error">
+
+        <div class="library-error-icon">
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="9"
+            ></circle>
+
+            <path d="M12 8v4"></path>
+
+            <path d="M12 16h.01"></path>
+
+          </svg>
+
+        </div>
+
+        <div class="library-error-content">
+
+          <strong>
+            No se pudo actualizar la biblioteca
+          </strong>
+
+          <span>
+            {{ scanError }}
+          </span>
+
+        </div>
+
+        <button
+          type="button"
+          class="library-error-button"
+          (click)="scanLibrary()"
+          [disabled]="scanning"
+        >
+          Reintentar
+        </button>
+
+      </div>
+
+    }
+
+
+    <!-- =====================================================
+         LIBRARY OVERVIEW
+    ====================================================== -->
+
+    <section class="library-overview">
+
+
+      <!-- SONGS -->
+
+      <article
+        class="
+          library-stat
+          library-stat-featured
+        "
+      >
+
+        <div class="library-stat-top">
+
+          <span class="library-stat-label">
+            CANCIONES
+          </span>
+
+          <span class="library-stat-icon">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 18V5l10-2v13"></path>
+
+              <circle
+                cx="6"
+                cy="18"
+                r="3"
+              ></circle>
+
+              <circle
+                cx="16"
+                cy="16"
+                r="3"
+              ></circle>
+
+            </svg>
+
+          </span>
+
+        </div>
+
+        <p class="library-stat-value">
+          {{ libraryCount }}
+        </p>
+
+        <p class="library-stat-description">
+          pistas en tu biblioteca
+        </p>
+
+      </article>
+
+
+      <!-- FAVORITES -->
+
+      <article class="library-stat">
+
+        <div class="library-stat-top">
+
+          <span class="library-stat-label">
+            FAVORITOS
+          </span>
+
+          <span class="library-stat-icon">
+
+            <!-- STAR -->
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                d="
+                  M12 2.5
+                  l2.94 5.95
+                  6.56.95
+                  -4.75 4.63
+                  1.12 6.54
+                  L12 17.48
+                  6.13 20.57
+                  7.25 14.03
+                  2.5 9.4
+                  9.06 8.45
+                  12 2.5Z
+                "
+              ></path>
+            </svg>
+
+          </span>
+
+        </div>
+
+        <p class="library-stat-value">
+          {{ favoriteCount }}
+        </p>
+
+        <p class="library-stat-description">
+          canciones marcadas
+        </p>
+
+      </article>
+
+
+      <!-- PLAYLISTS -->
+
+      <article class="library-stat">
+
+        <div class="library-stat-top">
+
+          <span class="library-stat-label">
+            PLAYLISTS
+          </span>
+
+          <span class="library-stat-icon">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <line
+                x1="8"
+                y1="6"
+                x2="21"
+                y2="6"
+              ></line>
+
+              <line
+                x1="8"
+                y1="12"
+                x2="21"
+                y2="12"
+              ></line>
+
+              <line
+                x1="8"
+                y1="18"
+                x2="21"
+                y2="18"
+              ></line>
+
+              <line
+                x1="3"
+                y1="6"
+                x2="3.01"
+                y2="6"
+              ></line>
+
+              <line
+                x1="3"
+                y1="12"
+                x2="3.01"
+                y2="12"
+              ></line>
+
+              <line
+                x1="3"
+                y1="18"
+                x2="3.01"
+                y2="18"
+              ></line>
+
+            </svg>
+
+          </span>
+
+        </div>
+
+        <p class="library-stat-value">
+          {{ playlistCount }}
+        </p>
+
+        <p class="library-stat-description">
+          colecciones creadas
+        </p>
+
+      </article>
+
+
+      <!-- DOWNLOADS -->
+
+      <article class="library-stat">
+
+        <div class="library-stat-top">
+
+          <span class="library-stat-label">
+            DESCARGAS
+          </span>
+
+          <span class="library-stat-icon">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 3v12"></path>
+
+              <path d="m7 10 5 5 5-5"></path>
+
+              <path d="M5 21h14"></path>
+
+            </svg>
+
+          </span>
+
+        </div>
+
+        <p class="library-stat-value">
+          {{ downloadCount }}
+        </p>
+
+        <p class="library-stat-description">
+          archivos descargados
+        </p>
+
+      </article>
+
+    </section>
+
+
+    <!-- =====================================================
+         SONG LIBRARY
+    ====================================================== -->
+
+    <section class="library-section">
+
+
+      <!-- SECTION HEADER -->
+
+      <div class="library-section-header">
+
+        <div class="library-section-heading">
+
+          <div class="library-section-kicker">
+            TU COLECCIÓN
+          </div>
+
+          <h2 class="library-section-title">
+            Todas las canciones
+          </h2>
+
+          <p class="library-section-description">
+            Explora y reproduce tu colección local.
+          </p>
+
+        </div>
+
+
+        <!-- SORT -->
+
+        <div class="library-sort">
+
+          <span class="library-sort-label">
+            ORDENAR
+          </span>
+
+          <div class="library-select-wrapper">
+
+            <select
+              [(ngModel)]="sortBy"
+              class="library-select"
+              aria-label="Ordenar biblioteca"
+            >
+
+              <option value="title">
+                Título
+              </option>
+
+              <option value="artist">
+                Artista
+              </option>
+
+              <option value="recent">
+                Más recientes
+              </option>
+
+            </select>
+
+            <svg
+              class="library-select-arrow"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <polyline
+                points="6 9 12 15 18 9"
+              ></polyline>
+            </svg>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ===================================================
+           MUSIC TABLE
+      ==================================================== -->
+
+      <div class="library-table">
+
+        @if (tracks.length > 0) {
+
+          <app-music-table
+            [tracks]="tracks"
+            (play)="playTrack($event)"
+          ></app-music-table>
+
+        } @else {
+
+          <!-- EMPTY LIBRARY -->
+
+          <div class="library-empty">
+
+            <div class="library-empty-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M9 18V5l10-2v13"></path>
+
+                <circle
+                  cx="6"
+                  cy="18"
+                  r="3"
+                ></circle>
+
+                <circle
+                  cx="16"
+                  cy="16"
+                  r="3"
+                ></circle>
+
+              </svg>
+
+            </div>
+
+            <div class="library-empty-code">
+              SIN CANCIONES
+            </div>
+
+            <h3>
+              Tu biblioteca está vacía
+            </h3>
+
+            <p>
+              Importa algunos archivos de audio para comenzar
+              a construir tu colección local.
+            </p>
+
+            <button
+              type="button"
+              class="library-empty-button"
+              (click)="selectMusicFiles()"
+            >
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 3v12"></path>
+                <path d="m7 8 5-5 5 5"></path>
+                <path d="M5 21h14"></path>
+              </svg>
+
+              Importar música
+
+            </button>
+
+          </div>
+
+        }
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         DROP ZONE
+    ====================================================== -->
+
+    <section class="library-import-section">
+
+      <div class="library-import-header">
+
+        <div>
+
+          <div class="library-section-kicker">
+            LOCAL FILES
+          </div>
+
+          <h2>
+            Añadir música
+          </h2>
+
+          <p>
+            Arrastra tus archivos de audio aquí o selecciónalos
+            desde tu dispositivo.
+          </p>
+
+        </div>
+
+      </div>
+
+      <app-drop-zone
+        (filesSelected)="importFiles($event)"
+      ></app-drop-zone>
+
+    </section>
+
+  </div>
+
+</section>

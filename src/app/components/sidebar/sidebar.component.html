@@ -1,0 +1,527 @@
+<!-- ============================================================
+     MUSEX — SIDEBAR
+     ------------------------------------------------------------
+     Navegación principal de la aplicación.
+
+     La barra permanece fija entre la barra superior y el
+     reproductor inferior.
+
+     Comportamiento responsive:
+     - Escritorio: navegación completa con etiquetas y playlists.
+     - Tablet: navegación compacta basada principalmente en iconos.
+     - Móvil: la barra lateral desaparece para liberar espacio.
+============================================================= -->
+
+<aside class="
+    sidebar fixed bottom-[88px] left-0 top-[70px] z-50
+    flex w-[257px] flex-col
+    border-r border-[#242528] bg-[#101113]
+    px-4 py-5
+
+    max-[820px]:w-[78px]
+    max-[820px]:px-3
+
+    max-[620px]:hidden
+  ">
+
+  <!-- ==========================================================
+       SCROLLABLE CONTENT
+       ----------------------------------------------------------
+       Contiene navegación y playlists.
+
+       min-h-0 es importante para permitir que este contenedor
+       pueda reducirse dentro del flex y activar correctamente
+       el scroll vertical.
+  =========================================================== -->
+
+  <div class="
+      min-h-0 flex-1 overflow-y-auto
+      pr-1
+
+      scrollbar-thin
+      scrollbar-track-transparent
+      scrollbar-thumb-[#303236]
+    ">
+
+    <!-- ========================================================
+         MAIN NAVIGATION
+    ========================================================= -->
+
+    <nav class="space-y-1">
+
+      <!-- Inicio -->
+
+      <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="
+          sidebar-link flex h-11 w-full items-center gap-4
+          rounded-lg px-3.5 text-[15px] text-zinc-200
+          transition-ui
+
+          max-[820px]:justify-center
+          max-[820px]:gap-0
+          max-[820px]:px-0
+        " title="Inicio">
+        <svg viewBox="0 0 24 24" class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+
+        <span class="sidebar-label max-[820px]:hidden">
+          Inicio
+        </span>
+      </a>
+
+
+      <!-- Explorar -->
+
+      <a routerLink="/explore" routerLinkActive="active" class="
+          sidebar-link flex h-11 w-full items-center gap-4
+          rounded-lg px-3.5 text-[15px] text-zinc-200
+          transition-ui
+
+          max-[820px]:justify-center
+          max-[820px]:gap-0
+          max-[820px]:px-0
+        " title="Explorar">
+        <svg viewBox="0 0 24 24" class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+        </svg>
+
+        <span class="sidebar-label max-[820px]:hidden">
+          Explorar
+        </span>
+      </a>
+
+
+      <!-- Biblioteca -->
+
+      <a routerLink="/library" routerLinkActive="active" class="
+          sidebar-link flex h-11 w-full items-center gap-4
+          rounded-lg px-3.5 text-[15px] text-zinc-200
+          transition-ui
+
+          max-[820px]:justify-center
+          max-[820px]:gap-0
+          max-[820px]:px-0
+        " title="Biblioteca">
+        <svg viewBox="0 0 24 24" class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"></path>
+        </svg>
+
+        <span class="sidebar-label max-[820px]:hidden">
+          Biblioteca
+        </span>
+      </a>
+
+
+      <!-- Favoritos -->
+
+      <a routerLink="/favorites" routerLinkActive="active" class="
+          sidebar-link flex h-11 w-full items-center gap-4
+          rounded-lg px-3.5 text-[15px] text-zinc-200
+          transition-ui
+
+          max-[820px]:justify-center
+          max-[820px]:gap-0
+          max-[820px]:px-0
+        " title="Favoritos">
+        <svg viewBox="0 0 24 24" class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+          </polygon>
+        </svg>
+
+        <span class="sidebar-label max-[820px]:hidden">
+          Favoritos
+        </span>
+      </a>
+
+
+      <!-- Descargas -->
+
+      <a routerLink="/downloads" routerLinkActive="active" class="
+          sidebar-link flex h-11 w-full items-center gap-4
+          rounded-lg px-3.5 text-[15px] text-zinc-200
+          transition-ui
+
+          max-[820px]:justify-center
+          max-[820px]:gap-0
+          max-[820px]:px-0
+        " title="Descargas">
+        <svg viewBox="0 0 24 24" class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+
+        <span class="sidebar-label max-[820px]:hidden">
+          Descargas
+        </span>
+      </a>
+
+
+      <!-- Historial -->
+
+      <a routerLink="/history" routerLinkActive="active" class="
+          sidebar-link flex h-11 w-full items-center gap-4
+          rounded-lg px-3.5 text-[15px] text-zinc-200
+          transition-ui
+
+          max-[820px]:justify-center
+          max-[820px]:gap-0
+          max-[820px]:px-0
+        " title="Historial">
+        <svg viewBox="0 0 24 24" class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12a9 9 0 1 0 3-6.7"></path>
+          <polyline points="3 4 3 10 9 10"></polyline>
+          <polyline points="12 7 12 12 15 14"></polyline>
+        </svg>
+
+        <span class="sidebar-label max-[820px]:hidden">
+          Historial
+        </span>
+      </a>
+
+      <!-- Ecualizador -->
+
+      <a
+        routerLink="/equalizer"
+        routerLinkActive="active"
+        class="
+          sidebar-link flex h-11 w-full items-center gap-4
+          rounded-lg px-3.5 text-[15px] text-zinc-200
+          transition-ui
+
+          max-[820px]:justify-center
+          max-[820px]:gap-0
+          max-[820px]:px-0
+        "
+        title="Ecualizador"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          class="h-5 w-5 shrink-0"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <line x1="4" y1="21" x2="4" y2="14"></line>
+          <line x1="4" y1="10" x2="4" y2="3"></line>
+
+          <line x1="12" y1="21" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12" y2="3"></line>
+
+          <line x1="20" y1="21" x2="20" y2="16"></line>
+          <line x1="20" y1="12" x2="20" y2="3"></line>
+
+          <line x1="1" y1="14" x2="7" y2="14"></line>
+          <line x1="9" y1="8" x2="15" y2="8"></line>
+          <line x1="17" y1="16" x2="23" y2="16"></line>
+        </svg>
+
+        <span class="sidebar-label max-[820px]:hidden">
+          Ecualizador
+        </span>
+      </a>
+
+      
+      <!-- Musex AI -->
+
+      <a
+        routerLink="/ai"
+        routerLinkActive="active"
+        class="
+          sidebar-link flex h-11 w-full items-center gap-4
+          rounded-lg px-3.5 text-[15px] text-zinc-200
+          transition-ui
+
+          max-[820px]:justify-center
+          max-[820px]:gap-0
+          max-[820px]:px-0
+        "
+        title="Musex AI"
+      >
+        <!-- AI Spark -->
+        <svg
+          viewBox="0 0 24 24"
+          class="h-5 w-5 shrink-0"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="
+              M12 2
+              L14.1 9.9
+              L22 12
+              L14.1 14.1
+              L12 22
+              L9.9 14.1
+              L2 12
+              L9.9 9.9
+              Z
+            "
+            fill="var(--musex-accent)"
+          />
+        </svg>
+
+        <span class="sidebar-label max-[820px]:hidden">
+          Musex AI
+        </span>
+      </a>
+
+    </nav>
+
+    <!-- ========================================================
+        PLAYLISTS
+    ========================================================= -->
+
+    <div class="mt-8 max-[820px]:hidden">
+
+      <div class="mb-3 flex items-center justify-between px-2">
+        <span class="playlist-label text-xs font-medium uppercase tracking-wide text-zinc-400">
+          Playlists
+        </span>
+
+        <button type="button" class="
+            icon-btn transition-ui flex h-7 w-7 items-center justify-center
+            rounded-full text-zinc-400
+          " aria-label="Nueva playlist" title="Nueva playlist"
+          (click)="openCreatePlaylist()"
+        >
+          <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="space-y-1">
+
+        @for (playlist of visiblePlaylists(); track playlist.id) {
+
+          <a
+            [routerLink]="['/playlist', playlist.id]"
+            routerLinkActive="active"
+            class="sidebar-link flex h-11 w-full items-center gap-4 rounded-lg px-3.5 text-[15px] transition-ui"
+          >
+
+            @if (playlist.coverType === 'image' && playlist.image) {
+
+              <img [src]="playlist.image" [alt]="playlist.name" class="h-5 w-5 shrink-0 rounded-full object-cover" />
+
+            } @else {
+
+              <svg viewBox="0 0 24 24" class="h-5 w-5 shrink-0" fill="none"
+                [attr.stroke]="playlist.coverColor || 'var(--musex-accent)'" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path [attr.d]="getPlaylistIconPath(playlist.coverIcon)"></path>
+              </svg>
+
+            }
+
+            <span class="sidebar-label flex-1 truncate text-left">
+              {{ playlist.name }}
+            </span>
+
+            <span class="sidebar-count text-xs text-zinc-400">
+              {{ playlist.count }}
+            </span>
+          </a>
+
+        }
+
+        @if (playlistService.allPlaylists().length === 0) {
+          <p class="px-3.5 py-2 text-xs text-zinc-600">
+            Todavía no tienes playlists.
+          </p>
+        }
+
+      </div>
+
+      @if (hasMorePlaylists()) {
+        <button type="button" class="mt-4 px-2 text-sm text-zinc-400 transition-ui hover:text-white" (click)="showMorePlaylists()">
+          Ver más
+        </button>
+      }
+
+    </div>
+
+    @if (showThemeModal()) {
+      <app-theme-settings-modal (closed)="showThemeModal.set(false)"></app-theme-settings-modal>
+    }
+
+    @if (showCreateModal()) {
+      <app-create-playlist-modal
+        (closed)="showCreateModal.set(false)"
+        (create)="onPlaylistCreated($event)"
+      ></app-create-playlist-modal>
+    }
+
+  </div>
+
+
+  <!-- ==========================================================
+       STORAGE
+       ----------------------------------------------------------
+       Permanece fijo en la parte inferior del sidebar.
+
+       Por ahora conserva los valores visuales actuales.
+       Posteriormente serán reemplazados por datos provenientes
+       de Rust/Tauri.
+  =========================================================== -->
+
+  <div class="
+      mt-3 shrink-0
+      rounded-xl border border-[#292b2f]
+      bg-[#111214] p-3.5
+
+      max-[820px]:hidden
+    ">
+
+    <div class="storage-label flex items-center justify-between">
+
+      <span class="text-sm font-medium">
+        Almacenamiento
+      </span>
+
+      <button type="button" class="icon-btn transition-ui rounded-full p-1 text-zinc-500"
+        aria-label="Configuración de almacenamiento" title="Configuración"
+        (click)="openThemeSettings()">
+        <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"></circle>
+
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.6.24 1.01.83 1 1.51V11a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 0Z">
+          </path>
+        </svg>
+      </button>
+
+    </div>
+
+
+    <!-- Storage progress -->
+
+    <!-- <div class="mt-3 h-1 rounded-full bg-[#303236]">
+
+      <div class="
+          h-full rounded-full bg-[var(--musex-accent)]
+          transition-all duration-500
+        " style="width: 28%;"></div>
+
+    </div> -->
+
+
+    <!-- ==========================================================
+        STORAGE
+        ----------------------------------------------------------
+        Muestra el espacio físico ocupado por Musex.
+    ========================================================== -->
+
+    <div class="
+    mt-3 shrink-0
+    rounded-xl border border-[#292b2f]
+    bg-[#111214] p-3
+
+    max-[820px]:hidden
+  ">
+
+      <div class="flex items-center gap-3">
+
+        <!-- Storage icon -->
+
+        <div class="
+        flex h-9 w-9 shrink-0 items-center justify-center
+        rounded-lg bg-[var(--musex-accent-soft)]
+        text-[var(--musex-accent)]
+      ">
+          <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <ellipse cx="12" cy="5" rx="8" ry="3"></ellipse>
+
+            <path d="M4 5v7c0 1.66 3.58 3 8 3s8-1.34 8-3V5"></path>
+
+            <path d="M4 12v7c0 1.66 3.58 3 8 3s8-1.34 8-3v-7"></path>
+          </svg>
+        </div>
+
+
+        <!-- Storage data -->
+
+        <div class="min-w-0 flex-1">
+
+          @if (storageLoading()) {
+
+          <div class="flex items-center gap-2">
+
+            <span class="
+              h-3 w-3 animate-pulse
+              rounded-full bg-[var(--musex-accent)]
+            "></span>
+
+            <span class="text-xs text-zinc-400">
+              Calculando...
+            </span>
+
+          </div>
+
+          } @else {
+
+          <div class="
+            truncate text-sm font-semibold
+            text-white
+          ">
+            {{ formatStorageSize(storageSize()) }}
+          </div>
+
+          <div class="
+            text-[11px] leading-4
+            text-zinc-500
+          ">
+            Espacio en Musex
+          </div>
+
+          }
+
+        </div>
+
+
+        <!-- Refresh -->
+
+        <button type="button" class="
+        icon-btn transition-ui
+        flex h-7 w-7 shrink-0
+        items-center justify-center
+        rounded-full text-zinc-500
+        hover:text-white
+      " aria-label="Actualizar almacenamiento" title="Actualizar almacenamiento" (click)="loadStorageSize()">
+          <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 11a8.1 8.1 0 0 0-15.5-2"></path>
+
+            <polyline points="4 4 4 9 9 9"></polyline>
+
+            <path d="M4 13a8.1 8.1 0 0 0 15.5 2"></path>
+
+            <polyline points="20 20 20 15 15 15"></polyline>
+          </svg>
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</aside>

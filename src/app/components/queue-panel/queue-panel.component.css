@@ -1,0 +1,250 @@
+:host {
+  display: contents;
+}
+
+/* =============================================================
+   QUEUE PAGE
+============================================================= */
+
+.queue-page-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+
+.queue-page-indicator {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    padding: 6px 10px;
+
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+
+    background: rgba(255, 255, 255, 0.025);
+
+    color: rgba(255, 255, 255, 0.3);
+
+    font-size: 10px;
+    font-weight: 500;
+
+    white-space: nowrap;
+}
+
+
+.queue-page-indicator-dot {
+    width: 5px;
+    height: 5px;
+
+    border-radius: 50%;
+
+    background: var(--musex-accent);
+
+    box-shadow:
+        0 0 8px color-mix(in srgb, var(--musex-accent) 45%, transparent);
+}
+
+
+/* =============================================================
+   QUEUE CONTAINER
+============================================================= */
+
+.queue-page-container {
+    position: relative;
+
+    overflow: hidden;
+
+    border: 1px solid rgba(255, 255, 255, 0.075);
+    border-radius: 18px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #131517 0%,
+            #101214 100%
+        );
+
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.015);
+
+    animation:
+        queue-container-enter
+        350ms
+        cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+
+@keyframes queue-container-enter {
+
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+}
+
+
+/* =============================================================
+   TOP ACCENT
+============================================================= */
+
+.queue-page-accent {
+    position: absolute;
+
+    top: 0;
+    left: 28px;
+    right: 28px;
+
+    height: 1px;
+
+    background: var(--musex-accent);
+
+    opacity: 0.45;
+
+    box-shadow:
+        0 0 12px color-mix(in srgb, var(--musex-accent) 12%, transparent);
+}
+
+
+/* =============================================================
+   INNER GLOW
+============================================================= */
+
+.queue-page-inner-glow {
+    position: absolute;
+
+    top: -100px;
+    left: 50%;
+
+    width: 500px;
+    height: 220px;
+
+    transform: translateX(-50%);
+
+    border-radius: 50%;
+
+    background: rgba(156, 255, 0, 0.018);
+
+    filter: blur(60px);
+
+    pointer-events: none;
+}
+
+
+/* =============================================================
+   TABLE HEADER
+============================================================= */
+
+.queue-page-table-header {
+    position: relative;
+    z-index: 2;
+
+    display: grid;
+
+    grid-template-columns:
+        36px
+        minmax(0, 1fr)
+        90px
+        38px;
+
+    align-items: center;
+
+    min-height: 44px;
+
+    padding:
+        0 16px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+
+    color: rgba(255, 255, 255, 0.25);
+
+    font-size: 9px;
+    font-weight: 600;
+
+    letter-spacing: 0.12em;
+
+    text-transform: uppercase;
+}
+
+
+.queue-page-table-header span:nth-child(2) {
+    padding-left: 10px;
+}
+
+
+.queue-header-duration {
+    text-align: right;
+}
+
+
+/* =============================================================
+   QUEUE CONTENT
+============================================================= */
+
+.queue-page-content {
+    position: relative;
+    z-index: 2;
+
+    padding: 8px;
+}
+
+
+/* =============================================================
+   RESPONSIVE
+============================================================= */
+
+@media (max-width: 640px) {
+
+    .queue-page-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .queue-page-indicator {
+        display: none;
+    }
+
+    .queue-page-table-header {
+        grid-template-columns:
+            30px
+            minmax(0, 1fr)
+            38px;
+
+        padding: 0 10px;
+    }
+
+    .queue-page-table-header span:nth-child(3) {
+        display: none;
+    }
+
+    .queue-page-table-header span:nth-child(2) {
+        padding-left: 8px;
+    }
+
+    .queue-page-content {
+        padding: 6px;
+    }
+
+}
+
+
+/* =============================================================
+   REDUCED MOTION
+============================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .queue-page-container {
+        animation: none;
+    }
+
+}

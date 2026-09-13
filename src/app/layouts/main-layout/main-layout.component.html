@@ -1,0 +1,98 @@
+<!-- ============================================================
+     MUSEX — MAIN LAYOUT
+     ------------------------------------------------------------
+     Estructura principal persistente de la aplicación.
+
+     El layout divide el workspace en cuatro zonas:
+
+     1. Barra superior
+     2. Navegación lateral
+     3. Área principal de contenido
+     4. Panel lateral del reproductor
+
+     El reproductor inferior y las capas globales se mantienen
+     fuera del área navegable para permanecer disponibles durante
+     toda la sesión.
+============================================================= -->
+
+
+<!-- ============================================================
+     TOP BAR
+     ------------------------------------------------------------
+     Barra superior persistente de la aplicación.
+============================================================= -->
+
+<app-top-bar></app-top-bar>
+
+
+<!-- ============================================================
+     SIDEBAR
+     ------------------------------------------------------------
+     Navegación principal y acceso a playlists.
+============================================================= -->
+
+<app-sidebar></app-sidebar>
+
+
+<!-- ============================================================
+     MAIN CONTENT
+     ------------------------------------------------------------
+     Área donde Angular renderiza las páginas mediante routing.
+
+     Las dimensiones y posición son controladas por la clase
+     global "main-shell".
+============================================================= -->
+
+<main
+  class="main-shell fixed bottom-[88px] left-[257px] right-[363px] top-[70px] overflow-hidden"
+>
+  <router-outlet></router-outlet>
+</main>
+
+
+<!-- ============================================================
+     RIGHT PANEL
+     ------------------------------------------------------------
+     Zona reservada para la información de reproducción actual
+     y la cola de reproducción.
+
+     Su implementación visual se realizará posteriormente como
+     parte del desarrollo de los componentes del reproductor.
+============================================================= -->
+
+<app-now-playing></app-now-playing>
+
+
+<!-- ============================================================
+     BOTTOM PLAYER
+     ------------------------------------------------------------
+     Reproductor persistente situado en la parte inferior.
+============================================================= -->
+
+<app-bottom-player></app-bottom-player>
+
+
+<!-- ============================================================
+     GLOBAL MODAL
+     ------------------------------------------------------------
+     Contenedor único para ventanas modales de la aplicación.
+============================================================= -->
+
+<app-modal></app-modal>
+
+
+<!-- ============================================================
+     GLOBAL TOASTS
+     ------------------------------------------------------------
+     Contenedor de notificaciones temporales.
+============================================================= -->
+
+<app-toast-container></app-toast-container>
+
+
+<!-- ============================================================
+     GLOBAL QUEUE PANEL
+     ------------------------------------------------------------
+     Contenedor único para la cola de reproducción
+============================================================= -->
+<app-queue-panel></app-queue-panel>

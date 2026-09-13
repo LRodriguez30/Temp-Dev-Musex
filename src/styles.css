@@ -1,0 +1,398 @@
+/* ============================================================
+   MUSEX — GLOBAL STYLES
+   ------------------------------------------------------------
+   Estilos compartidos por toda la aplicación.
+
+   La interfaz principal utiliza Tailwind CSS para la composición
+   visual. Este archivo contiene únicamente comportamientos y
+   estilos globales que no pertenecen a un componente específico.
+============================================================= */
+
+@import "tailwindcss";
+
+
+/* ============================================================
+   GLOBAL RESET
+============================================================= */
+
+:root {
+  --musex-accent: #9CFF00;
+  --musex-green: var(--musex-accent);
+  --musex-accent-soft: color-mix(in srgb, var(--musex-accent) 10%, transparent);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #0d0e10;
+  color: #f5f5f5;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  overflow: hidden;
+}
+
+
+/* ============================================================
+   GLOBAL ELEMENTS
+============================================================= */
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+
+/* ============================================================
+   TEXT SELECTION
+============================================================= */
+
+::selection {
+  background: var(--musex-accent);
+  color: #000;
+}
+
+
+/* ============================================================
+   GLOBAL SCROLLBAR
+============================================================= */
+
+
+/* ------------------------------------------------------------
+   CHROMIUM / WEBKIT
+------------------------------------------------------------- */
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0d0e10;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--musex-accent-soft);;
+
+  border: 1px solid #0d0e10;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--musex-accent);
+}
+
+::-webkit-scrollbar-corner {
+  background: #0d0e10;
+}
+
+
+/* ------------------------------------------------------------
+   FIREFOX
+------------------------------------------------------------- */
+
+html,
+body,
+* {
+  scrollbar-width: thin;
+  scrollbar-color:
+    color-mix(in srgb, var(--musex-accent) 35%, transparent)
+    #0d0e10;
+}
+
+
+/* ============================================================
+   SHARED UI BEHAVIOR
+============================================================= */
+
+.transition-ui {
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.sidebar-link:hover {
+  background: #191b1e;
+}
+
+.sidebar-link.active {
+  background: color-mix(in srgb, var(--musex-accent) 13%, transparent);
+  color: #fff;
+}
+
+.icon-btn:hover {
+  color: var(--musex-accent);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.card:hover {
+  border-color: #3a3d42;
+  background: #17191b;
+}
+
+
+/* ============================================================
+   GLASS EFFECT
+============================================================= */
+
+.glass {
+  background: rgba(13, 14, 16, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+
+/* ============================================================
+   MODALS
+============================================================= */
+
+.modal-backdrop {
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+
+.modal-panel {
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.55);
+}
+
+
+/* ============================================================
+   TOASTS
+============================================================= */
+
+.toast {
+  animation: toastIn 0.2s ease-out;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* ============================================================
+   PROGRESS
+============================================================= */
+
+.progress {
+  background: #303236;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress > span {
+  display: block;
+  height: 100%;
+  background: var(--musex-accent);
+  border-radius: inherit;
+  transition: width 0.2s linear;
+}
+
+
+/* ============================================================
+   RANGE INPUT
+============================================================= */
+
+input[type="range"] {
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: #303236;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--musex-accent);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--musex-accent);
+}
+
+
+/* ============================================================
+   SCROLL AREAS
+============================================================= */
+
+.scroll-area {
+  scrollbar-gutter: stable;
+}
+
+
+/* ============================================================
+   MUSEX VISUAL EFFECTS
+============================================================= */
+
+.cover-gradient {
+  background:
+    radial-gradient(
+      circle at 25% 20%,
+      color-mix(in srgb, var(--musex-accent) 22%, transparent),
+      transparent 28%
+    ),
+    linear-gradient(
+      145deg,
+      #171a1c,
+      #080909
+    );
+}
+
+.queue-playing {
+  background: rgba(156, 255, 0, 0.075);
+}
+
+.drop-zone.drag {
+  border-color: var(--musex-accent);
+  background: rgba(156, 255, 0, 0.08);
+}
+
+.hidden-view {
+  display: none !important;
+}
+
+
+/* ============================================================
+   RESPONSIVE LAYOUT HELPERS
+   ------------------------------------------------------------
+   Los breakpoints conservan los mismos puntos utilizados por
+   el prototipo original.
+============================================================= */
+
+@media (max-width: 1150px) {
+  .right-panel {
+    display: none !important;
+  }
+
+  .main-shell {
+    right: 0 !important;
+  }
+}
+
+@media (max-width: 820px) {
+  .sidebar {
+    width: 78px !important;
+  }
+
+  .sidebar-label,
+  .sidebar-count,
+  .playlist-label,
+  .storage-label {
+    display: none;
+  }
+
+  .sidebar-link {
+    justify-content: center;
+  }
+
+  .main-shell {
+    left: 78px !important;
+  }
+
+  .top-logo {
+    width: 78px !important;
+  }
+
+  .top-search-wrap {
+    padding-left: 15px !important;
+  }
+
+  .top-actions {
+    padding-right: 10px !important;
+  }
+
+  .bottom-current {
+    width: 210px !important;
+  }
+
+  .bottom-extra {
+    display: none !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .sidebar {
+    display: none !important;
+  }
+
+  .main-shell {
+    left: 0 !important;
+  }
+
+  .top-logo {
+    width: auto !important;
+  }
+
+  .top-logo-text {
+    display: none;
+  }
+
+  .top-search-wrap {
+    padding-left: 8px !important;
+  }
+
+  .top-search {
+    width: 100% !important;
+  }
+
+  .top-actions .profile {
+    display: none;
+  }
+
+  .bottom-current {
+    width: 180px !important;
+  }
+
+  .bottom-current .bottom-meta {
+    display: none;
+  }
+
+  .content-pad {
+    padding-left: 17px !important;
+    padding-right: 17px !important;
+  }
+}
+

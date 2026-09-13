@@ -1,0 +1,315 @@
+<!-- =========================================================
+     SONG CARD
+     ---------------------------------------------------------
+     Tarjeta reutilizable para representar una canción.
+========================================================== -->
+
+<article
+  class="card group flex min-w-0 cursor-pointer items-center gap-3 rounded-xl border border-zinc-800 bg-[#111214] p-3 transition-ui hover:border-zinc-700 hover:bg-[#17191b]"
+  (click)="playTrack()"
+>
+
+  <!-- =======================================================
+       PORTADA DE LA CANCIÓN
+  ======================================================== -->
+
+  <div
+    class="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[#17191b]"
+  >
+
+    @if (track.coverType === 'image' && track.image) {
+
+      <!-- Portada personalizada -->
+
+      <img
+        [src]="track.image"
+        [alt]="track.title"
+        class="h-full w-full object-cover"
+      />
+
+    } @else if (track.coverType === 'icon') {
+
+      <!-- Portada mediante icono y color -->
+
+      <div
+        class="flex h-full w-full items-center justify-center"
+        [style.background]="
+          (track.coverColor || 'var(--musex-accent)') + '1a'
+        "
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          class="h-5 w-5"
+          fill="none"
+          [attr.stroke]="
+            track.coverColor || 'var(--musex-accent)'
+          "
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+
+          <path
+            [attr.d]="getCoverIconPath(track.coverIcon)"
+          ></path>
+
+        </svg>
+
+      </div>
+
+    } @else {
+
+      <!-- Disco Musex por defecto -->
+
+      <svg
+        class="h-full w-full"
+        viewBox="0 0 100 100"
+        role="img"
+        [attr.aria-label]="'Disco Musex para ' + track.title"
+      >
+
+        <!-- Borde exterior -->
+
+        <circle
+          cx="50"
+          cy="50"
+          r="47"
+          fill="none"
+          stroke="var(--musex-accent)"
+          stroke-width="3"
+          stroke-opacity="0.65"
+        />
+
+        <!-- Disco -->
+
+        <circle
+          cx="50"
+          cy="50"
+          r="43"
+          fill="var(--musex-accent)"
+        />
+
+        <!-- Surcos del vinilo -->
+
+        <circle
+          cx="50"
+          cy="50"
+          r="38"
+          fill="none"
+          stroke="#0d0e10"
+          stroke-width="1.5"
+          opacity="0.35"
+        />
+
+        <circle
+          cx="50"
+          cy="50"
+          r="31"
+          fill="none"
+          stroke="#0d0e10"
+          stroke-width="1"
+          opacity="0.3"
+        />
+
+        <circle
+          cx="50"
+          cy="50"
+          r="24"
+          fill="none"
+          stroke="#0d0e10"
+          stroke-width="1"
+          opacity="0.25"
+        />
+
+        <!-- Etiqueta central -->
+
+        <circle
+          cx="50"
+          cy="50"
+          r="13"
+          fill="#0d0e10"
+        />
+
+        <!-- Centro Musex -->
+
+        <circle
+          cx="50"
+          cy="50"
+          r="4"
+          fill="var(--musex-accent)"
+        />
+
+        <!-- Brillo -->
+
+        <circle
+          cx="50"
+          cy="50"
+          r="40"
+          fill="none"
+          stroke="#ffffff"
+          stroke-width="0.8"
+          opacity="0.12"
+        />
+
+      </svg>
+
+    }
+
+
+    <!-- =====================================================
+         BOTÓN DE REPRODUCCIÓN
+    ====================================================== -->
+
+    <button
+      type="button"
+      class="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-ui group-hover:opacity-100"
+      [attr.aria-label]="'Reproducir ' + track.title"
+      (click)="playTrack(); $event.stopPropagation()"
+    >
+
+      <span
+        class="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--musex-accent)] text-black"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          class="ml-0.5 h-4 w-4"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+
+          <path d="M8 5.5v13l10-6.5z"></path>
+
+        </svg>
+
+      </span>
+
+    </button>
+
+  </div>
+
+
+  <!-- =======================================================
+       INFORMACIÓN PRINCIPAL
+  ======================================================== -->
+
+  <div class="min-w-0 flex-1">
+
+    <h3
+      class="truncate text-sm font-medium text-white"
+    >
+      {{ track.title }}
+    </h3>
+
+    <p
+      class="mt-0.5 truncate text-xs text-zinc-400"
+    >
+      {{ track.artist }}
+    </p>
+
+  </div>
+
+
+  <!-- =======================================================
+       DURACIÓN
+  ======================================================== -->
+
+  <span
+    class="hidden shrink-0 text-xs text-zinc-500 sm:block"
+  >
+    {{ formatDuration(track.duration) }}
+  </span>
+
+
+  <!-- =======================================================
+       FAVORITO
+  ======================================================== -->
+
+  <button
+    type="button"
+    class="icon-btn flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-ui"
+    [class.text-[var(--musex-accent)]]="favorite"
+    [class.text-zinc-500]="!favorite"
+    [attr.aria-label]="favorite
+      ? 'Quitar ' + track.title + ' de favoritos'
+      : 'Agregar ' + track.title + ' a favoritos'"
+    (click)="toggleFavorite($event)"
+  >
+
+    <svg
+      viewBox="0 0 24 24"
+      class="h-4 w-4"
+      [attr.fill]="favorite ? 'currentColor' : 'none'"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+
+      <path
+        d="M12 3.5l2.63 5.33 5.87.85-4.25 4.14 1 5.85L12 16.9l-5.25 2.77 1-5.85L3.5 9.68l5.87-.85L12 3.5Z"
+      ></path>
+
+    </svg>
+
+  </button>
+
+
+  <!-- =======================================================
+       AGREGAR A PLAYLIST
+  ======================================================== -->
+
+  <button
+    type="button"
+    class="icon-btn flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-zinc-500 transition-ui"
+    [attr.aria-label]="'Agregar ' + track.title + ' a una playlist'"
+    (click)="openAddToPlaylist($event)"
+  >
+
+    <svg
+      viewBox="0 0 24 24"
+      class="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+
+      <path d="M9 18V5l12-2v13"></path>
+
+      <circle
+        cx="6"
+        cy="18"
+        r="3"
+      ></circle>
+
+      <circle
+        cx="18"
+        cy="16"
+        r="3"
+      ></circle>
+
+      <line
+        x1="21"
+        y1="8"
+        x2="21"
+        y2="2"
+      ></line>
+
+      <line
+        x1="18"
+        y1="5"
+        x2="24"
+        y2="5"
+      ></line>
+
+    </svg>
+
+  </button>
+
+</article>

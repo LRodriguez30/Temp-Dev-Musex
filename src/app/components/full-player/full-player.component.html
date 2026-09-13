@@ -1,0 +1,833 @@
+<section class="full-player">
+
+  <!-- =========================================================
+       BACKGROUND DECORATION
+  ========================================================== -->
+
+  <div class="full-player-glow" aria-hidden="true"></div>
+
+  <div class="full-player-grid" aria-hidden="true">
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+
+  <!-- =========================================================
+       TOP BAR
+  ========================================================== -->
+
+  <header class="full-player-header">
+
+    <div class="full-player-brand">
+
+      <button
+        type="button"
+        class="full-player-icon-button"
+        title="Cerrar reproductor"
+        aria-label="Cerrar reproductor"
+        (click)="closeFullPlayer()"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M6 6l12 12M18 6L6 18"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+        </svg>
+
+      </button>
+
+      <div class="full-player-brand-copy">
+        <span>MUSEX</span>
+        <small>PLAYER</small>
+      </div>
+
+    </div>
+
+
+    <div class="full-player-header-status">
+
+      <span
+        class="status-dot"
+        [class.is-playing]="playerState().playing"
+      ></span>
+
+      <span>
+        {{ playerState().playing ? 'REPRODUCIENDO' : 'EN PAUSA' }}
+      </span>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="full-player-queue-toggle"
+      [class.active]="queueOpen()"
+      [attr.aria-pressed]="queueOpen()"
+      title="Mostrar cola"
+      aria-label="Mostrar cola"
+      (click)="toggleQueue()"
+    >
+
+      <span>COLA</span>
+
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M4 6h16M4 12h10M4 18h7"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+        />
+
+        <path
+          d="M17 15v6m-3-3h6"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+        />
+      </svg>
+
+    </button>
+
+  </header>
+
+
+  <!-- =========================================================
+       MAIN PLAYER LAYOUT
+  ========================================================== -->
+
+  <main
+    class="full-player-layout"
+    [class.queue-hidden]="!queueOpen()"
+  >
+
+
+    <!-- =======================================================
+         PLAYER STAGE
+    ======================================================== -->
+
+    <section class="full-player-stage">
+
+
+      <!-- =====================================================
+           COVER AREA
+      ====================================================== -->
+
+      <div class="full-player-art-area">
+
+        <div class="full-player-art-shadow"></div>
+
+        <div class="full-player-art">
+
+          @if (
+            currentTrack?.coverType === 'image' &&
+            currentTrack.image
+          ) {
+
+            <img
+              class="full-player-cover-image"
+              [src]="currentTrack.image"
+              [alt]="currentTrack.title"
+            />
+
+          } @else if (
+            currentTrack?.coverType === 'icon'
+          ) {
+
+            <div
+              class="full-player-cover-icon"
+              [style.background]="
+                (currentTrack.coverColor || 'var(--musex-accent)') + '16'
+              "
+            >
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+
+                <path
+                  [attr.d]="
+                    getCoverIconPath(
+                      currentTrack.coverIcon
+                    )
+                  "
+                  [attr.stroke]="
+                    currentTrack.coverColor ||
+                    'var(--musex-accent)'
+                  "
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+
+              </svg>
+
+            </div>
+
+          } @else {
+
+            <!-- DEFAULT MUSEX COVER -->
+
+            <svg
+              class="musex-default-cover"
+              viewBox="0 0 400 400"
+              role="img"
+              [attr.aria-label]="
+                currentTrack
+                  ? 'Portada Musex para ' +
+                    currentTrack.title
+                  : 'Portada Musex'
+              "
+            >
+
+              <rect
+                width="400"
+                height="400"
+                fill="#111214"
+              />
+
+              <circle
+                cx="200"
+                cy="200"
+                r="160"
+                fill="var(--musex-accent)"
+              />
+
+              <circle
+                cx="200"
+                cy="200"
+                r="143"
+                fill="none"
+                stroke="#0d0e10"
+                stroke-width="2"
+                opacity="0.28"
+              />
+
+              <circle
+                cx="200"
+                cy="200"
+                r="124"
+                fill="none"
+                stroke="#0d0e10"
+                stroke-width="2"
+                opacity="0.22"
+              />
+
+              <circle
+                cx="200"
+                cy="200"
+                r="104"
+                fill="none"
+                stroke="#0d0e10"
+                stroke-width="1.5"
+                opacity="0.18"
+              />
+
+              <circle
+                cx="200"
+                cy="200"
+                r="52"
+                fill="#0d0e10"
+              />
+
+              <text
+                x="200"
+                y="194"
+                text-anchor="middle"
+                fill="var(--musex-accent)"
+                font-family="Arial, sans-serif"
+                font-size="27"
+                font-weight="800"
+                letter-spacing="5"
+              >
+                MUSEX
+              </text>
+
+              <circle
+                cx="200"
+                cy="218"
+                r="5"
+                fill="var(--musex-accent)"
+              />
+
+              <circle
+                cx="200"
+                cy="200"
+                r="157"
+                fill="none"
+                stroke="#ffffff"
+                stroke-width="2"
+                opacity="0.1"
+              />
+
+            </svg>
+
+          }
+
+
+          <!-- PLAYING INDICATOR -->
+
+          @if (playerState().playing) {
+
+            <div
+              class="full-player-playing"
+              aria-hidden="true"
+            >
+
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+
+            </div>
+
+          }
+
+        </div>
+
+
+        <!-- ART FOOTER -->
+
+        <div class="full-player-art-meta">
+
+          <span>
+            {{ currentTrack?.album || 'MUSEX LIBRARY' }}
+          </span>
+
+          <span>
+            {{ currentTrack?.genre || 'AUDIO' }}
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           INFORMATION + CONTROLS
+      ====================================================== -->
+
+      <div class="full-player-content">
+
+
+        <!-- TRACK HEADER -->
+
+        <div class="full-player-track-header">
+
+          <div class="full-player-track-copy">
+
+            <span class="eyebrow">
+              REPRODUCIENDO
+            </span>
+
+            <h1>
+              {{ currentTrack?.title ?? 'Sin música' }}
+            </h1>
+
+            <p>
+              {{ currentTrack?.artist ?? '—' }}
+            </p>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="full-player-favorite"
+            [class.active]="currentTrackIsFavorite"
+            [attr.aria-pressed]="currentTrackIsFavorite"
+            [attr.aria-label]="
+              currentTrackIsFavorite
+                ? 'Quitar de favoritos'
+                : 'Agregar a favoritos'
+            "
+            [attr.title]="
+              currentTrackIsFavorite
+                ? 'Quitar de favoritos'
+                : 'Agregar a favoritos'
+            "
+            (click)="toggleFavorite()"
+          >
+
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                />
+            </svg>
+
+          </button>
+
+        </div>
+
+
+        <!-- MINI VISUALIZER -->
+
+        <div
+          class="full-player-mini-visualizer"
+          [class.paused]="!playerState().playing"
+          aria-hidden="true"
+        >
+
+          @for (
+            bar of visualizerBars;
+            track $index
+          ) {
+
+            <span
+              [style.--bar-height]="bar.height"
+              [style.--bar-delay]="bar.delay"
+              [style.--bar-duration]="bar.duration"
+            ></span>
+
+          }
+
+        </div>
+
+
+        <!-- PROGRESS -->
+
+        <div class="full-player-progress-block">
+
+          <div class="full-player-progress-track">
+
+            <input
+              type="range"
+              min="0"
+              [max]="currentTrack?.duration ?? 0"
+              [value]="
+                seeking
+                  ? seekPosition
+                  : playerState().currentTime
+              "
+              class="full-player-progress-range"
+              [style.--progress]="
+                (
+                  (
+                    seeking
+                      ? seekPosition
+                      : playerState().currentTime
+                  )
+                  /
+                  (currentTrack?.duration || 1)
+                ) * 100
+                + '%'
+              "
+              aria-label="Progreso de reproducción"
+              (pointerdown)="startSeek()"
+              (input)="
+                updateSeekPosition(
+                  +$any($event.target).value
+                )
+              "
+              (pointerup)="finishSeek()"
+              (pointercancel)="finishSeek()"
+            />
+
+          </div>
+
+
+          <div class="full-player-times">
+
+            <span>
+              {{
+                formatTime(
+                  seeking
+                    ? seekPosition
+                    : playerState().currentTime
+                )
+              }}
+            </span>
+
+            <span>
+              {{
+                formatTime(
+                  currentTrack?.duration ?? 0
+                )
+              }}
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <!-- MAIN CONTROLS -->
+
+        <div class="full-player-controls">
+
+          <button
+            type="button"
+            class="full-player-control secondary"
+            [class.active]="playerState().shuffle"
+            title="Reproducción aleatoria"
+            aria-label="Reproducción aleatoria"
+            (click)="toggleShuffle()"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+
+              <path
+                d="
+                  M16 3h5v5
+                  M4 20 21 3
+                  M21 16v5h-5
+                  M4 4l5 5
+                  m2 6 5 5
+                "
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+
+            </svg>
+
+          </button>
+
+
+          <button
+            type="button"
+            class="full-player-control"
+            [disabled]="!playerService.canGoPrevious"
+            title="Anterior"
+            aria-label="Canción anterior"
+            (click)="previousTrack()"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+
+              <path
+                d="M6 5v14M18 6l-8 6 8 6V6Z"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+
+            </svg>
+
+          </button>
+
+
+          <button
+            type="button"
+            class="full-player-play"
+            [attr.aria-label]="
+              playerState().playing
+                ? 'Pausar'
+                : 'Reproducir'
+            "
+            (click)="togglePlay()"
+          >
+
+            @if (playerState().playing) {
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+
+                <path
+                  d="M8 5v14M16 5v14"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+
+              </svg>
+
+            } @else {
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+
+                <path d="M8 5.5v13l10-6.5-10-6.5Z" />
+
+              </svg>
+
+            }
+
+          </button>
+
+
+          <button
+            type="button"
+            class="full-player-control"
+            [disabled]="!playerService.canGoNext"
+            title="Siguiente"
+            aria-label="Siguiente canción"
+            (click)="nextTrack()"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+
+              <path
+                d="M18 5v14M6 6l8 6-8 6V6Z"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+
+            </svg>
+
+          </button>
+
+
+          <button
+            type="button"
+            class="full-player-control secondary repeat-control"
+            [class.active]="
+              playerState().repeat !== 'off'
+            "
+            [attr.title]="
+              playerState().repeat === 'off'
+                ? 'Repetición desactivada'
+                : playerState().repeat === 'track'
+                  ? 'Repetir canción'
+                  : 'Repetir cola'
+            "
+            [attr.aria-label]="
+              playerState().repeat === 'off'
+                ? 'Activar repetición'
+                : playerState().repeat === 'track'
+                  ? 'Repetir canción actual'
+                  : 'Repetir cola'
+            "
+            (click)="toggleRepeat()"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+
+              <path
+                d="
+                  M17 2l4 4-4 4
+                  M3 11V9a3 3 0 0 1 3-3h15
+                  M7 22l-4-4 4-4
+                  M21 13v2a3 3 0 0 1-3 3H3
+                "
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+
+            </svg>
+
+            @if (playerState().repeat === 'track') {
+              <span class="repeat-badge">1</span>
+            }
+
+            @if (playerState().repeat === 'queue') {
+              <span class="repeat-badge">Q</span>
+            }
+
+          </button>
+
+        </div>
+
+
+        <!-- VOLUME -->
+
+        <div class="full-player-volume-row">
+
+          <button
+            type="button"
+            class="full-player-volume-button"
+            [class.active]="
+              playerState().muted ||
+              playerState().volume === 0
+            "
+            title="Silenciar"
+            aria-label="Silenciar"
+            (click)="toggleMute()"
+          >
+
+            @if (
+              playerState().muted ||
+              playerState().volume === 0
+            ) {
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+
+                <path
+                  d="
+                    M4 9v6h4l5 4V5L8 9H4
+                    M17 9l4 6
+                    M21 9l-4 6
+                  "
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+
+              </svg>
+
+            } @else {
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+
+                <path
+                  d="
+                    M4 9v6h4l5 4V5L8 9H4
+                    M17 9a5 5 0 0 1 0 6
+                    M19.5 6.5a9 9 0 0 1 0 11
+                  "
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+
+              </svg>
+
+            }
+
+          </button>
+
+
+          <input
+            type="range"
+            min="0"
+            max="100"
+            [value]="playerState().volume"
+            [style.--volume]="
+              playerState().volume + '%'
+            "
+            class="full-player-volume"
+            aria-label="Volumen"
+            (input)="
+              setVolume(
+                +$any($event.target).value
+              )
+            "
+          />
+
+          <span class="full-player-volume-value">
+            {{ playerState().volume }}
+          </span>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         QUEUE
+    ======================================================== -->
+
+    @if (queueOpen()) {
+
+      <aside class="full-player-queue">
+
+        <div class="full-player-queue-header">
+
+          <div>
+
+            <span class="eyebrow">
+              LO QUE SIGUE
+            </span>
+
+            <h2>
+              Cola
+            </h2>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="full-player-queue-close"
+            title="Ocultar cola"
+            aria-label="Ocultar cola"
+            (click)="toggleQueue()"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+
+              <path
+                d="M6 6l12 12M18 6L6 18"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+              />
+
+            </svg>
+
+          </button>
+
+        </div>
+
+
+        <div class="full-player-queue-body">
+
+          <app-queue />
+
+        </div>
+
+      </aside>
+
+    }
+
+  </main>
+
+</section>

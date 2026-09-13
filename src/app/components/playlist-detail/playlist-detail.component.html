@@ -1,0 +1,84 @@
+<section class="view h-full overflow-y-auto scroll-area">
+  <div class="content-pad mx-auto max-w-[1060px] px-7 pb-12 pt-8">
+
+    @if (playlist(); as p) {
+
+      <!-- Header -->
+      <div class="flex items-end gap-5">
+
+        @if (p.coverType === 'image' && p.image) {
+
+          <img [src]="p.image" [alt]="p.name" class="h-32 w-32 shrink-0 rounded-xl object-cover" />
+
+          
+        } @else {
+
+          <div
+            class="flex h-32 w-32 shrink-0 items-center justify-center rounded-xl"
+            [style.background]="(p.coverColor || 'var(--musex-accent)') + '1a'"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              class="h-10 w-10"
+              fill="none"
+              [attr.stroke]="p.coverColor || 'var(--musex-accent)'"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path [attr.d]="getCoverIconPath(p.coverIcon)" />
+            </svg>
+
+          </div>
+
+        }
+
+        <div class="min-w-0">
+          <p class="text-xs uppercase tracking-wide text-zinc-500">Playlist</p>
+          <h1 class="mt-1 text-[28px] font-semibold tracking-tight">{{ p.name }}</h1>
+          <p class="mt-1 text-sm text-zinc-400">{{ p.count }} canciones</p>
+        </div>
+
+      </div>
+
+      <!-- Actions -->
+      <div class="mt-6 flex items-center gap-3">
+        <button
+          type="button"
+          class="transition-ui flex h-11 items-center gap-2 rounded-full bg-[var(--musex-accent)] px-6 text-sm font-semibold text-black hover:brightness-105"
+          (click)="playAll()"
+        >
+          Reproducir
+        </button>
+
+        @if (p.custom) {
+          <button
+            type="button"
+            class="transition-ui flex h-11 items-center gap-2 rounded-lg border border-[#292b30] px-4 text-sm text-zinc-400 hover:border-[#3a3d42] hover:text-white"
+            (click)="deletePlaylist()"
+          >
+            Eliminar playlist
+          </button>
+        }
+      </div>
+
+      <!-- Track list -->
+      <div class="mt-8">
+        <app-music-table
+          [tracks]="tracks()"
+          (play)="playTrack($event.id)"
+        ></app-music-table>
+      </div>
+
+    } @else {
+
+      <p class="py-16 text-center text-sm text-zinc-500">
+        Playlist no encontrada.
+      </p>
+
+    }
+
+  </div>
+</section>

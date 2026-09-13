@@ -1,0 +1,251 @@
+<div class="space-y-1">
+
+  @if (queue().length === 0) {
+
+    <div class="py-8 text-center text-sm text-zinc-500">
+      La cola está vacía.
+    </div>
+
+  } @else {
+
+    @for (trackId of queue(); track trackId; let index = $index) {
+
+      @if (getTrack(trackId); as track) {
+
+        <div
+          class="group flex min-w-0 items-center gap-3 rounded-xl px-2 py-2 transition-ui hover:bg-white/5"
+          [class.queue-playing]="isPlaying(trackId)"
+        >
+
+          <!-- =====================================================
+               POSICIÓN / INDICADOR
+          ====================================================== -->
+
+          <div class="w-5 shrink-0 text-center">
+
+            @if (isPlaying(trackId)) {
+
+              <svg
+                class="mx-auto h-4 w-4 text-[var(--musex-accent)]"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M8 5v14l11-7z"></path>
+              </svg>
+
+            } @else {
+
+              <span class="text-xs text-zinc-600">
+                {{ index + 1 }}
+              </span>
+
+            }
+
+          </div>
+
+
+          <!-- =====================================================
+              PORTADA / DISCO
+          ====================================================== -->
+
+          <button
+            type="button"
+            class="queue-cover"
+            [attr.aria-label]="'Reproducir ' + track.title"
+            (click)="play(trackId)"
+          >
+
+            @if (track.coverType === 'image' && track.image) {
+
+              <!-- Portada personalizada -->
+              <img
+                [src]="track.image"
+                [alt]="track.title"
+                class="queue-cover-image"
+              />
+
+            } @else if (track.coverType === 'icon') {
+
+              <!-- Portada con icono -->
+              <div
+                class="queue-cover-icon"
+                [style.background]="
+                  (track.coverColor || 'var(--musex-accent)') + '1a'
+                "
+              >
+
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  [attr.stroke]="track.coverColor || 'var(--musex-accent)'"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path
+                    [attr.d]="getCoverIconPath(track.coverIcon)"
+                  ></path>
+                </svg>
+
+              </div>
+
+            } @else {
+
+              <!-- =================================================
+                  SVG MUSEX ORIGINAL
+              ================================================== -->
+
+              <svg
+                class="music-table-default-disc"
+                viewBox="0 0 100 100"
+                role="img"
+                [attr.aria-label]="'Disco Musex para ' + track.title"
+              >
+
+                <!-- Disco -->
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="48"
+                  fill="var(--musex-accent)"
+                />
+
+                <!-- Surcos -->
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="42"
+                  fill="none"
+                  stroke="#0d0e10"
+                  stroke-width="1.5"
+                  opacity="0.35"
+                />
+
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="35"
+                  fill="none"
+                  stroke="#0d0e10"
+                  stroke-width="1"
+                  opacity="0.3"
+                />
+
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="28"
+                  fill="none"
+                  stroke="#0d0e10"
+                  stroke-width="1"
+                  opacity="0.25"
+                />
+
+                <!-- Etiqueta central -->
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="13"
+                  fill="#0d0e10"
+                />
+
+                <!-- Centro -->
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="4"
+                  fill="var(--musex-accent)"
+                />
+
+                <!-- Brillo -->
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="44"
+                  fill="none"
+                  stroke="#ffffff"
+                  stroke-width="0.8"
+                  opacity="0.12"
+                />
+
+              </svg>
+
+            }
+
+          </button>
+
+
+          <!-- =====================================================
+               INFORMACIÓN
+          ====================================================== -->
+
+          <button
+            type="button"
+            class="min-w-0 flex-1 text-left"
+            [attr.aria-label]="'Reproducir ' + track.title"
+            (click)="play(trackId)"
+          >
+
+            <p
+              class="truncate text-sm font-medium"
+              [class.text-[var(--musex-accent)]]="isPlaying(trackId)"
+            >
+              {{ track.title }}
+            </p>
+
+            <p class="truncate text-xs text-zinc-500">
+              {{ track.artist }}
+            </p>
+
+          </button>
+
+
+          <!-- =====================================================
+               DURACIÓN
+          ====================================================== -->
+
+          <span class="queue-duration">
+            {{ formatTime(track.duration) }}
+          </span>
+
+
+          <!-- =====================================================
+               ELIMINAR
+          ====================================================== -->
+
+          <button
+            type="button"
+            class="icon-btn shrink-0 rounded-lg p-2 text-zinc-500 opacity-0 transition-ui hover:bg-white/5 hover:text-white group-hover:opacity-100 focus:opacity-100"
+            [attr.aria-label]="'Quitar ' + track.title + ' de la cola'"
+            (click)="remove(trackId)"
+          >
+
+            <svg
+              class="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M18 6 6 18"></path>
+              <path d="m6 6 12 12"></path>
+            </svg>
+
+          </button>
+
+        </div>
+
+      }
+
+    }
+
+  }
+
+</div>

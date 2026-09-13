@@ -1,0 +1,201 @@
+<!-- =========================================================
+     COMPLETED DOWNLOAD
+     ---------------------------------------------------------
+     Representa un archivo de audio que ya terminó de
+     descargarse y está disponible para utilizarse en Musex.
+========================================================== -->
+
+<article
+  class="completed-download group flex min-w-0 flex-col gap-3 border-b border-[#202225] py-4 transition-ui sm:flex-row sm:items-center"
+>
+
+  <!-- =======================================================
+       INFORMACIÓN DEL ARCHIVO
+  ======================================================== -->
+
+  <div class="flex min-w-0 flex-1 items-center gap-3">
+
+    <!-- Icono del archivo -->
+
+    <div
+      class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#292b30] bg-[#17191b] text-[var(--musex-accent)] transition-ui group-hover:border-[var(--musex-accent)]/25 group-hover:bg-[var(--musex-accent-soft)]"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        class="h-5 w-5"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M12 3v12"></path>
+        <path d="m7 10 5 5 5-5"></path>
+        <path d="M5 21h14"></path>
+      </svg>
+    </div>
+
+    <!-- Nombre de la canción y proveedor -->
+
+    <div class="min-w-0 flex-1">
+
+      <p
+        class="truncate text-sm font-medium text-white transition-ui group-hover:text-[var(--musex-accent)]"
+        [title]="download.title"
+      >
+        {{ download.title }}
+      </p>
+
+      <p
+        class="mt-1 truncate text-xs text-zinc-500"
+        [title]="download.provider | titlecase"
+      >
+        {{ download.provider | titlecase }}
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- =======================================================
+       ESTADO
+  ======================================================== -->
+
+  <div class="flex shrink-0 items-center gap-2">
+
+    <span
+      class="flex h-7 w-7 items-center justify-center rounded-full border border-[var(--musex-accent)]/15 bg-[var(--musex-accent-soft)] text-[var(--musex-accent)]"
+      aria-label="Archivo disponible"
+      title="Archivo disponible"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        class="h-4 w-4"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="m5 12 4 4L19 6"></path>
+      </svg>
+    </span>
+
+    <span
+      class="font-mono text-[10px] uppercase tracking-[0.06em] text-zinc-500"
+    >
+      Disponible
+    </span>
+
+  </div>
+
+
+  <!-- =======================================================
+       ACCIONES
+  ======================================================== -->
+
+  <div class="flex shrink-0 items-center justify-end gap-1">
+
+    <!-- Reproducir -->
+
+    <button
+      type="button"
+      class="icon-btn flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-ui"
+      aria-label="Reproducir archivo"
+      title="Reproducir"
+      (click)="onPlay()"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        class="ml-0.5 h-4 w-4"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M8 5.5v13l10-6.5z"></path>
+      </svg>
+    </button>
+
+
+    <!-- Agregar a mi música -->
+
+    <button
+      type="button"
+      class="icon-btn flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-ui"
+      aria-label="Agregar a mi música"
+      title="Agregar a mi música"
+      (click)="onAddToLibrary()"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        class="h-4 w-4"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M12 5v14"></path>
+        <path d="M5 12h14"></path>
+      </svg>
+    </button>
+
+
+    <!-- Abrir ubicación -->
+
+    <button
+      type="button"
+      class="icon-btn flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-ui"
+      aria-label="Abrir ubicación del archivo"
+      title="Abrir ubicación"
+      (click)="onOpenLocation()"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        class="h-4 w-4"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M3 7h6l2 2h10v10H3z"></path>
+        <path d="M3 7V5h6l2 2"></path>
+      </svg>
+    </button>
+
+
+    <!-- Eliminar -->
+
+    <button
+      type="button"
+      class="icon-btn flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-ui"
+      aria-label="Eliminar descarga"
+      title="Eliminar descarga"
+      (click)="onRemove()"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        class="h-4 w-4"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M3 6h18"></path>
+        <path d="M8 6V4h8v2"></path>
+        <path d="m19 6-1 14H6L5 6"></path>
+        <path d="M10 11v5"></path>
+        <path d="M14 11v5"></path>
+      </svg>
+    </button>
+
+  </div>
+
+</article>

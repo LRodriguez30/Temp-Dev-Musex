@@ -1,0 +1,71 @@
+<!-- =========================================================
+     DROP ZONE
+     ---------------------------------------------------------
+     Área para importar archivos de audio mediante selección
+     manual o arrastrando archivos directamente sobre la vista.
+========================================================== -->
+
+<section
+  class="drop-zone group flex min-h-[150px] w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#303236] bg-[#111214] px-5 py-7 text-center transition-ui sm:min-h-[170px] sm:px-8"
+  role="button"
+  tabindex="0"
+  aria-label="Importar archivos de audio"
+  (click)="selectFiles()"
+  (keydown)="handleKeydown($event)"
+  (dragover)="handleDragOver($event)"
+  (dragleave)="handleDragLeave($event)"
+  (drop)="handleDrop($event)"
+>
+
+  <!-- =======================================================
+       ICON
+  ======================================================== -->
+
+  <div
+    class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#292b30] bg-[#17191b] text-zinc-500 transition-ui group-hover:border-[var(--musex-accent)]/30 group-hover:bg-[var(--musex-accent-soft)] group-hover:text-[var(--musex-accent)]"
+  >
+    <svg
+      viewBox="0 0 24 24"
+      class="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 3v12"></path>
+      <path d="m7 10 5 5 5-5"></path>
+      <path d="M5 21h14"></path>
+    </svg>
+  </div>
+
+
+  <!-- =======================================================
+       TEXT
+  ======================================================== -->
+
+  <div class="mt-4 min-w-0">
+
+    <h3 class="text-sm font-medium text-white">
+      Arrastra tus archivos de audio aquí
+    </h3>
+
+    <p class="mt-1 text-xs leading-5 text-zinc-500">
+      o haz clic para seleccionar archivos desde tu computadora
+    </p>
+
+  </div>
+
+
+  <!-- =======================================================
+       SUPPORTED FORMATS
+  ======================================================== -->
+
+  <span
+    class="mt-3 font-mono text-[10px] uppercase tracking-[0.08em] text-zinc-600"
+  >
+    MP3 · WAV · FLAC · OGG · y otros formatos compatibles
+  </span>
+
+</section>

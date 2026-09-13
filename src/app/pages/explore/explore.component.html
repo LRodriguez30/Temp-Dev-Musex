@@ -1,0 +1,464 @@
+<!-- =========================================================
+     EXPLORE VIEW
+     ---------------------------------------------------------
+     Vista para descubrir música dentro de Musex.
+     El contenido se basa en la biblioteca, géneros, artistas,
+     álbumes y playlists disponibles en la aplicación.
+========================================================== -->
+
+<section class="view h-full overflow-y-auto scroll-area">
+  <div class="content-pad mx-auto max-w-[1060px] px-7 pb-12 pt-8">
+
+    <!-- =======================================================
+         HEADER
+    ======================================================== -->
+    <div>
+      <h1 class="text-[25px] font-semibold">
+        Explorar
+      </h1>
+
+      <p class="mt-1 text-sm text-zinc-400">
+        Descubre algo diferente dentro de tu música.
+      </p>
+    </div>
+
+
+    <!-- =======================================================
+         FEATURED DISCOVERY CARDS
+    ======================================================== -->
+    <div class="mt-7 grid grid-cols-2 gap-4">
+
+      <!-- =====================================================
+           DESCUBRIMIENTO
+      ====================================================== -->
+      <button
+        type="button"
+        class="card transition-ui relative h-[150px] overflow-hidden rounded-xl border border-[#292b30] bg-[#151a17] p-5 text-left"
+        data-action="explore-discovery"
+      >
+
+        <div
+          class="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-[var(--musex-accent-soft)] blur-2xl"
+        ></div>
+
+        <div class="relative">
+          <p
+            class="text-xs font-medium uppercase tracking-[0.16em] text-[var(--musex-accent)]"
+          >
+            Para ti
+          </p>
+
+          <h2 class="mt-2 text-xl font-semibold">
+            Descubrimiento
+          </h2>
+
+          <p class="mt-1 max-w-[300px] text-sm text-zinc-400">
+            Encuentra canciones que podrían convertirse en tus próximas favoritas.
+          </p>
+        </div>
+
+        <span
+          class="absolute bottom-5 right-5 flex h-9 w-9 items-center justify-center rounded-full bg-white text-black"
+        >
+          <!-- Play -->
+          <svg
+            viewBox="0 0 24 24"
+            class="ml-0.5 h-4 w-4"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M8 5.5v13L19 12 8 5.5Z"></path>
+          </svg>
+        </span>
+
+      </button>
+
+
+      <!-- =====================================================
+           MUSEX AI
+      ====================================================== -->
+      <button
+        type="button"
+        class="card transition-ui relative h-[150px] overflow-hidden rounded-xl border border-[#292b30] bg-[#151719] p-5 text-left"
+        data-action="explore-ai"
+      >
+
+        <div
+          class="absolute -bottom-12 -right-4 h-44 w-44 rounded-full border border-[#7d61ff]/20"
+        ></div>
+
+        <div
+          class="absolute -bottom-7 right-1 h-32 w-32 rounded-full border border-[#7d61ff]/15"
+        ></div>
+
+        <div class="relative">
+
+          <p
+            class="text-xs font-medium uppercase tracking-[0.16em] text-[#8d76ff]"
+          >
+            Musex AI
+          </p>
+
+          <h2 class="mt-2 text-xl font-semibold">
+            Recomendaciones
+          </h2>
+
+          <p class="mt-1 max-w-[300px] text-sm text-zinc-400">
+            Descubre música seleccionada según tus gustos y hábitos de escucha.
+          </p>
+
+        </div>
+
+        <span
+          class="absolute bottom-5 right-5 flex h-9 w-9 items-center justify-center rounded-full bg-white text-black"
+        >
+          <!-- Spark / AI -->
+          <svg
+            viewBox="0 0 24 24"
+            class="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m12 3-1.4 5.6L5 10l5.6 1.4L12 17l1.4-5.6L19 10l-5.6-1.4L12 3Z"></path>
+            <path d="m19 16-.7 2.3L16 19l2.3.7L19 22l.7-2.3L22 19l-2.3-.7L19 16Z"></path>
+          </svg>
+        </span>
+
+      </button>
+
+    </div>
+
+
+    <!-- =======================================================
+         GENRES
+    ======================================================== -->
+    <section class="mt-9">
+
+      <div class="mb-5">
+        <h2 class="text-xl font-semibold">
+          Géneros y estados de ánimo
+        </h2>
+
+        <p class="mt-1 text-sm text-zinc-500">
+          Explora tu música por estilo.
+        </p>
+      </div>
+
+
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+
+        <!-- Electronic -->
+        <button
+          type="button"
+          class="card transition-ui relative h-[105px] overflow-hidden rounded-xl border border-[#292b30] bg-[#151719] p-4 text-left"
+          data-action="genre"
+          data-name="Electronic"
+        >
+
+          <div
+            class="absolute -right-4 -top-5 h-24 w-24 rounded-full bg-[var(--musex-accent-soft)] blur-xl"
+          ></div>
+
+          <div class="relative">
+            <p class="text-sm font-semibold">
+              Electronic
+            </p>
+
+            <p class="mt-1 text-xs text-zinc-500">
+              Energía y movimiento
+            </p>
+          </div>
+
+        </button>
+
+
+        <!-- Rock -->
+        <button
+          type="button"
+          class="card transition-ui relative h-[105px] overflow-hidden rounded-xl border border-[#292b30] bg-[#151719] p-4 text-left"
+          data-action="genre"
+          data-name="Rock"
+        >
+
+          <div
+            class="absolute -bottom-8 -right-3 h-24 w-24 rounded-full bg-[#ff5c5c]/10 blur-xl"
+          ></div>
+
+          <div class="relative">
+            <p class="text-sm font-semibold">
+              Rock
+            </p>
+
+            <p class="mt-1 text-xs text-zinc-500">
+              Guitarras y clásicos
+            </p>
+          </div>
+
+        </button>
+
+
+        <!-- Lo-Fi -->
+        <button
+          type="button"
+          class="card transition-ui relative h-[105px] overflow-hidden rounded-xl border border-[#292b30] bg-[#151719] p-4 text-left"
+          data-action="genre"
+          data-name="Lo-Fi"
+        >
+
+          <div
+            class="absolute -right-3 -top-3 h-24 w-24 rounded-full bg-[#7d61ff]/10 blur-xl"
+          ></div>
+
+          <div class="relative">
+            <p class="text-sm font-semibold">
+              Lo-Fi
+            </p>
+
+            <p class="mt-1 text-xs text-zinc-500">
+              Relajarte y desconectar
+            </p>
+          </div>
+
+        </button>
+
+
+        <!-- Focus -->
+        <button
+          type="button"
+          class="card transition-ui relative h-[105px] overflow-hidden rounded-xl border border-[#292b30] bg-[#151719] p-4 text-left"
+          data-action="genre"
+          data-name="Focus"
+        >
+
+          <div
+            class="absolute bottom-0 left-0 right-0 flex h-12 items-end gap-1 px-5 opacity-20"
+          >
+            <span
+              class="w-2 bg-[var(--musex-accent)]"
+              style="height:30%"
+            ></span>
+
+            <span
+              class="w-2 bg-[var(--musex-accent)]"
+              style="height:55%"
+            ></span>
+
+            <span
+              class="w-2 bg-[var(--musex-accent)]"
+              style="height:40%"
+            ></span>
+
+            <span
+              class="w-2 bg-[var(--musex-accent)]"
+              style="height:75%"
+            ></span>
+
+            <span
+              class="w-2 bg-[var(--musex-accent)]"
+              style="height:50%"
+            ></span>
+
+            <span
+              class="w-2 bg-[var(--musex-accent)]"
+              style="height:85%"
+            ></span>
+          </div>
+
+          <div class="relative">
+            <p class="text-sm font-semibold">
+              Focus
+            </p>
+
+            <p class="mt-1 text-xs text-zinc-500">
+              Concentración
+            </p>
+          </div>
+
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         ARTISTS
+    ======================================================== -->
+    <section class="mt-10">
+
+      <div class="mb-5">
+        <h2 class="text-xl font-semibold">
+          Artistas
+        </h2>
+
+        <p class="mt-1 text-sm text-zinc-500">
+          Explora los artistas de tu biblioteca.
+        </p>
+      </div>
+
+
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+
+        <!--
+          Los artistas serán generados posteriormente
+          a partir de LibraryService.
+        -->
+
+        <div
+          class="card transition-ui rounded-xl border border-[#292b30] bg-[#151719] p-4"
+        >
+          <div class="flex items-center gap-3">
+
+            <div
+              class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-sm font-semibold text-zinc-400"
+            >
+              A
+            </div>
+
+            <div class="min-w-0">
+              <p class="truncate text-sm font-semibold">
+                Artista
+              </p>
+
+              <p class="mt-1 text-xs text-zinc-500">
+                0 canciones
+              </p>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         ALBUMS
+    ======================================================== -->
+    <section class="mt-10">
+
+      <div class="mb-5">
+        <h2 class="text-xl font-semibold">
+          Álbumes
+        </h2>
+
+        <p class="mt-1 text-sm text-zinc-500">
+          Explora los álbumes disponibles en tu biblioteca.
+        </p>
+      </div>
+
+
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+
+        <!--
+          Los álbumes serán generados posteriormente
+          a partir de LibraryService.
+        -->
+
+        <div
+          class="card transition-ui overflow-hidden rounded-xl border border-[#292b30] bg-[#151719]"
+        >
+
+          <div class="aspect-square bg-zinc-900">
+            <!-- Imagen del álbum -->
+          </div>
+
+          <div class="p-4">
+            <p class="truncate text-sm font-semibold">
+              Álbum
+            </p>
+
+            <p class="mt-1 truncate text-xs text-zinc-500">
+              Artista
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         PLAYLISTS
+    ======================================================== -->
+    <section class="mt-10">
+
+      <div class="mb-5 flex items-center justify-between gap-4">
+
+        <div>
+          <h2 class="text-xl font-semibold">
+            Tus playlists
+          </h2>
+
+          <p class="mt-1 text-sm text-zinc-500">
+            Vuelve a tus colecciones y descubre qué escuchar.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div
+        id="explorePlaylists"
+        class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+      >
+
+        <!--
+          El contenido será generado posteriormente
+          desde PlaylistService.
+        -->
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         MUSEX AI DISCLAIMER
+    ======================================================== -->
+    <section
+      class="mt-10 rounded-xl border border-[#292b30] bg-[#151719] px-4 py-3"
+    >
+
+      <div class="flex items-start gap-3">
+
+        <svg
+          viewBox="0 0 24 24"
+          class="mt-0.5 h-4 w-4 shrink-0 text-zinc-500"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 10v6"></path>
+          <path d="M12 7h.01"></path>
+        </svg>
+
+        <div>
+          <p class="text-xs font-medium text-zinc-400">
+            Recomendaciones de Musex AI
+          </p>
+
+          <p class="mt-1 text-xs leading-relaxed text-zinc-600">
+            Las recomendaciones generadas por Musex AI se basan en la
+            información disponible en tu biblioteca y pueden no ser siempre
+            precisas.
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+
+  </div>
+</section>
