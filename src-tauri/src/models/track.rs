@@ -54,6 +54,7 @@ pub struct Track {
     ///
     /// Si la canción no tiene una portada personalizada,
     /// este valor será `None`.
+    #[serde(rename = "coverPath")]
     pub cover_path: Option<String>,
 }
 

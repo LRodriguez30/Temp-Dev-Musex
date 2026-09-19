@@ -158,6 +158,20 @@ export class LibraryService {
           const coverOverrides =
             this.getCoverOverride(track.id);
 
+            console.log(
+  'MUSEX COVER FINAL:',
+  {
+    id: track.id,
+    rustCoverPath: track.coverPath,
+    image: this.resolveCoverPath(track.coverPath),
+    coverType:
+      coverOverrides?.coverType ??
+      (track.coverPath
+        ? 'image'
+        : undefined)
+  }
+);
+
           return {
             id: track.id,
 
