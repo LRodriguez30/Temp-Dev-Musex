@@ -22,7 +22,7 @@ use crate::models::track::Track;
 // =============================================================
 
 /// Escanea la carpeta de música de Musex y devuelve las pistas
-/// encontradas junto con sus metadatos.
+/// encontradas junto con sus metadatos y portadas.
 #[tauri::command]
 pub fn scan_library(
     storage: State<'_, Storage>,
@@ -30,7 +30,10 @@ pub fn scan_library(
     let scanner = LibraryScanner::new();
 
     scanner
-        .scan(storage.music_dir())
+        .scan(
+            storage.music_dir(),
+            storage.covers_dir(),
+        )
         .map_err(|error| error.to_string())
 }
 
@@ -71,7 +74,7 @@ pub fn import_tracks(
         imported_paths.push(
             destination_path
                 .to_string_lossy()
-                .to_string()
+                .to_string(),
         );
     }
 

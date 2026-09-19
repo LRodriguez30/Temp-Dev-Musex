@@ -79,3 +79,76 @@ pub fn create_directory(path: String) -> Result<(), String> {
 pub fn path_exists(path: String) -> bool {
     Path::new(&path).exists()
 }
+
+// =============================================================
+// PORTADAS
+// =============================================================
+
+/// Guarda físicamente una portada dentro de la carpeta
+/// `covers` de Musex.
+///
+/// La ruta final se genera mediante `Storage`, por lo que
+/// este comando no necesita conocer directamente la ubicación
+/// física de la biblioteca.
+///
+/// El nombre del archivo se construye utilizando el ID de
+/// la canción y su extensión.
+///
+/// Ejemplo:
+///
+/// `Musex/covers/abc123.jpg`
+#[tauri::command]
+pub fn save_cover(
+    storage: tauri::State<'_, Storage>,
+    track_id: String,
+    extension: String,
+    data: Vec<u8>,
+) -> Result<String, String> {
+    if track_id.trim().is_empty() {
+        return Err(
+            "El ID de la canción no puede estar vacío."
+                .to_string()
+        );
+    }
+
+    if data.is_empty() {
+        return Err(
+            "La portada no contiene datos."
+                .to_string()
+        );
+    }
+
+    let extension = extension
+        .trim()
+        .trim_start_matches('.')
+        .to_lowercase();
+
+    match extension.as_str() {
+        "png" | "jpg" | "jpeg" | "webp" => {}
+
+        _ => {
+            return Err(
+                "Formato de portada no permitido."
+                    .to_string()
+            );
+        }
+    }
+
+    let file_name = format!(
+        "{}.{}",
+        track_id,
+        extension
+    );
+
+    let cover_path = storage.cover_file(&file_name);
+
+    std::fs::write(&cover_path, data)
+        .map_err(|error| {
+            format!(
+                "No se pudo guardar la portada: {}",
+                error
+            )
+        })?;
+
+    Ok(cover_path.to_string_lossy().to_string())
+}

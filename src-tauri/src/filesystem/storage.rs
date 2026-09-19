@@ -53,6 +53,11 @@ impl Storage {
         self.base_dir.join("music")
     }
 
+    /// Devuelve la carpeta donde se almacenan las portadas.
+    pub fn covers_dir(&self) -> PathBuf {
+        self.base_dir.join("covers")
+    }
+
     /// Devuelve la carpeta destinada a descargas temporales.
     pub fn downloads_dir(&self) -> PathBuf {
         self.base_dir.join("downloads")
@@ -68,6 +73,7 @@ impl Storage {
     /// Si las carpetas ya existen, no se considera un error.
     pub fn initialize(&self) -> Result<(), Box<dyn std::error::Error>> {
         fs::create_dir_all(self.music_dir())?;
+        fs::create_dir_all(self.covers_dir())?;
         fs::create_dir_all(self.downloads_dir())?;
         fs::create_dir_all(self.temp_dir())?;
 
@@ -142,6 +148,21 @@ impl Storage {
     /// físicamente el archivo.
     pub fn music_file(&self, file_name: impl AsRef<Path>) -> PathBuf {
         self.music_dir().join(file_name)
+    }
+
+    // =========================================================
+    // COVERS
+    // =========================================================
+
+    /// Genera una ruta dentro de la carpeta de portadas.
+    ///
+    /// Esta función solamente construye la ruta;
+    /// no crea físicamente el archivo.
+    pub fn cover_file(
+        &self,
+        file_name: impl AsRef<Path>,
+    ) -> PathBuf {
+        self.covers_dir().join(file_name)
     }
 
     /// Copia un archivo externo hacia la biblioteca permanente

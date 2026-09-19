@@ -289,6 +289,9 @@ pub fn run() {
                 commands::filesystem::create_directory,
                 commands::filesystem::path_exists,
 
+                // Guarda físicamente una portada de canción.
+                commands::filesystem::save_cover,
+
 
                 // =============================================
                 // LIBRARY

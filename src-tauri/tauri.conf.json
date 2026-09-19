@@ -3,12 +3,14 @@
   "productName": "Musex",
   "version": "0.1.0",
   "identifier": "com.lart.musex",
+
   "build": {
     "beforeDevCommand": "npm run start",
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist/musex/browser"
   },
+
   "app": {
     "windows": [
       {
@@ -19,13 +21,23 @@
         "minHeight": 600
       }
     ],
+
     "security": {
-      "csp": null
+      "csp": null,
+
+      "assetProtocol": {
+        "enable": true,
+        "scope": [
+          "$HOME/Desktop/Musex/covers/**"
+        ]
+      }
     }
   },
+
   "bundle": {
     "active": true,
     "targets": "all",
+
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

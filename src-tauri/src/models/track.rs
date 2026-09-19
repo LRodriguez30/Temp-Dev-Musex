@@ -4,8 +4,8 @@
 //
 // Representa una canción dentro del núcleo de Musex.
 //
-// Este modelo sirve como punto de unión entre:
-// Rust -> Tauri -> Angular
+// Este modelo sirve como punto de unión entre
+// Rust -> Tauri -> Angular.
 //
 // Rust obtiene la información desde los archivos reales y,
 // posteriormente, Tauri podrá serializarla para que Angular
@@ -37,6 +37,7 @@ pub struct Track {
     /// Álbum obtenido desde los metadatos del archivo.
     pub album: Option<String>,
 
+    /// Género obtenido desde los metadatos del archivo.
     pub genre: Option<String>,
 
     /// Ruta física del archivo de audio.
@@ -44,6 +45,16 @@ pub struct Track {
 
     /// Duración de la canción en segundos.
     pub duration: Option<u64>,
+
+    /// Ruta física de la portada personalizada.
+    ///
+    /// La portada se almacena dentro de:
+    ///
+    /// Musex/covers/
+    ///
+    /// Si la canción no tiene una portada personalizada,
+    /// este valor será `None`.
+    pub cover_path: Option<String>,
 }
 
 impl Track {
@@ -62,6 +73,7 @@ impl Track {
             genre: None,
             path,
             duration: None,
+            cover_path: None,
         }
     }
 
@@ -96,6 +108,7 @@ impl Track {
             genre: metadata.genre,
             path: path.to_string_lossy().into_owned(),
             duration: metadata.duration,
+            cover_path: None,
         })
     }
 }
