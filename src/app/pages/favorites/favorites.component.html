@@ -364,6 +364,8 @@
           <app-music-table
             [tracks]="tracks"
             (play)="playTrack($event)"
+            (more)="openMore($event)"
+            (addToPlaylist)="openAddToPlaylist($event)"
           ></app-music-table>
 
         </div>

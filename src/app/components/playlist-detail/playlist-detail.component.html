@@ -68,7 +68,9 @@
       <div class="mt-8">
         <app-music-table
           [tracks]="tracks()"
-          (play)="playTrack($event.id)"
+          (play)="playTrack($event)"
+          (more)="openMore($event)"
+          (addToPlaylist)="openAddToPlaylist($event)"
         ></app-music-table>
       </div>
 

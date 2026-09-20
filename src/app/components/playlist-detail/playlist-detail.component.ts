@@ -96,8 +96,8 @@ export class PlaylistDetailComponent {
     this.playerService.playTrack(trackIds[0]);
   }
 
-  playTrack(trackId: string): void {
-    this.playerService.playTrack(trackId);
+  playTrack(track: Track): void {
+    this.playerService.playTrack(track.id);
   }
 
   // ============================================================

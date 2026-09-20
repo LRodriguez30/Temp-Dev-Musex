@@ -11,6 +11,7 @@ import { PlayerService } from '../../core/services/player.service';
 import { QueueService } from '../../core/services/queue.service';
 import { MusicTableComponent } from '../../components/music-table/music-table.component';
 import { Track } from '../../core/models/track.model';
+import { ModalService } from '../../core/services/modal.service';
 
 /**
  * Página de canciones favoritas.
@@ -88,6 +89,17 @@ export class FavoritesComponent {
     this.libraryService.getFavoriteCount()
   );
 
+
+  private readonly modalService = 
+    inject(ModalService);
+
+  openMore(track: Track): void {
+    this.modalService.openTrackMenu(track.id);
+  }
+
+  openAddToPlaylist(track: Track): void {
+    this.modalService.openAddToPlaylist(track.id);
+  }
 
   /**
    * Canciones favoritas ordenadas según el filtro seleccionado.
