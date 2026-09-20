@@ -6,16 +6,20 @@
 // motores de descarga de Musex.
 //
 // El downloader permanece independiente de:
-// - Tauri
 // - Angular
 // - Eventos
 // - Interfaz gráfica
 //
 // El control de la descarga se recibe mediante
 // DownloadController.
+//
+// Para los motores que requieren recursos proporcionados
+// por Tauri, se recibe un AppHandle durante la ejecución.
 // =============================================================
 
 use std::path::{Path, PathBuf};
+
+use tauri::AppHandle;
 
 use crate::models::download::Download;
 
@@ -209,10 +213,14 @@ pub trait Downloader {
     /// - detectar una cancelación;
     /// - devolver un error real.
     ///
+    /// `AppHandle` permite acceder a recursos proporcionados
+    /// por Tauri, como el ejecutable sidecar de yt-dlp.
+    ///
     /// `DownloadController` permite al worker consultar si
     /// el usuario solicitó pausar o cancelar.
     fn download(
         &self,
+        app: &AppHandle,
         download: &Download,
         output_path: &Path,
         controller: &DownloadController,

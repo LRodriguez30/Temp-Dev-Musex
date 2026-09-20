@@ -334,6 +334,7 @@ pub fn download_audio(
         // =====================================================
 
         let result = source_downloader(
+            &app,
             &download,
             &output_path,
             &worker_controller,
@@ -348,11 +349,13 @@ pub fn download_audio(
             // -------------------------------------------------
             // ÉXITO
             // -------------------------------------------------
+
             Ok(result) => result,
 
             // -------------------------------------------------
             // DESCARGA PAUSADA
             // -------------------------------------------------
+
             Err(DownloadError::Control(DownloadControlResult::Paused)) => {
                 let progress = get_manager_progress(&manager, &id);
 
@@ -363,7 +366,10 @@ pub fn download_audio(
 
                         status: "paused".to_string(),
 
-                        progress: progress.as_ref().map(|value| value.progress).unwrap_or(0.0),
+                        progress: progress
+                            .as_ref()
+                            .map(|value| value.progress)
+                            .unwrap_or(0.0),
 
                         stage: progress
                             .as_ref()
@@ -377,7 +383,9 @@ pub fn download_audio(
                             .map(|value| value.downloaded_bytes)
                             .unwrap_or(0),
 
-                        total_bytes: progress.as_ref().and_then(|value| value.total_bytes),
+                        total_bytes: progress
+                            .as_ref()
+                            .and_then(|value| value.total_bytes),
                     },
                 );
 
@@ -387,6 +395,7 @@ pub fn download_audio(
             // -------------------------------------------------
             // DESCARGA CANCELADA
             // -------------------------------------------------
+
             Err(DownloadError::Control(DownloadControlResult::Cancelled)) => {
                 if let Ok(mut manager_guard) = manager.lock() {
                     manager_guard.cancel_download(&id);
@@ -401,7 +410,10 @@ pub fn download_audio(
 
                         status: "cancelled".to_string(),
 
-                        progress: progress.as_ref().map(|value| value.progress).unwrap_or(0.0),
+                        progress: progress
+                            .as_ref()
+                            .map(|value| value.progress)
+                            .unwrap_or(0.0),
 
                         stage: progress
                             .as_ref()
@@ -415,7 +427,9 @@ pub fn download_audio(
                             .map(|value| value.downloaded_bytes)
                             .unwrap_or(0),
 
-                        total_bytes: progress.as_ref().and_then(|value| value.total_bytes),
+                        total_bytes: progress
+                            .as_ref()
+                            .and_then(|value| value.total_bytes),
                     },
                 );
 
@@ -425,6 +439,7 @@ pub fn download_audio(
             // -------------------------------------------------
             // ERROR REAL
             // -------------------------------------------------
+
             Err(error) => {
                 let message = error.to_string();
 
@@ -478,13 +493,6 @@ pub fn download_audio(
         // =====================================================
         // EVENTO DE COMPLETADO
         // =====================================================
-
-        let title = result
-            .path()
-            .file_stem()
-            .and_then(|s| s.to_str())
-            .unwrap_or("Descarga completada")
-            .to_string();
 
         let title = result
             .path()
@@ -569,6 +577,7 @@ fn detect_source(url: &str) -> Option<DownloadSource> {
 
 /// Selecciona el downloader apropiado y ejecuta la descarga.
 fn source_downloader(
+    app: &AppHandle,
     download: &Download,
     output_path: &Path,
     controller: &DownloadController,
@@ -587,7 +596,13 @@ fn source_downloader(
     let youtube = YouTubeDownloader::new();
 
     if youtube.supports_url(&url) {
-        return youtube.download(download, output_path, controller, progress_callback);
+        return youtube.download(
+            app,
+            download,
+            output_path,
+            controller,
+            progress_callback,
+        );
     }
 
     // =========================================================
@@ -597,7 +612,13 @@ fn source_downloader(
     let newgrounds = NewgroundsDownloader::new();
 
     if newgrounds.supports_url(&url) {
-        return newgrounds.download(download, output_path, controller, progress_callback);
+        return newgrounds.download(
+            app,
+            download,
+            output_path,
+            controller,
+            progress_callback,
+        );
     }
 
     // =========================================================
@@ -757,12 +778,20 @@ pub fn move_download_to_library(
     Ok(destination_path.to_string_lossy().into_owned())
 }
 
+// =============================================================
+// OBTENER HISTORIAL DE DESCARGAS
+// =============================================================
+
 #[tauri::command]
 pub fn get_download_history(
     history: State<'_, crate::downloads::history::DownloadHistory>,
 ) -> Result<Vec<crate::downloads::history::DownloadHistoryEntry>, String> {
     history.load()
 }
+
+// =============================================================
+// ELIMINAR ENTRADA DEL HISTORIAL
+// =============================================================
 
 #[tauri::command]
 pub fn remove_download_history_entry(
@@ -771,6 +800,10 @@ pub fn remove_download_history_entry(
 ) -> Result<(), String> {
     history.remove_entry(&id)
 }
+
+// =============================================================
+// LIMPIAR HISTORIAL
+// =============================================================
 
 #[tauri::command]
 pub fn clear_download_history(

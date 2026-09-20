@@ -30,14 +30,21 @@
 // =============================================================
 
 use std::fs;
-use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
 use std::time::SystemTime;
+
+use tauri::{AppHandle, Manager};
+use tauri_plugin_shell::process::CommandEvent;
+use tauri_plugin_shell::ShellExt;
 
 use crate::downloads::download_manager::DownloadController;
 
-use crate::downloads::downloader::{DownloadError, DownloadProgress, DownloadResult, Downloader};
+use crate::downloads::downloader::{
+    DownloadError,
+    DownloadProgress,
+    DownloadResult,
+    Downloader,
+};
 
 use crate::downloads::youtube::YouTubeVideo;
 use crate::models::download::Download;
@@ -52,6 +59,9 @@ pub struct YouTubeDownloader;
 
 impl YouTubeDownloader {
     /// Crea un nuevo descargador de YouTube.
+    ///
+    /// Esta instancia se utiliza principalmente para detectar
+    /// y validar URLs de YouTube.
     pub fn new() -> Self {
         Self
     }
@@ -59,6 +69,141 @@ impl YouTubeDownloader {
     /// Analiza y valida una URL de YouTube.
     pub fn parse_url(&self, url: &str) -> Result<YouTubeVideo, String> {
         YouTubeVideo::from_url(url)
+    }
+
+    // =========================================================
+    // FFMPEG
+    // =========================================================
+
+    /// Busca el ejecutable donde Musex tiene empaquetado FFmpeg.
+    ///
+    /// Durante desarrollo:
+    ///
+    ///     src-tauri/
+    ///         binaries/
+    ///             ffmpeg-x86_64-pc-windows-msvc.exe
+    ///
+    /// Durante producción Tauri puede colocar los recursos
+    /// empaquetados dentro del directorio de recursos de la
+    /// aplicación.
+    ///
+    /// Por ello se prueban varias ubicaciones válidas.
+    fn find_ffmpeg_executable(
+        &self,
+        app: &AppHandle,
+    ) -> Result<PathBuf, DownloadError> {
+        // -----------------------------------------------------
+        // Nombre esperado del ejecutable
+        // -----------------------------------------------------
+
+        let ffmpeg_name =
+            if cfg!(target_os = "windows") {
+                "ffmpeg-x86_64-pc-windows-msvc.exe"
+            } else {
+                "ffmpeg"
+            };
+
+        // -----------------------------------------------------
+        // Posibles ubicaciones
+        // -----------------------------------------------------
+        //
+        // La primera ubicación se utiliza específicamente para
+        // desarrollo con `tauri dev`.
+        //
+        // `CARGO_MANIFEST_DIR` apunta a:
+        //
+        //     src-tauri/
+        //
+        // por lo que:
+        //
+        //     CARGO_MANIFEST_DIR/binaries
+        //
+        // corresponde directamente a:
+        //
+        //     src-tauri/binaries
+        // -----------------------------------------------------
+
+        let development_directory =
+            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("binaries");
+
+        // -----------------------------------------------------
+        // Directorio de recursos de Tauri
+        // -----------------------------------------------------
+
+        let resource_dir =
+            app.path()
+                .resource_dir()
+                .map_err(|error| {
+                    DownloadError::Other(
+                        Box::new(
+                            std::io::Error::new(
+                                std::io::ErrorKind::NotFound,
+                                format!(
+                                    "No se pudo obtener el directorio de recursos de Musex: {}",
+                                    error
+                                ),
+                            )
+                        )
+                    )
+                })?;
+
+        // -----------------------------------------------------
+        // Posibles ubicaciones en producción
+        // -----------------------------------------------------
+
+        let resource_binaries_directory =
+            resource_dir.join("binaries");
+
+        let possible_directories = [
+            development_directory.clone(),
+            resource_binaries_directory.clone(),
+            resource_dir.clone(),
+        ];
+
+        // -----------------------------------------------------
+        // Buscar FFmpeg
+        // -----------------------------------------------------
+
+        for directory in possible_directories {
+            let executable =
+                directory.join(ffmpeg_name);
+
+            println!(
+                "[YOUTUBE] Comprobando FFmpeg: {}",
+                executable.display()
+            );
+
+            if executable.is_file() {
+                println!(
+                    "[YOUTUBE] FFmpeg encontrado en: {}",
+                    executable.display()
+                );
+
+                return Ok(executable);
+            }
+        }
+
+        // -----------------------------------------------------
+        // FFmpeg no encontrado
+        // -----------------------------------------------------
+
+        Err(
+            DownloadError::Other(
+                Box::new(
+                    std::io::Error::new(
+                        std::io::ErrorKind::NotFound,
+                        format!(
+                            "No se encontró el FFmpeg empaquetado con Musex. \
+                             Se buscó en desarrollo: {} \
+                             y en los recursos de Tauri: {}.",
+                            development_directory.display(),
+                            resource_dir.display()
+                        ),
+                    )
+                )
+            )
+        )
     }
 }
 
@@ -73,6 +218,7 @@ impl Downloader for YouTubeDownloader {
     /// `DownloadProgress` y se entrega mediante el callback.
     fn download(
         &self,
+        app: &AppHandle,
         download: &Download,
         output_path: &Path,
         controller: &DownloadController,
@@ -87,39 +233,63 @@ impl Downloader for YouTubeDownloader {
         println!("MUSEX - INICIO DE DESCARGA DE YOUTUBE");
         println!("========================================");
         println!("URL: {}", download.url);
-        println!("Directorio de salida: {}", output_path.display());
+        println!(
+            "Directorio de salida: {}",
+            output_path.display()
+        );
         println!();
 
-        progress_callback(DownloadProgress::new(
-            0.0,
-            "preparing",
-            "Preparando descarga...",
-        ));
+        progress_callback(
+            DownloadProgress::new(
+                0.0,
+                "preparing",
+                "Preparando descarga...",
+            )
+        );
 
         // -----------------------------------------------------
         // Validar URL
         // -----------------------------------------------------
 
-        let video = self.parse_url(&download.url).map_err(|error| {
-            DownloadError::Other(Box::new(std::io::Error::new(
-                std::io::ErrorKind::InvalidInput,
-                format!("URL de YouTube no válida: {}", error),
-            )))
-        })?;
+        let video =
+            self.parse_url(&download.url)
+                .map_err(|error| {
+                    DownloadError::Other(
+                        Box::new(
+                            std::io::Error::new(
+                                std::io::ErrorKind::InvalidInput,
+                                format!(
+                                    "URL de YouTube no válida: {}",
+                                    error
+                                ),
+                            )
+                        )
+                    )
+                })?;
 
-        println!("[YOUTUBE] Video identificado: {}", video.video_id);
+        println!(
+            "[YOUTUBE] Video identificado: {}",
+            video.video_id
+        );
 
-        progress_callback(DownloadProgress::new(
-            2.0,
-            "fetching",
-            "Obteniendo información del contenido...",
-        ));
+        progress_callback(
+            DownloadProgress::new(
+                2.0,
+                "fetching",
+                "Obteniendo información del contenido...",
+            )
+        );
 
         // -----------------------------------------------------
         // Preparar directorio de salida
         // -----------------------------------------------------
 
-        fs::create_dir_all(output_path).map_err(|error| DownloadError::Other(Box::new(error)))?;
+        fs::create_dir_all(output_path)
+            .map_err(|error| {
+                DownloadError::Other(
+                    Box::new(error)
+                )
+            })?;
 
         println!(
             "[YOUTUBE] Directorio de salida preparado: {}",
@@ -135,9 +305,13 @@ impl Downloader for YouTubeDownloader {
         // por esta operación.
         // -----------------------------------------------------
 
-        let output_directory = output_path;
+        let output_directory =
+            output_path;
 
-        let existing_files = collect_mp3_files(output_directory)?;
+        let existing_files =
+            collect_mp3_files(
+                output_directory
+            )?;
 
         println!(
             "[YOUTUBE] Archivos MP3 existentes: {}",
@@ -148,7 +322,9 @@ impl Downloader for YouTubeDownloader {
         // Preparar plantilla de salida
         // -----------------------------------------------------
 
-        let output_template = output_directory.join("%(title)s.%(ext)s");
+        let output_template =
+            output_directory
+                .join("%(title)s.%(ext)s");
 
         println!(
             "[YOUTUBE] Plantilla de salida: {}",
@@ -160,106 +336,284 @@ impl Downloader for YouTubeDownloader {
         // -----------------------------------------------------
 
         if controller.is_cancelled() {
-            return Err(DownloadError::Control(
-                crate::downloads::downloader::DownloadControlResult::Cancelled,
-            ));
+            return Err(
+                DownloadError::Control(
+                    crate::downloads::downloader::DownloadControlResult::Cancelled,
+                )
+            );
         }
 
         if controller.is_paused() {
-            return Err(DownloadError::Control(
-                crate::downloads::downloader::DownloadControlResult::Paused,
-            ));
+            return Err(
+                DownloadError::Control(
+                    crate::downloads::downloader::DownloadControlResult::Paused,
+                )
+            );
         }
 
         // -----------------------------------------------------
-        // Ejecutar yt-dlp
+        // Localizar FFmpeg empaquetado con Musex
+        // -----------------------------------------------------
+        //
+        // FFmpeg forma parte de la distribución de Musex.
+        //
+        // No utilizamos el FFmpeg instalado globalmente en
+        // Windows.
+        //
+        // Durante desarrollo se busca primero en:
+        //
+        //     src-tauri/binaries
+        //
+        // En producción se buscan los recursos generados por
+        // Tauri.
+        //
+        // IMPORTANTE:
+        //
+        // yt-dlp necesita localizar el ejecutable real de
+        // FFmpeg.
+        //
+        // Nuestro archivo no se llama simplemente:
+        //
+        //     ffmpeg.exe
+        //
+        // sino:
+        //
+        //     ffmpeg-x86_64-pc-windows-msvc.exe
+        //
+        // Por ello se proporciona a yt-dlp la ruta COMPLETA
+        // del ejecutable mediante `--ffmpeg-location`.
         // -----------------------------------------------------
 
+        let ffmpeg_executable =
+            self.find_ffmpeg_executable(app)?;
+
+        let ffmpeg_location =
+            ffmpeg_executable
+                .to_string_lossy()
+                .into_owned();
+
+        println!(
+            "[YOUTUBE] Ejecutable FFmpeg empaquetado: {}",
+            ffmpeg_location
+        );
+
+        // -----------------------------------------------------
+        // Comprobar existencia de FFmpeg
+        // -----------------------------------------------------
+
+        if !ffmpeg_executable.is_file() {
+            return Err(
+                DownloadError::Other(
+                    Box::new(
+                        std::io::Error::new(
+                            std::io::ErrorKind::NotFound,
+                            format!(
+                                "No se encontró el FFmpeg empaquetado con Musex: {}",
+                                ffmpeg_executable.display()
+                            ),
+                        )
+                    )
+                )
+            );
+        }
+
+        println!(
+            "[YOUTUBE] FFmpeg encontrado correctamente: {}",
+            ffmpeg_executable.display()
+        );
+
+        // =====================================================
+        // EJECUTAR YT-DLP
+        // =====================================================
+        //
+        // El AppHandle llega directamente desde el comando
+        // `download_audio`.
+        //
+        // No se almacena dentro de `YouTubeDownloader`.
+        //
+        // Esto permite que `YouTubeDownloader::new()` siga siendo
+        // suficiente para detectar y validar URLs.
+        // =====================================================
+
         println!();
-        println!("[YOUTUBE] Ejecutando yt-dlp...");
+        println!(
+            "[YOUTUBE] Ejecutando yt-dlp como sidecar..."
+        );
         println!();
 
-        let mut child =
-            Command::new("yt-dlp")
-                .arg("-x")
-                .arg("--audio-format")
-                .arg("mp3")
-                .arg("--no-playlist")
-                .arg("--newline")
-                .arg("--restrict-filenames")
+        // -----------------------------------------------------
+        // IMPORTANTE
+        // -----------------------------------------------------
+        //
+        // `yt-dlp` está configurado en:
+        //
+        // tauri.conf.json
+        //
+        // "externalBin": [
+        //     "binaries/yt-dlp",
+        //     "binaries/ffmpeg"
+        // ]
+        //
+        // Tauri se encarga de resolver automáticamente el
+        // ejecutable correcto para la plataforma.
+        //
+        // El nombre utilizado aquí es solamente:
+        //
+        // "yt-dlp"
+        //
+        // No se utiliza:
+        //
+        // "binaries/yt-dlp"
+        //
+        // según la API Rust de sidecars de Tauri.
+        //
+        // FFmpeg también se encuentra configurado como sidecar
+        // en:
+        //
+        // "binaries/ffmpeg"
+        //
+        // Sin embargo, yt-dlp necesita conocer la ubicación
+        // física de FFmpeg.
+        //
+        // Como el ejecutable de Musex tiene el sufijo del
+        // target de Tauri, se proporciona la ruta COMPLETA:
+        //
+        // "--ffmpeg-location"
+        //
+        //     C:\...\ffmpeg-x86_64-pc-windows-msvc.exe
+        //
+        // Esto evita depender del PATH de Windows y también
+        // evita que yt-dlp busque un archivo llamado simplemente
+        // `ffmpeg.exe`.
+        // -----------------------------------------------------
 
-                // -------------------------------------------------
-                // Control de archivos existentes
-                // -------------------------------------------------
-                //
-                // Musex considera cada operación como una nueva
-                // descarga. Por ello, yt-dlp no debe reutilizar
-                // silenciosamente un MP3 existente.
-                // -------------------------------------------------
+        let sidecar_command =
+            app
+                .shell()
+                .sidecar("yt-dlp")
+                .map_err(|error| {
+                    DownloadError::Other(
+                        Box::new(
+                            std::io::Error::new(
+                                std::io::ErrorKind::NotFound,
+                                format!(
+                                    "No se pudo localizar el sidecar yt-dlp. Detalle: {}",
+                                    error
+                                ),
+                            )
+                        )
+                    )
+                })?
+                .args([
+                    "-x",
 
-                .arg("--force-overwrites")
+                    "--audio-format",
+                    "mp3",
 
-                // -------------------------------------------------
-                // Progress
-                // -------------------------------------------------
+                    "--no-playlist",
 
-                .arg("--progress-template")
-                .arg(
-                    "download:%(progress.status)s|%(progress.downloaded_bytes)s|%(progress.total_bytes)s",
-                )
+                    // -------------------------------------------------
+                    // Progreso
+                    // -------------------------------------------------
+                    //
+                    // `--newline` obliga a yt-dlp a emitir cada
+                    // actualización de progreso en una línea
+                    // independiente.
+                    //
+                    // El formato real observado en la salida es:
+                    //
+                    // downloading|1024|4519524
+                    //
+                    // Por ello el parser de Rust procesa directamente
+                    // esos tres valores.
+                    // -------------------------------------------------
 
-                // -------------------------------------------------
-                // Metadata
-                // -------------------------------------------------
+                    "--progress",
 
-                .arg("--parse-metadata")
-                .arg(
-                    "%(title)s:%(meta_title)s"
-                )
+                    "--newline",
 
-                .arg("--parse-metadata")
-                .arg(
-                    "%(uploader)s:%(meta_artist)s"
-                )
+                    "--restrict-filenames",
 
-                .arg("--parse-metadata")
-                .arg(
-                    "%(album|)s:%(meta_album)s"
-                )
+                    // -------------------------------------------------
+                    // FFmpeg empaquetado con Musex
+                    // -------------------------------------------------
+                    //
+                    // Se indica directamente el ejecutable que debe
+                    // utilizar yt-dlp.
+                    //
+                    // Esto evita depender del FFmpeg instalado
+                    // globalmente en Windows.
+                    // -------------------------------------------------
 
-                .arg("--parse-metadata")
-                .arg(
-                    "%(genre|)s:%(meta_genre)s"
-                )
+                    "--ffmpeg-location",
+                    &ffmpeg_location,
 
-                .arg("--parse-metadata")
-                .arg(
-                    "%(upload_date|)s:%(meta_date)s"
-                )
+                    // -------------------------------------------------
+                    // Control de archivos existentes
+                    // -------------------------------------------------
 
-                .arg("--embed-metadata")
+                    "--force-overwrites",
 
-                // -------------------------------------------------
-                // Salida
-                // -------------------------------------------------
+                    // -------------------------------------------------
+                    // Progress template
+                    // -------------------------------------------------
+                    //
+                    // El resultado esperado es:
+                    //
+                    // downloading|4350000|8705729
+                    //
+                    // o:
+                    //
+                    // finished|8705729|8705729
+                    //
+                    // El prefijo `download:` no se utiliza porque
+                    // yt-dlp está entregando directamente el contenido
+                    // definido por la plantilla.
+                    // -------------------------------------------------
 
-                .arg("-o")
-                .arg(&output_template)
+                    "--progress-template",
+                    "%(progress.status)s|%(progress.downloaded_bytes)s|%(progress.total_bytes)s",
 
-                .arg(&download.url)
+                    // -------------------------------------------------
+                    // Metadata
+                    // -------------------------------------------------
 
-                // -------------------------------------------------
-                // Comunicación con Rust
-                // -------------------------------------------------
+                    "--parse-metadata",
+                    "%(title)s:%(meta_title)s",
 
-                .stdout(
-                    Stdio::piped()
-                )
+                    "--parse-metadata",
+                    "%(uploader)s:%(meta_artist)s",
 
-                .stderr(
-                    Stdio::inherit()
-                )
+                    "--parse-metadata",
+                    "%(album|)s:%(meta_album)s",
 
+                    "--parse-metadata",
+                    "%(genre|)s:%(meta_genre)s",
+
+                    "--parse-metadata",
+                    "%(upload_date|)s:%(meta_date)s",
+
+                    "--embed-metadata",
+
+                    // -------------------------------------------------
+                    // Salida
+                    // -------------------------------------------------
+
+                    "-o",
+
+                    output_template
+                        .to_string_lossy()
+                        .as_ref(),
+
+                    &download.url,
+                ]);
+
+        // -----------------------------------------------------
+        // Comunicación con Rust
+        // -----------------------------------------------------
+
+        let (mut receiver, child) =
+            sidecar_command
                 .spawn()
                 .map_err(|error| {
                     DownloadError::Other(
@@ -267,9 +621,7 @@ impl Downloader for YouTubeDownloader {
                             std::io::Error::new(
                                 std::io::ErrorKind::NotFound,
                                 format!(
-                                    "No se pudo ejecutar yt-dlp. \
-                                     Verifica que esté instalado y disponible \
-                                     en el PATH del sistema. Detalle: {}",
+                                    "No se pudo ejecutar el sidecar yt-dlp. Detalle: {}",
                                     error
                                 ),
                             )
@@ -277,252 +629,501 @@ impl Downloader for YouTubeDownloader {
                     )
                 })?;
 
+        println!(
+            "[YOUTUBE] yt-dlp iniciado correctamente."
+        );
+
         // -----------------------------------------------------
         // Leer progreso
         // -----------------------------------------------------
-        //
-        // La salida estándar de yt-dlp se procesa línea por línea
-        // mientras el proceso continúa ejecutándose.
-        // -----------------------------------------------------
 
-        println!("[YOUTUBE] Escuchando salida de yt-dlp...");
+        println!(
+            "[YOUTUBE] Escuchando salida de yt-dlp..."
+        );
 
-        if let Some(stdout) = child.stdout.take() {
-            let mut reader = BufReader::new(stdout);
+        let mut exit_code: Option<i32> =
+            None;
 
-            let mut buffer = Vec::new();
+        let mut stdout_buffer =
+            String::new();
 
-            loop {
-                // -------------------------------------------------
-                // Comprobar controles
-                // -------------------------------------------------
+        loop {
+            // -------------------------------------------------
+            // Comprobar controles
+            // -------------------------------------------------
 
-                if controller.is_cancelled() {
-                    println!("[YOUTUBE] Cancelación solicitada.");
+            if controller.is_cancelled() {
+                println!(
+                    "[YOUTUBE] Cancelación solicitada."
+                );
 
-                    let _ = child.kill();
+                if let Err(error) =
+                    child.kill()
+                {
+                    eprintln!(
+                        "[YOUTUBE] No se pudo detener yt-dlp: {}",
+                        error
+                    );
+                }
 
-                    let _ = child.wait();
-
-                    return Err(DownloadError::Control(
+                return Err(
+                    DownloadError::Control(
                         crate::downloads::downloader::DownloadControlResult::Cancelled,
-                    ));
+                    )
+                );
+            }
+
+            if controller.is_paused() {
+                println!(
+                    "[YOUTUBE] Pausa solicitada."
+                );
+
+                if let Err(error) =
+                    child.kill()
+                {
+                    eprintln!(
+                        "[YOUTUBE] No se pudo detener yt-dlp: {}",
+                        error
+                    );
                 }
 
-                if controller.is_paused() {
-                    println!("[YOUTUBE] Pausa solicitada.");
-
-                    let _ = child.kill();
-
-                    let _ = child.wait();
-
-                    return Err(DownloadError::Control(
+                return Err(
+                    DownloadError::Control(
                         crate::downloads::downloader::DownloadControlResult::Paused,
-                    ));
+                    )
+                );
+            }
+
+            // -------------------------------------------------
+            // Esperar siguiente evento
+            // -------------------------------------------------
+
+            let event =
+                tauri::async_runtime::block_on(
+                    receiver.recv()
+                );
+
+            let Some(event) =
+                event
+            else {
+                println!(
+                    "[YOUTUBE] El canal de eventos de yt-dlp se cerró."
+                );
+
+                break;
+            };
+
+            // =================================================
+            // PROCESAR EVENTO
+            // =================================================
+
+            match event {
+
+                // -------------------------------------------------
+                // STDOUT
+                // -------------------------------------------------
+
+                CommandEvent::Stdout(bytes) => {
+                    let output =
+                        String::from_utf8_lossy(
+                            &bytes
+                        );
+
+                    // -------------------------------------------------
+                    // stdout puede llegar fragmentado.
+                    //
+                    // Por ejemplo:
+                    //
+                    // Evento 1:
+                    //     downloading|435000
+                    //
+                    // Evento 2:
+                    //     0|870000
+                    //
+                    // Por ello acumulamos los fragmentos antes de
+                    // procesar las líneas completas.
+                    // -------------------------------------------------
+
+                    stdout_buffer.push_str(
+                        &output
+                    );
+
+                    while let Some(newline_position) =
+                        stdout_buffer.find('\n')
+                    {
+                        let line =
+                            stdout_buffer
+                                [..newline_position]
+                                .trim_end_matches('\r')
+                                .trim()
+                                .to_string();
+
+                        stdout_buffer.drain(
+                            ..=newline_position
+                        );
+
+                        if line.is_empty() {
+                            continue;
+                        }
+
+                        println!(
+                            "[YTDLP] {}",
+                            line
+                        );
+
+                        if let Some(progress) =
+                            parse_progress_line(
+                                &line
+                            )
+                        {
+                            println!(
+                                "[YOUTUBE PROGRESS] \
+                                 stage={} | \
+                                 progress={:.2}% | \
+                                 downloaded={} bytes | \
+                                 total={:?} bytes | \
+                                 message={}",
+                                progress.stage,
+                                progress.progress,
+                                progress.downloaded_bytes,
+                                progress.total_bytes,
+                                progress.message
+                            );
+
+                            progress_callback(
+                                progress
+                            );
+                        }
+                    }
                 }
 
                 // -------------------------------------------------
-                // Leer línea
+                // STDERR
                 // -------------------------------------------------
 
-                buffer.clear();
+                CommandEvent::Stderr(bytes) => {
+                    let output =
+                        String::from_utf8_lossy(
+                            &bytes
+                        );
 
-                let bytes_read = reader
-                    .read_until(b'\n', &mut buffer)
-                    .map_err(|error| DownloadError::Other(Box::new(error)))?;
+                    for raw_line in output.lines() {
+                        let line =
+                            raw_line.trim();
+
+                        if line.is_empty() {
+                            continue;
+                        }
+
+                        println!(
+                            "[YTDLP STDERR] {}",
+                            line
+                        );
+                    }
+                }
 
                 // -------------------------------------------------
-                // Fin del stream
+                // PROCESO TERMINADO
                 // -------------------------------------------------
 
-                if bytes_read == 0 {
+                CommandEvent::Terminated(payload) => {
+                    // -------------------------------------------------
+                    // Si quedó una línea pendiente en stdout, intentamos
+                    // procesarla antes de terminar.
+                    // -------------------------------------------------
+
+                    let remaining =
+                        stdout_buffer
+                            .trim();
+
+                    if !remaining.is_empty() {
+                        println!(
+                            "[YTDLP] {}",
+                            remaining
+                        );
+
+                        if let Some(progress) =
+                            parse_progress_line(
+                                remaining
+                            )
+                        {
+                            progress_callback(
+                                progress
+                            );
+                        }
+                    }
+
+                    println!();
+                    println!(
+                        "========================================"
+                    );
+                    println!(
+                        "[YOUTUBE] YT-DLP TERMINÓ"
+                    );
+                    println!(
+                        "========================================"
+                    );
+
+                    println!(
+                        "[YOUTUBE] Código de salida: {:?}",
+                        payload.code
+                    );
+
+                    println!(
+                        "[YOUTUBE] Señal: {:?}",
+                        payload.signal
+                    );
+
+                    println!(
+                        "========================================"
+                    );
+                    println!();
+
+                    exit_code =
+                        payload.code;
+
                     break;
                 }
 
                 // -------------------------------------------------
-                // Convertir línea
-                // -------------------------------------------------
-                //
-                // yt-dlp puede generar bytes que no sean UTF-8 válido.
-                // from_utf8_lossy() evita que esos bytes provoquen
-                // el error:
-                //
-                // "stream did not contain valid UTF-8"
-                //
-                // Los bytes inválidos son reemplazados por �.
+                // ERROR DEL PROCESO
                 // -------------------------------------------------
 
-                let line = String::from_utf8_lossy(&buffer);
-
-                let line = line.trim_end_matches(&['\r', '\n'][..]);
-
-                // -------------------------------------------------
-                // Diagnóstico
-                // -------------------------------------------------
-
-                println!("[YTDLP] {}", line);
-
-                // -------------------------------------------------
-                // Intentar interpretar progreso
-                // -------------------------------------------------
-
-                if let Some(progress) = parse_progress_line(line) {
+                CommandEvent::Error(error) => {
                     println!(
-                        "[YOUTUBE PROGRESS] \
-                 stage={} | \
-                 progress={:.2}% | \
-                 downloaded={} bytes | \
-                 total={:?} bytes | \
-                 message={}",
-                        progress.stage,
-                        progress.progress,
-                        progress.downloaded_bytes,
-                        progress.total_bytes,
-                        progress.message
+                        "[YTDLP ERROR] {}",
+                        error
                     );
-
-                    // -------------------------------------------------
-                    // Enviar progreso hacia Tauri
-                    // -------------------------------------------------
-
-                    progress_callback(progress);
-                } else {
-                    println!("[YOUTUBE] Línea no reconocida como progreso.");
                 }
+
+                // -------------------------------------------------
+                // OTROS EVENTOS
+                // -------------------------------------------------
+
+                _ => {}
             }
         }
 
-        // -----------------------------------------------------
-        // Comprobar controles después de stdout
-        // -----------------------------------------------------
+        // =====================================================
+        // COMPROBAR CONTROLES DESPUÉS DE STDOUT
+        // =====================================================
 
         if controller.is_cancelled() {
-            println!("[YOUTUBE] Cancelación solicitada.");
+            println!(
+                "[YOUTUBE] Cancelación solicitada."
+            );
 
-            let _ = child.kill();
-
-            let _ = child.wait();
-
-            return Err(DownloadError::Control(
-                crate::downloads::downloader::DownloadControlResult::Cancelled,
-            ));
+            return Err(
+                DownloadError::Control(
+                    crate::downloads::downloader::DownloadControlResult::Cancelled,
+                )
+            );
         }
 
         if controller.is_paused() {
-            println!("[YOUTUBE] Pausa solicitada.");
+            println!(
+                "[YOUTUBE] Pausa solicitada."
+            );
 
-            let _ = child.kill();
-
-            let _ = child.wait();
-
-            return Err(DownloadError::Control(
-                crate::downloads::downloader::DownloadControlResult::Paused,
-            ));
+            return Err(
+                DownloadError::Control(
+                    crate::downloads::downloader::DownloadControlResult::Paused,
+                )
+            );
         }
 
-        // -----------------------------------------------------
-        // Esperar finalización
-        // -----------------------------------------------------
+        // =====================================================
+        // RESULTADO DEL PROCESO
+        // =====================================================
 
         println!();
-        println!("[YOUTUBE] Esperando finalización de yt-dlp...");
+        println!(
+            "[YOUTUBE] Procesamiento del evento de finalización..."
+        );
 
-        let status = child
-            .wait()
-            .map_err(|error| DownloadError::Other(Box::new(error)))?;
+        let exit_code =
+            exit_code.ok_or_else(|| {
+                DownloadError::Other(
+                    Box::new(
+                        std::io::Error::new(
+                            std::io::ErrorKind::Other,
+                            "yt-dlp terminó sin proporcionar un código de salida.",
+                        )
+                    )
+                )
+            })?;
 
-        println!("[YOUTUBE] yt-dlp finalizó con estado: {}", status);
+        println!(
+            "[YOUTUBE] yt-dlp finalizó con código de salida: {}",
+            exit_code
+        );
 
-        // -----------------------------------------------------
-        // Comprobar controles después de finalizar
-        // -----------------------------------------------------
+        // =====================================================
+        // COMPROBAR CONTROLES DESPUÉS DE FINALIZAR
+        // =====================================================
 
         if controller.is_cancelled() {
-            return Err(DownloadError::Control(
-                crate::downloads::downloader::DownloadControlResult::Cancelled,
-            ));
+            return Err(
+                DownloadError::Control(
+                    crate::downloads::downloader::DownloadControlResult::Cancelled,
+                )
+            );
         }
 
         if controller.is_paused() {
-            return Err(DownloadError::Control(
-                crate::downloads::downloader::DownloadControlResult::Paused,
-            ));
+            return Err(
+                DownloadError::Control(
+                    crate::downloads::downloader::DownloadControlResult::Paused,
+                )
+            );
         }
 
-        // -----------------------------------------------------
-        // Comprobar resultado
-        // -----------------------------------------------------
+        // =====================================================
+        // COMPROBAR RESULTADO
+        // =====================================================
 
-        if !status.success() {
-            println!("[YOUTUBE] ERROR: yt-dlp no terminó correctamente.");
+        if exit_code != 0 {
+            println!();
+            println!(
+                "========================================"
+            );
+            println!(
+                "[YOUTUBE] ERROR: YT-DLP NO TERMINÓ CORRECTAMENTE"
+            );
+            println!(
+                "========================================"
+            );
+            println!(
+                "[YOUTUBE] Código de salida real: {}",
+                exit_code
+            );
+            println!(
+                "[YOUTUBE] Revisar las líneas [YTDLP STDERR]"
+            );
+            println!(
+                "========================================"
+            );
+            println!();
 
-            return Err(DownloadError::Other(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!(
-                    "yt-dlp no pudo completar la descarga. \
+            return Err(
+                DownloadError::Other(
+                    Box::new(
+                        std::io::Error::new(
+                            std::io::ErrorKind::Other,
+                            format!(
+                                "yt-dlp no pudo completar la descarga. \
                                  Código de salida: {}",
-                    status
-                ),
-            ))));
+                                exit_code
+                            )
+                        )
+                    )
+                )
+            );
         }
 
-        // -----------------------------------------------------
-        // Conversión / guardado
-        // -----------------------------------------------------
+        // =====================================================
+        // CONVERSIÓN / GUARDADO
+        // =====================================================
 
         println!();
-        println!("[YOUTUBE] Descarga de yt-dlp finalizada.");
+        println!(
+            "[YOUTUBE] Descarga de yt-dlp finalizada."
+        );
 
-        println!("[YOUTUBE] Buscando archivo MP3 generado...");
+        println!(
+            "[YOUTUBE] Buscando archivo MP3 generado..."
+        );
 
-        progress_callback(DownloadProgress::new(
-            98.0,
-            "saving",
-            "Guardando archivo...",
-        ));
+        progress_callback(
+            DownloadProgress::new(
+                98.0,
+                "saving",
+                "Guardando archivo...",
+            )
+        );
 
-        // -----------------------------------------------------
-        // Buscar archivo generado
-        // -----------------------------------------------------
+        // =====================================================
+        // BUSCAR ARCHIVO GENERADO
+        // =====================================================
 
-        let generated_file = find_generated_mp3(output_directory, &existing_files)?;
+        let generated_file =
+            find_generated_mp3(
+                output_directory,
+                &existing_files
+            )?;
 
-        println!("[YOUTUBE] Archivo generado: {}", generated_file.display());
+        println!(
+            "[YOUTUBE] Archivo generado: {}",
+            generated_file.display()
+        );
 
-        // -----------------------------------------------------
-        // Comprobar archivo físicamente
-        // -----------------------------------------------------
+        // =====================================================
+        // COMPROBAR ARCHIVO FÍSICAMENTE
+        // =====================================================
 
-        let file_size = fs::metadata(&generated_file)
-            .map_err(|error| DownloadError::Other(Box::new(error)))?
+        let file_size =
+            fs::metadata(
+                &generated_file
+            )
+            .map_err(|error| {
+                DownloadError::Other(
+                    Box::new(error)
+                )
+            })?
             .len();
 
-        println!("[YOUTUBE] Tamaño físico del MP3: {} bytes", file_size);
+        println!(
+            "[YOUTUBE] Tamaño físico del MP3: {} bytes",
+            file_size
+        );
 
-        // -----------------------------------------------------
-        // Finalización
-        // -----------------------------------------------------
+        // =====================================================
+        // FINALIZACIÓN
+        // =====================================================
 
-        progress_callback(DownloadProgress::new(
-            100.0,
-            "completed",
-            "Descarga completada.",
-        ));
+        progress_callback(
+            DownloadProgress::new(
+                100.0,
+                "completed",
+                "Descarga completada.",
+            )
+        );
 
         println!();
-        println!("========================================");
-        println!("MUSEX - DESCARGA DE YOUTUBE COMPLETADA");
-        println!("========================================");
-        println!("Archivo: {}", generated_file.display());
-        println!("Tamaño: {} bytes", file_size);
-        println!("========================================");
+        println!(
+            "========================================"
+        );
+        println!(
+            "MUSEX - DESCARGA DE YOUTUBE COMPLETADA"
+        );
+        println!(
+            "========================================"
+        );
+        println!(
+            "Archivo: {}",
+            generated_file.display()
+        );
+        println!(
+            "Tamaño: {} bytes",
+            file_size
+        );
+        println!(
+            "========================================"
+        );
         println!();
 
-        Ok(DownloadResult::new(generated_file))
+        Ok(
+            DownloadResult::new(
+                generated_file
+            )
+        )
     }
 
     /// Comprueba si el descargador puede trabajar con la URL.
-    fn supports_url(&self, url: &str) -> bool {
+    fn supports_url(
+        &self,
+        url: &str,
+    ) -> bool {
         YouTubeVideo::from_url(url).is_ok()
     }
 }
@@ -531,74 +1132,140 @@ impl Downloader for YouTubeDownloader {
 // PROGRESS PARSER
 // =============================================================
 //
-// Convierte la salida generada por yt-dlp:
+// yt-dlp genera:
 //
-// download:downloading|123456|8705729
+// downloading|4350000|8705729
 //
-// en:
+// o:
 //
-// DownloadProgress
+// finished|8705729|8705729
 //
-// El porcentaje NO se toma de yt-dlp.
+// Los campos representan:
 //
-// Rust lo calcula mediante:
+// status
+// downloaded_bytes
+// total_bytes
 //
-// downloaded_bytes / total_bytes
+// Por ejemplo:
 //
-// Esto mantiene el progreso basado en datos reales.
+// downloading|4350000|8705729
+//
+// significa:
+//
+// Estado:
+//     downloading
+//
+// Bytes descargados:
+//     4350000
+//
+// Bytes totales:
+//     8705729
+//
+// El porcentaje se calcula posteriormente mediante:
+//
+// DownloadProgress::from_bytes()
+//
+// Si yt-dlp informa:
+//
+// downloading|4350000|NA
+//
+// entonces no existe un tamaño total conocido.
+//
+// En ese caso DownloadProgress conserva:
+//
+// downloaded_bytes = 4350000
+// total_bytes      = None
+//
+// y no se inventa un porcentaje.
 // =============================================================
 
-fn parse_progress_line(line: &str) -> Option<DownloadProgress> {
-    let data = line.trim();
+fn parse_progress_line(
+    line: &str,
+) -> Option<DownloadProgress> {
+    let data =
+        line.trim();
 
-    let mut parts = data.split('|');
+    // ---------------------------------------------------------
+    // Separar los campos del progreso
+    // ---------------------------------------------------------
+
+    let mut parts =
+        data.split('|');
 
     // ---------------------------------------------------------
     // Estado
     // ---------------------------------------------------------
 
-    let status = parts.next()?;
+    let status =
+        parts.next()?;
 
     // ---------------------------------------------------------
     // Bytes descargados
     // ---------------------------------------------------------
 
-    let downloaded_bytes = parts.next()?.parse::<u64>().ok()?;
+    let downloaded_bytes =
+        parts
+            .next()?
+            .parse::<u64>()
+            .ok()?;
 
     // ---------------------------------------------------------
     // Bytes totales
     // ---------------------------------------------------------
 
-    let total_bytes = parts.next().and_then(|value| {
-        if value == "NA" || value.is_empty() {
-            None
-        } else {
-            value.parse::<u64>().ok()
-        }
-    });
+    let total_bytes =
+        parts
+            .next()
+            .and_then(|value| {
+                let value =
+                    value.trim();
+
+                if value == "NA"
+                    || value.is_empty()
+                {
+                    None
+                } else {
+                    value
+                        .parse::<u64>()
+                        .ok()
+                }
+            });
 
     // ---------------------------------------------------------
     // Determinar etapa
     // ---------------------------------------------------------
 
-    let (stage, message) = match status {
-        "downloading" => ("downloading", "Descargando audio..."),
+    let (stage, message) =
+        match status {
 
-        "finished" => ("converting", "Convirtiendo a MP3..."),
+            "downloading" => (
+                "downloading",
+                "Descargando audio...",
+            ),
 
-        _ => ("downloading", "Procesando descarga..."),
-    };
+            "finished" => (
+                "converting",
+                "Convirtiendo a MP3...",
+            ),
+
+            _ => (
+                "downloading",
+                "Procesando descarga...",
+            ),
+        };
 
     // ---------------------------------------------------------
     // Construir progreso
     // ---------------------------------------------------------
 
-    Some(DownloadProgress::from_bytes(
-        downloaded_bytes,
-        total_bytes,
-        stage,
-        message,
-    ))
+    Some(
+        DownloadProgress::from_bytes(
+            downloaded_bytes,
+            total_bytes,
+            stage,
+            message,
+        )
+    )
 }
 
 // =============================================================
@@ -607,28 +1274,54 @@ fn parse_progress_line(line: &str) -> Option<DownloadProgress> {
 
 /// Obtiene todos los archivos MP3 existentes dentro del
 /// directorio indicado.
-fn collect_mp3_files(directory: &Path) -> Result<Vec<PathBuf>, DownloadError> {
-    let mut files = Vec::new();
+fn collect_mp3_files(
+    directory: &Path,
+) -> Result<Vec<PathBuf>, DownloadError> {
+    let mut files =
+        Vec::new();
 
-    let entries = fs::read_dir(directory).map_err(|error| DownloadError::Other(Box::new(error)))?;
+    let entries =
+        fs::read_dir(
+            directory
+        )
+        .map_err(|error| {
+            DownloadError::Other(
+                Box::new(error)
+            )
+        })?;
 
     for entry in entries {
-        let entry = entry.map_err(|error| DownloadError::Other(Box::new(error)))?;
+        let entry =
+            entry.map_err(|error| {
+                DownloadError::Other(
+                    Box::new(error)
+                )
+            })?;
 
-        let path = entry.path();
+        let path =
+            entry.path();
 
         if !path.is_file() {
             continue;
         }
 
-        let is_mp3 = path
-            .extension()
-            .and_then(|extension| extension.to_str())
-            .map(|extension| extension.eq_ignore_ascii_case("mp3"))
-            .unwrap_or(false);
+        let is_mp3 =
+            path
+                .extension()
+                .and_then(|extension| {
+                    extension.to_str()
+                })
+                .map(|extension| {
+                    extension.eq_ignore_ascii_case(
+                        "mp3"
+                    )
+                })
+                .unwrap_or(false);
 
         if is_mp3 {
-            files.push(path);
+            files.push(
+                path
+            );
         }
     }
 
@@ -638,35 +1331,36 @@ fn collect_mp3_files(directory: &Path) -> Result<Vec<PathBuf>, DownloadError> {
 // =============================================================
 // GENERATED FILE
 // =============================================================
-//
-// Busca el MP3 generado o modificado por la operación actual.
-//
-// Prioridad:
-//
-// 1. Archivo que no existía antes de la descarga.
-// 2. Archivo modificado más recientemente.
-// 3. Error si no existe ningún MP3.
-// =============================================================
 
 fn find_generated_mp3(
     directory: &Path,
     existing_files: &[PathBuf],
 ) -> Result<PathBuf, DownloadError> {
-    let current_files = collect_mp3_files(directory)?;
+    let current_files =
+        collect_mp3_files(
+            directory
+        )?;
 
-    let mut new_files = Vec::new();
+    let mut new_files =
+        Vec::new();
 
     for file in &current_files {
         if !existing_files.contains(file) {
-            new_files.push(file.clone());
+            new_files.push(
+                file.clone()
+            );
         }
     }
 
     if !new_files.is_empty() {
-        return newest_file(new_files);
+        return newest_file(
+            new_files
+        );
     }
 
-    newest_file(current_files)
+    newest_file(
+        current_files
+    )
 }
 
 // =============================================================
@@ -674,38 +1368,70 @@ fn find_generated_mp3(
 // =============================================================
 
 /// Devuelve el archivo MP3 modificado más recientemente.
-fn newest_file(files: Vec<PathBuf>) -> Result<PathBuf, DownloadError> {
+fn newest_file(
+    files: Vec<PathBuf>,
+) -> Result<PathBuf, DownloadError> {
     if files.is_empty() {
-        return Err(DownloadError::Other(Box::new(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            "yt-dlp terminó correctamente, pero no se encontró \
+        return Err(
+            DownloadError::Other(
+                Box::new(
+                    std::io::Error::new(
+                        std::io::ErrorKind::NotFound,
+                        "yt-dlp terminó correctamente, pero no se encontró \
                          ningún archivo MP3 en el directorio de salida.",
-        ))));
+                    )
+                )
+            )
+        );
     }
 
-    let mut newest: Option<(PathBuf, SystemTime)> = None;
+    let mut newest:
+        Option<(PathBuf, SystemTime)> =
+            None;
 
     for file in files {
-        let modified = fs::metadata(&file)
-            .map_err(|error| DownloadError::Other(Box::new(error)))?
+        let modified =
+            fs::metadata(
+                &file
+            )
+            .map_err(|error| {
+                DownloadError::Other(
+                    Box::new(error)
+                )
+            })?
             .modified()
-            .unwrap_or(SystemTime::UNIX_EPOCH);
+            .unwrap_or(
+                SystemTime::UNIX_EPOCH
+            );
 
         match &newest {
-            Some((_, newest_time)) if modified <= *newest_time => {}
+            Some((_, newest_time))
+                if modified <= *newest_time => {}
 
             _ => {
-                newest = Some((file, modified));
+                newest =
+                    Some(
+                        (
+                            file,
+                            modified
+                        )
+                    );
             }
         }
     }
 
-    newest.map(|(path, _)| path).ok_or_else(|| {
-        DownloadError::Other(Box::new(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            "No se pudo determinar el archivo MP3 generado.",
-        )))
-    })
+    newest
+        .map(|(path, _)| path)
+        .ok_or_else(|| {
+            DownloadError::Other(
+                Box::new(
+                    std::io::Error::new(
+                        std::io::ErrorKind::NotFound,
+                        "No se pudo determinar el archivo MP3 generado.",
+                    )
+                )
+            )
+        })
 }
 
 // =============================================================
@@ -720,9 +1446,15 @@ fn newest_file(files: Vec<PathBuf>) -> Result<PathBuf, DownloadError> {
 //   ↓
 // YouTubeDownloader
 //   ↓
-// yt-dlp
+// Tauri Shell
 //   ↓
-// stdout
+// yt-dlp sidecar
+//   ↓
+// FFmpeg empaquetado
+//   ↓
+// stdout / stderr
+//   ↓
+// CommandEvent
 //   ↓
 // parse_progress_line()
 //   ↓
@@ -742,7 +1474,7 @@ fn newest_file(files: Vec<PathBuf>) -> Result<PathBuf, DownloadError> {
 //
 // Si yt-dlp informa:
 //
-// download:downloading|4350000|8705729
+// downloading|4350000|8705729
 //
 // Rust calcula:
 //
@@ -756,7 +1488,7 @@ fn newest_file(files: Vec<PathBuf>) -> Result<PathBuf, DownloadError> {
 //
 // Si yt-dlp informa:
 //
-// download:downloading|4350000|NA
+// downloading|4350000|NA
 //
 // Angular recibe:
 //
