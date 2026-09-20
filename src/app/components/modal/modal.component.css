@@ -1,15 +1,235 @@
 /*
- * El modal utiliza los estilos globales de Musex para
- * fondo, desenfoque, transiciones y apariencia general.
+ * =============================================================
+ * MODAL
+ * =============================================================
  *
- * Este archivo queda reservado para comportamientos específicos
- * que no puedan resolverse mediante Tailwind CSS.
+ * El componente utiliza principalmente Tailwind para su
+ * estructura visual.
+ *
+ * Este archivo contiene únicamente los comportamientos que
+ * requieren CSS propio: animaciones, backdrop y detalles
+ * específicos del componente.
  */
 
-/*
- * Evita que el contenido del modal provoque un desplazamiento
- * horizontal accidental en pantallas pequeñas.
- */
+
+/* =============================================================
+   HOST
+   ============================================================= */
+
 :host {
   display: contents;
+}
+
+/* =============================================================
+   BARE MODAL
+   ============================================================= */
+
+/* =============================================================
+   BARE MODAL
+   ============================================================= */
+
+.modal-panel-bare {
+  width: 100%;
+  max-width: 100%;
+
+  height: 100%;
+  max-height: 100%;
+
+  overflow: visible;
+
+  border: 0;
+  border-radius: 0;
+
+  background: transparent;
+  box-shadow: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  pointer-events: none;
+
+  box-sizing: border-box;
+}
+
+.modal-content-bare {
+  width: auto;
+  max-width: 100%;
+
+  height: auto;
+  max-height: 100%;
+
+  overflow: visible;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  pointer-events: auto;
+
+  box-sizing: border-box;
+}
+
+/* =============================================================
+   BACKDROP
+   ============================================================= */
+
+.modal-backdrop {
+  background: rgba(0, 0, 0, 0.68);
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  animation: modal-backdrop-in 200ms ease-out both;
+}
+
+
+/* =============================================================
+   PANEL
+   ============================================================= */
+
+.modal-panel {
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.55),
+    0 0 0 1px
+    color-mix(
+      in srgb,
+      #9CFF00 2.5%,
+      transparent
+    );
+
+  animation: modal-panel-in 200ms ease-out both;
+}
+
+
+/* =============================================================
+   CLOSING
+   ============================================================= */
+
+.modal-backdrop.is-closing {
+  animation: modal-backdrop-out 200ms ease-in both;
+}
+
+.modal-panel.is-closing {
+  animation: modal-panel-out 200ms ease-in both;
+}
+
+
+/* =============================================================
+   ENTRADA — BACKDROP
+   ============================================================= */
+
+@keyframes modal-backdrop-in {
+
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+
+}
+
+
+/* =============================================================
+   SALIDA — BACKDROP
+   ============================================================= */
+
+@keyframes modal-backdrop-out {
+
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+
+}
+
+
+/* =============================================================
+   ENTRADA — PANEL
+   ============================================================= */
+
+@keyframes modal-panel-in {
+
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+}
+
+
+/* =============================================================
+   SALIDA — PANEL
+   ============================================================= */
+
+@keyframes modal-panel-out {
+
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+
+}
+
+
+/* =============================================================
+   REDUCCIÓN DE MOVIMIENTO
+   ============================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .modal-backdrop,
+  .modal-panel {
+    animation: none !important;
+  }
+
+}
+
+/* =============================================================
+   MÓVIL
+   ============================================================= */
+
+@media (max-width: 620px) {
+
+  .modal-panel-bare {
+    width: 100%;
+    max-width: 100%;
+
+    height: 100%;
+
+    align-items: flex-start;
+    justify-content: start;
+
+    padding: 12px 8px 0;
+
+    box-sizing: border-box;
+  }
+
+  .modal-content-bare {
+    width: 100%;
+    max-width: 100%;
+
+    height: auto;
+    max-height: 100%;
+
+    box-sizing: border-box;
+  }
+
 }

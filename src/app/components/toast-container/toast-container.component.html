@@ -1,12 +1,41 @@
 <div
-  class="pointer-events-none fixed bottom-[108px] right-4 z-[300] flex w-auto max-w-[calc(100vw-32px)] flex-col gap-3 sm:right-6 sm:max-w-[420px]"
+  class="
+    pointer-events-none
+    fixed
+    bottom-[108px]
+    right-4
+    z-[300]
+    flex
+    w-auto
+    max-w-[calc(100vw-32px)]
+    flex-col
+    gap-3
+    sm:right-6
+    sm:max-w-[420px]
+  "
   aria-live="polite"
   aria-atomic="true"
 >
   @for (notification of notifications(); track notification.id) {
 
     <article
-      class="toast pointer-events-auto flex w-full min-w-0 items-start gap-3 rounded-xl border border-[#292b2f] bg-[#151719] px-4 py-3"
+      class="
+        toast
+        pointer-events-auto
+        relative
+        flex
+        w-full
+        min-w-0
+        items-start
+        gap-3
+        overflow-hidden
+        rounded-xl
+        border
+        border-[#292b2f]
+        bg-[#151719]
+        px-4
+        py-3
+      "
       role="status"
     >
 
@@ -16,15 +45,24 @@
 
       <div
         class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
-        [class.bg-[rgba(156,255,0,.10)]]="notification.type === 'success'"
-        [class.text-[var(--musex-accent)]]="notification.type === 'success'"
-        [class.bg-white/[0.06]]="notification.type !== 'success'"
-        [class.text-zinc-300]="notification.type !== 'success'"
+        [class.bg-[rgba(156,255,0,.10)]]="
+          notification.type === 'success'
+        "
+        [class.text-[var(--musex-accent)]]="
+          notification.type === 'success'
+        "
+        [class.bg-white/[0.06]]="
+          notification.type !== 'success'
+        "
+        [class.text-zinc-300]="
+          notification.type !== 'success'
+        "
       >
 
         @switch (notification.type) {
 
           @case ('success') {
+
             <svg
               viewBox="0 0 24 24"
               class="h-4 w-4"
@@ -37,9 +75,11 @@
             >
               <path d="m5 12 4 4L19 6"></path>
             </svg>
+
           }
 
           @case ('info') {
+
             <svg
               viewBox="0 0 24 24"
               class="h-4 w-4"
@@ -54,9 +94,11 @@
               <path d="M12 11v5"></path>
               <path d="M12 8h.01"></path>
             </svg>
+
           }
 
           @case ('warning') {
+
             <svg
               viewBox="0 0 24 24"
               class="h-4 w-4"
@@ -67,13 +109,17 @@
               stroke-linejoin="round"
               aria-hidden="true"
             >
-              <path d="m10.3 3.7-8 14A2 2 0 0 0 4 20.7h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z"></path>
+              <path
+                d="m10.3 3.7-8 14A2 2 0 0 0 4 20.7h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z"
+              ></path>
               <path d="M12 9v4"></path>
               <path d="M12 17h.01"></path>
             </svg>
+
           }
 
           @case ('error') {
+
             <svg
               viewBox="0 0 24 24"
               class="h-4 w-4"
@@ -88,6 +134,7 @@
               <path d="m15 9-6 6"></path>
               <path d="m9 9 6 6"></path>
             </svg>
+
           }
 
         }
@@ -101,14 +148,32 @@
 
       <div class="min-w-0 flex-1">
 
-        <p class="break-words text-sm font-medium leading-5 text-white">
+        <p
+          class="
+            break-words
+            text-sm
+            font-medium
+            leading-5
+            text-white
+          "
+        >
           {{ notification.title }}
         </p>
 
         @if (notification.message) {
-          <p class="mt-0.5 break-words text-xs leading-5 text-zinc-500">
+
+          <p
+            class="
+              mt-0.5
+              break-words
+              text-xs
+              leading-5
+              text-zinc-500
+            "
+          >
             {{ notification.message }}
           </p>
+
         }
 
       </div>
@@ -120,10 +185,26 @@
 
       <button
         type="button"
-        class="icon-btn flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-zinc-500 transition-ui hover:text-white focus:text-white"
-        [attr.aria-label]="'Cerrar notificación: ' + notification.title"
+        class="
+          icon-btn
+          flex
+          h-7
+          w-7
+          shrink-0
+          items-center
+          justify-center
+          rounded-full
+          text-zinc-500
+          transition-ui
+          hover:text-white
+          focus:text-white
+        "
+        [attr.aria-label]="
+          'Cerrar notificación: ' + notification.title
+        "
         (click)="dismiss(notification.id)"
       >
+
         <svg
           viewBox="0 0 24 24"
           class="h-4 w-4"
@@ -137,7 +218,25 @@
           <path d="M18 6 6 18"></path>
           <path d="m6 6 12 12"></path>
         </svg>
+
       </button>
+
+
+      <!-- =======================================================
+           LÍNEA DE TIEMPO
+      ======================================================== -->
+
+      <div
+        class="
+          toast-progress
+          absolute
+          bottom-0
+          left-0
+          h-[2px]
+        "
+        [style.animation-duration]="notification.duration + 'ms'"
+        aria-hidden="true"
+      ></div>
 
     </article>
 

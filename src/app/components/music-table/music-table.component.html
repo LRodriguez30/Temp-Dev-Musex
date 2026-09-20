@@ -2,6 +2,10 @@
      MUSIC TABLE
      ---------------------------------------------------------
      Tabla reutilizable para mostrar canciones de la biblioteca.
+     
+     Los modales de metadata y playlist ya no pertenecen
+     a este componente. Las acciones se emiten mediante
+     @Output() para que MainLayout las gestione globalmente.
 ========================================================== -->
 
 <div class="music-table-scroll">
@@ -15,17 +19,17 @@
 
     @if (tracks.length === 0) {
 
-    <div class="music-table-empty">
+      <div class="music-table-empty">
 
-      <span class="music-table-empty-code">
-        SIN CANCIONES
-      </span>
+        <span class="music-table-empty-code">
+          SIN CANCIONES
+        </span>
 
-      <span>
-        No hay canciones para mostrar.
-      </span>
+        <span>
+          No hay canciones para mostrar.
+        </span>
 
-    </div>
+      </div>
 
     } @else {
 
@@ -33,7 +37,10 @@
            TABLE HEADER
       ======================================================== -->
 
-      <div class="music-table-header" role="row">
+      <div
+        class="music-table-header"
+        role="row"
+      >
 
         <span class="music-table-track-column">
           #
@@ -68,335 +75,416 @@
            TRACK LIST
       ====================================================== -->
 
-      @for (track of tracks; track track.id; let index = $index) {
+      @for (
+        track of tracks;
+        track track.id;
+        let index = $index
+      ) {
 
-      <div class="music-table-row" role="row">
+        <div
+          class="music-table-row"
+          role="row"
+        >
 
 
-        <!-- =================================================
-             TRACK NUMBER
-        ================================================== -->
+          <!-- =================================================
+               TRACK NUMBER
+          ================================================== -->
 
-        <div class="music-table-track-number">
+          <div class="music-table-track-number">
 
-          <span>
-            {{ (index + 1).toString().padStart(2, '0') }}
+            <span>
+              {{ (index + 1).toString().padStart(2, '0') }}
+            </span>
+
+          </div>
+
+
+          <!-- =================================================
+               TITLE + COVER
+          ================================================== -->
+
+          <div class="music-table-title-cell">
+
+            <div class="music-table-cover">
+
+              <!-- =============================================
+                   IMAGE COVER
+              ============================================== -->
+
+              @if (
+                track.coverType === 'image' &&
+                track.image
+              ) {
+
+                <img
+                  [src]="track.image"
+                  [alt]="track.title"
+                  style="
+                    width:100%;
+                    height:100%;
+                    object-fit:cover;
+                  "
+                />
+
+              }
+
+              <!-- =============================================
+                   ICON COVER
+              ============================================== -->
+
+              @else if (
+                track.coverType === 'icon'
+              ) {
+
+                <div
+                  style="
+                    width:100%;
+                    height:100%;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                  "
+                  [style.background]="
+                    (track.coverColor || 'var(--musex-accent)') + '1a'
+                  "
+                >
+
+                  <svg
+                    viewBox="0 0 24 24"
+                    style="
+                      width:18px;
+                      height:18px;
+                    "
+                    fill="none"
+                    [attr.stroke]="
+                      track.coverColor ||
+                      'var(--musex-accent)'
+                    "
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+
+                    <path
+                      [attr.d]="
+                        track.coverIcon
+                      "
+                    ></path>
+
+                  </svg>
+
+                </div>
+
+              }
+
+              <!-- =============================================
+                   DEFAULT MUSEX COVER
+              ============================================== -->
+
+              @else {
+
+                <svg
+                  class="music-table-default-disc"
+                  viewBox="0 0 100 100"
+                  role="img"
+                  [attr.aria-label]="
+                    'Disco Musex para ' + track.title
+                  "
+                >
+
+                  <!-- Borde exterior -->
+
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="47"
+                    fill="none"
+                    stroke="var(--musex-accent)"
+                    stroke-width="3"
+                    stroke-opacity="0.65"
+                  />
+
+                  <!-- Disco -->
+
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="43"
+                    fill="var(--musex-accent)"
+                  />
+
+                  <!-- Surcos del vinilo -->
+
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="38"
+                    fill="none"
+                    stroke="#0d0e10"
+                    stroke-width="1.5"
+                    opacity="0.35"
+                  />
+
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="31"
+                    fill="none"
+                    stroke="#0d0e10"
+                    stroke-width="1"
+                    opacity="0.3"
+                  />
+
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="24"
+                    fill="none"
+                    stroke="#0d0e10"
+                    stroke-width="1"
+                    opacity="0.25"
+                  />
+
+                  <!-- Etiqueta central -->
+
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="13"
+                    fill="#0d0e10"
+                  />
+
+                  <!-- Centro Musex -->
+
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="4"
+                    fill="var(--musex-accent)"
+                  />
+
+                  <!-- Brillo -->
+
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    fill="none"
+                    stroke="#ffffff"
+                    stroke-width="0.8"
+                    opacity="0.12"
+                  />
+
+                </svg>
+
+              }
+
+
+              <!-- =================================================
+                   PLAY OVERLAY
+              ================================================== -->
+
+              <button
+                type="button"
+                class="music-table-play"
+                [attr.aria-label]="
+                  'Reproducir ' + track.title
+                "
+                (click)="playTrack(track)"
+              >
+
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+
+                  <path
+                    d="M8 5.5v13l10-6.5z"
+                  ></path>
+
+                </svg>
+
+              </button>
+
+            </div>
+
+
+            <!-- =================================================
+                 TITLE
+            ================================================== -->
+
+            <div class="music-table-title-content">
+
+              <p class="music-table-title">
+                {{ track.title }}
+              </p>
+
+              <p class="music-table-mobile-artist">
+                {{ track.artist }}
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <!-- =================================================
+               ARTIST
+          ================================================== -->
+
+          <span class="music-table-artist">
+            {{ track.artist }}
           </span>
 
-        </div>
+
+          <!-- =================================================
+               GENRE
+          ================================================== -->
+
+          <span class="music-table-genre">
+            {{ track.genre || '—' }}
+          </span>
 
 
-        <!-- =================================================
-             TITLE + COVER
-        ================================================== -->
+          <!-- =================================================
+               ALBUM
+          ================================================== -->
 
-        <div class="music-table-title-cell">
+          <span class="music-table-album">
+            {{ track.album }}
+          </span>
 
-          <div class="music-table-cover">
 
-            @if (track.coverType === 'image' && track.image) {
+          <!-- =================================================
+               DURATION
+          ================================================== -->
 
-            <img
-              [src]="track.image"
-              [alt]="track.title"
-              style="width:100%;height:100%;object-fit:cover;"
-            />
+          <span class="music-table-duration">
+            {{ formatDuration(track.duration) }}
+          </span>
 
-            } @else if (track.coverType === 'icon') {
 
-            <div
-              style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"
-              [style.background]="(track.coverColor || 'var(--musex-accent)') + '1a'"
+          <!-- =================================================
+               ACTIONS
+          ================================================== -->
+
+          <div class="music-table-actions">
+
+
+            <!-- ===============================================
+                 AGREGAR A PLAYLIST
+            ================================================ -->
+
+            <button
+              type="button"
+              class="music-table-playlist"
+              [attr.aria-label]="
+                'Agregar ' +
+                track.title +
+                ' a una playlist'
+              "
+              title="Agregar a playlist"
+              (click)="openAddToPlaylist(track)"
             >
 
               <svg
                 viewBox="0 0 24 24"
-                style="width:18px;height:18px;"
                 fill="none"
-                [attr.stroke]="track.coverColor || 'var(--musex-accent)'"
+                stroke="currentColor"
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 aria-hidden="true"
               >
-                <path [attr.d]="getCoverIconPath(track.coverIcon)"></path>
+
+                <path
+                  d="M9 18V5l12-2v13"
+                ></path>
+
+                <circle
+                  cx="6"
+                  cy="18"
+                  r="3"
+                ></circle>
+
+                <circle
+                  cx="18"
+                  cy="16"
+                  r="3"
+                ></circle>
+
+                <line
+                  x1="21"
+                  y1="8"
+                  x2="21"
+                  y2="2"
+                ></line>
+
+                <line
+                  x1="18"
+                  y1="5"
+                  x2="24"
+                  y2="5"
+                ></line>
+
               </svg>
 
-            </div>
-
-            } @else {
-
-            <svg
-              class="music-table-default-disc"
-              viewBox="0 0 100 100"
-              role="img"
-              [attr.aria-label]="'Disco Musex para ' + track.title"
-            >
-
-              <!-- Borde exterior -->
-              <circle
-                cx="50"
-                cy="50"
-                r="47"
-                fill="none"
-                stroke="var(--musex-accent)"
-                stroke-width="3"
-                stroke-opacity="0.65"
-              />
-
-              <!-- Disco -->
-              <circle
-                cx="50"
-                cy="50"
-                r="43"
-                fill="var(--musex-accent)"
-              />
-
-              <!-- Surcos del vinilo -->
-              <circle
-                cx="50"
-                cy="50"
-                r="38"
-                fill="none"
-                stroke="#0d0e10"
-                stroke-width="1.5"
-                opacity="0.35"
-              />
-
-              <circle
-                cx="50"
-                cy="50"
-                r="31"
-                fill="none"
-                stroke="#0d0e10"
-                stroke-width="1"
-                opacity="0.3"
-              />
-
-              <circle
-                cx="50"
-                cy="50"
-                r="24"
-                fill="none"
-                stroke="#0d0e10"
-                stroke-width="1"
-                opacity="0.25"
-              />
-
-              <!-- Etiqueta central -->
-              <circle
-                cx="50"
-                cy="50"
-                r="13"
-                fill="#0d0e10"
-              />
-
-              <!-- Centro Musex -->
-              <circle
-                cx="50"
-                cy="50"
-                r="4"
-                fill="var(--musex-accent)"
-              />
-
-              <!-- Brillo -->
-              <circle
-                cx="50"
-                cy="50"
-                r="40"
-                fill="none"
-                stroke="#ffffff"
-                stroke-width="0.8"
-                opacity="0.12"
-              />
-
-            </svg>
-
-            }
+            </button>
 
 
-            <!-- =================================================
-                 PLAY OVERLAY
-            ================================================== -->
+            <!-- ===============================================
+                 MÁS OPCIONES
+            ================================================ -->
 
             <button
               type="button"
-              class="music-table-play"
-              [attr.aria-label]="'Reproducir ' + track.title"
-              (click)="playTrack(track)"
+              class="music-table-options"
+              [attr.aria-label]="
+                'Más opciones para ' +
+                track.title
+              "
+              title="Más opciones"
+              (click)="openMore(track)"
             >
 
               <svg
                 viewBox="0 0 24 24"
-                fill="currentColor"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
                 aria-hidden="true"
               >
-                <path d="M8 5.5v13l10-6.5z"></path>
+
+                <circle
+                  cx="5"
+                  cy="12"
+                  r="1"
+                ></circle>
+
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="1"
+                ></circle>
+
+                <circle
+                  cx="19"
+                  cy="12"
+                  r="1"
+                ></circle>
+
               </svg>
 
             </button>
 
           </div>
 
-
-          <div class="music-table-title-content">
-
-            <p class="music-table-title">
-              {{ track.title }}
-            </p>
-
-            <p class="music-table-mobile-artist">
-              {{ track.artist }}
-            </p>
-
-          </div>
-
         </div>
-
-
-        <!-- =================================================
-             ARTIST
-        ================================================== -->
-
-        <span class="music-table-artist">
-          {{ track.artist }}
-        </span>
-
-        <!-- =================================================
-             GENERE
-        ================================================== -->
-        <span class="music-table-genre">
-          {{ track.genre || '—' }}
-        </span>
-
-        <!-- =================================================
-             ALBUM
-        ================================================== -->
-
-        <span class="music-table-album">
-          {{ track.album }}
-        </span>
-
-
-        <!-- =================================================
-             DURATION
-        ================================================== -->
-
-        <span class="music-table-duration">
-          {{ formatDuration(track.duration) }}
-        </span>
-
-
-        <!-- =================================================
-             ACTIONS
-        ================================================== -->
-
-        <div class="music-table-actions">
-
-
-          <!-- ===============================================
-               AGREGAR A PLAYLIST
-          ================================================ -->
-
-          <button
-            type="button"
-            class="music-table-playlist"
-            [attr.aria-label]="'Agregar ' + track.title + ' a una playlist'"
-            title="Agregar a playlist"
-            (click)="openAddToPlaylist(track)"
-          >
-
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-
-              <path d="M9 18V5l12-2v13"></path>
-
-              <circle
-                cx="6"
-                cy="18"
-                r="3"
-              ></circle>
-
-              <circle
-                cx="18"
-                cy="16"
-                r="3"
-              ></circle>
-
-              <line
-                x1="21"
-                y1="8"
-                x2="21"
-                y2="2"
-              ></line>
-
-              <line
-                x1="18"
-                y1="5"
-                x2="24"
-                y2="5"
-              ></line>
-
-            </svg>
-
-          </button>
-
-
-          <!-- ===============================================
-               MÁS OPCIONES
-          ================================================ -->
-
-          <button
-            type="button"
-            class="music-table-options"
-            [attr.aria-label]="'Más opciones para ' + track.title"
-            title="Más opciones"
-            (click)="openMore(track)"
-          >
-
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-
-              <circle
-                cx="5"
-                cy="12"
-                r="1"
-              ></circle>
-
-              <circle
-                cx="12"
-                cy="12"
-                r="1"
-              ></circle>
-
-              <circle
-                cx="19"
-                cy="12"
-                r="1"
-              ></circle>
-
-            </svg>
-
-          </button>
-
-
-        </div>
-
-      </div>
 
       }
 
@@ -405,539 +493,3 @@
   </div>
 
 </div>
-
-
-<!-- =========================================================
-     TRACK INFORMATION MODAL
-========================================================== -->
-
-@if (selectedTrack && editingTrack) {
-
-<div
-  class="music-metadata-overlay"
-  (click)="closeMore()"
->
-
-  <section
-    class="music-metadata-modal"
-    role="dialog"
-    aria-modal="true"
-    [attr.aria-label]="'Información de ' + selectedTrack.title"
-    (click)="$event.stopPropagation()"
-  >
-
-
-    <!-- =====================================================
-         MODAL HEADER
-    ====================================================== -->
-
-    <header class="music-metadata-header">
-
-      <div>
-
-        <span class="music-metadata-kicker">
-          METADATOS DE MÚSICA
-        </span>
-
-        <h2>
-          Información de la canción
-        </h2>
-
-      </div>
-
-
-      <button
-        type="button"
-        class="music-metadata-close"
-        aria-label="Cerrar"
-        (click)="closeMore()"
-      >
-
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          aria-hidden="true"
-        >
-
-          <path d="M18 6 6 18"></path>
-          <path d="m6 6 12 12"></path>
-
-        </svg>
-
-      </button>
-
-    </header>
-
-
-    <!-- =====================================================
-         TRACK PREVIEW
-    ====================================================== -->
-
-    <div class="music-metadata-preview">
-
-      <div class="music-metadata-cover-wrapper">
-
-        <div class="music-metadata-cover">
-
-          @if (editingTrack.coverType === 'image' && editingTrack.image) {
-
-          <img
-            [src]="editingTrack.image"
-            [alt]="editingTrack.title"
-            style="width:100%;height:100%;object-fit:cover;"
-          />
-
-          } @else if (editingTrack.coverType === 'icon') {
-
-          <div
-            style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"
-            [style.background]="(editingTrack.coverColor || 'var(--musex-accent)') + '1a'"
-          >
-
-            <svg
-              viewBox="0 0 24 24"
-              style="width:28px;height:28px;"
-              fill="none"
-              [attr.stroke]="editingTrack.coverColor || 'var(--musex-accent)'"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-
-              <path
-                [attr.d]="getCoverIconPath(editingTrack.coverIcon)"
-              ></path>
-
-            </svg>
-
-          </div>
-
-          } @else {
-
-          <svg
-            class="bottom-default-disc"
-            viewBox="0 0 100 100"
-            role="img"
-            aria-label="Disco Musex"
-          >
-
-            <circle
-              cx="50"
-              cy="50"
-              r="48"
-              fill="var(--musex-accent)"
-            />
-
-            <circle
-              cx="50"
-              cy="50"
-              r="42"
-              fill="none"
-              stroke="#0d0e10"
-              stroke-width="1.5"
-              opacity="0.35"
-            />
-
-            <circle
-              cx="50"
-              cy="50"
-              r="35"
-              fill="none"
-              stroke="#0d0e10"
-              stroke-width="1"
-              opacity="0.3"
-            />
-
-            <circle
-              cx="50"
-              cy="50"
-              r="28"
-              fill="none"
-              stroke="#0d0e10"
-              stroke-width="1"
-              opacity="0.25"
-            />
-
-            <circle
-              cx="50"
-              cy="50"
-              r="13"
-              fill="#0d0e10"
-            />
-
-            <circle
-              cx="50"
-              cy="50"
-              r="4"
-              fill="var(--musex-accent)"
-            />
-
-            <circle
-              cx="50"
-              cy="50"
-              r="44"
-              fill="none"
-              stroke="#ffffff"
-              stroke-width="0.8"
-              opacity="0.12"
-            />
-
-          </svg>
-
-          }
-
-
-          <!-- =====================================================
-               CAMBIAR PORTADA
-          ====================================================== -->
-
-          <input
-            #coverInput
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            hidden
-            (change)="onCoverImageSelected($event)"
-          />
-
-
-          <button
-            type="button"
-            class="cover-action-button"
-            aria-label="Cambiar portada"
-            title="Cambiar portada"
-            (click)="coverInput.click()"
-          >
-
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              width="15"
-              height="15"
-            >
-
-              <path
-                d="M14.5 4h-5L8 6H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3l-1.5-2Z"
-              />
-
-              <circle
-                cx="12"
-                cy="12"
-                r="3"
-              />
-
-            </svg>
-
-          </button>
-
-        </div>
-
-      </div>
-
-
-      <div class="music-metadata-preview-info">
-
-        <span class="music-metadata-preview-label">
-          MÚSICA ACTUAL
-        </span>
-
-        <strong>
-          {{ editingTrack.title }}
-        </strong>
-
-        <span>
-          {{ editingTrack.artist }}
-        </span>
-
-      </div>
-
-
-      <div class="cover-actions">
-
-        <button
-          type="button"
-          class="cover-remove-button"
-          (click)="removeCover()"
-        >
-
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            width="14"
-            height="14"
-          >
-
-            <path d="M3 6h18" />
-            <path d="M8 6V4h8v2" />
-            <path d="M19 6l-1 14H6L5 6" />
-
-          </svg>
-
-          Quitar portada
-
-        </button>
-
-      </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         EDITABLE INFORMATION
-    ====================================================== -->
-
-    <div class="music-metadata-fields">
-
-
-      <label class="music-metadata-field">
-
-        <span>
-          TÍTULO
-        </span>
-
-        <input
-          type="text"
-          [value]="editingTrack.title"
-          (input)="editingTrack.title = $any($event.target).value"
-        />
-
-      </label>
-
-
-      <label class="music-metadata-field">
-
-        <span>
-          ARTISTA
-        </span>
-
-        <input
-          type="text"
-          [value]="editingTrack.artist"
-          (input)="editingTrack.artist = $any($event.target).value"
-        />
-
-      </label>
-
-
-      <label class="music-metadata-field">
-
-        <span>
-          ÁLBUM
-        </span>
-
-        <input
-          type="text"
-          [value]="editingTrack.album"
-          (input)="editingTrack.album = $any($event.target).value"
-        />
-
-      </label>
-
-
-      <label class="music-metadata-field">
-
-        <span>
-          GÉNERO
-        </span>
-
-        <input
-          type="text"
-          [value]="editingTrack.genre ?? ''"
-          (input)="editingTrack.genre = $any($event.target).value"
-          placeholder="Sin género"
-        />
-
-      </label>
-
-    </div>
-
-
-    <!-- =====================================================
-         FILE INFORMATION
-    ====================================================== -->
-
-    <div class="music-metadata-technical">
-
-      <div>
-
-        <span>
-          DURACIÓN
-        </span>
-
-        <strong>
-          {{ formatDuration(editingTrack.duration) }}
-        </strong>
-
-      </div>
-
-
-      <div>
-
-        <span>
-          FUENTE
-        </span>
-
-        <strong>
-          {{ editingTrack.source || 'LOCAL' }}
-        </strong>
-
-      </div>
-
-
-      <div>
-
-        <span>
-          ARCHIVO
-        </span>
-
-        <strong [title]="editingTrack.path">
-          {{ editingTrack.path }}
-        </strong>
-
-      </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         ACTIONS
-    ====================================================== -->
-
-    <footer class="music-metadata-actions">
-
-      <button
-        type="button"
-        class="music-metadata-cancel"
-        (click)="closeMore()"
-      >
-        Cancelar
-      </button>
-
-      <button
-        type="button"
-        class="music-metadata-save"
-        (click)="saveMetadata()"
-      >
-        Guardar cambios
-      </button>
-
-    </footer>
-
-  </section>
-
-</div>
-
-}
-
-
-<!-- =========================================================
-     ADD TO PLAYLIST MODAL
-========================================================== -->
-
-@if (trackForPlaylist) {
-
-<div
-  class="music-metadata-overlay"
-  (click)="closeAddToPlaylist()"
->
-
-  <section
-    class="music-metadata-modal"
-    role="dialog"
-    aria-modal="true"
-    [attr.aria-label]="'Agregar ' + trackForPlaylist.title + ' a una playlist'"
-    (click)="$event.stopPropagation()"
-  >
-
-
-    <!-- =====================================================
-         MODAL HEADER
-    ====================================================== -->
-
-    <header class="music-metadata-header">
-
-      <div>
-
-        <span class="music-metadata-kicker">
-          AGREGAR A PLAYLIST
-        </span>
-
-        <h2>
-          Agregar a playlist
-        </h2>
-
-      </div>
-
-
-      <button
-        type="button"
-        class="music-metadata-close"
-        aria-label="Cerrar"
-        (click)="closeAddToPlaylist()"
-      >
-
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          aria-hidden="true"
-        >
-
-          <path d="M18 6 6 18"></path>
-          <path d="m6 6 12 12"></path>
-
-        </svg>
-
-      </button>
-
-    </header>
-
-
-    <div
-      class="music-metadata-fields"
-      style="grid-template-columns: 1fr; padding: 16px 22px;"
-    >
-
-      @for (playlist of playlists(); track playlist.id) {
-
-      <button
-        type="button"
-        class="music-metadata-cancel"
-        style="width: 100%; justify-content: flex-start; text-align: left;"
-        (click)="addToPlaylist(playlist.id)"
-      >
-
-        {{ playlist.name }} · {{ playlist.count }} canciones
-
-      </button>
-
-      }
-
-
-      @if (playlists().length === 0) {
-
-      <p style="color: #74787e; font-size: 13px;">
-
-        Todavía no tienes playlists.
-        Crea una desde el sidebar.
-
-      </p>
-
-      }
-
-    </div>
-
-  </section>
-
-</div>
-
-}

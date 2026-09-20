@@ -24,7 +24,7 @@ import { FullPlayerComponent } from '../full-player/full-player.component';
 @Component({
   selector: 'app-bottom-player',
   standalone: true,
-  imports: [FullPlayerComponent],
+  imports: [],
   templateUrl: './bottom-player.component.html',
   styleUrl: './bottom-player.component.css'
 })
@@ -338,13 +338,13 @@ export class BottomPlayerComponent {
    * Muestra u oculta el reproductor expandido.
    */
   toggleFullPlayer(): void {
-    this.fullPlayerOpen.update(open => !open);
+    this.playerService.toggleFullPlayer();
   }
 
   /**
    * Cierra el reproductor expandido.
    */
   closeFullPlayer(): void {
-    this.fullPlayerOpen.set(false);
+    this.playerService.closeFullPlayer();
   }
 }

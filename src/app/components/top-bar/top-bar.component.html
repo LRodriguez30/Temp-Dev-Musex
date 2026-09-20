@@ -79,7 +79,7 @@
 
 
       <span class="top-search-placeholder">
-        Buscar canciones, artistas, álbumes o playlists...
+        Busca canciones, artistas, álbumes o playlists...
       </span>
 
 
@@ -97,6 +97,35 @@
 
   <div class="top-actions">
 
+    <!-- Más (solo móvil) -->
+
+    <button
+      type="button"
+      class="top-action-button top-more-button max-[620px]:flex"
+      [class.is-open]="mobileMenuService.isOpen()"
+      [attr.aria-expanded]="mobileMenuService.isOpen()"
+      aria-controls="mobile-more-panel"
+      aria-label="Más opciones"
+      title="Más"
+      (click)="mobileMenuService.toggle()"
+    >
+
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <circle cx="5" cy="12" r="1.5" />
+        <circle cx="12" cy="12" r="1.5" />
+        <circle cx="19" cy="12" r="1.5" />
+      </svg>
+
+    </button>
+    
     <!-- Notificaciones -->
 
     <button
@@ -182,325 +211,20 @@
   </div>
 
 
-  <!-- =========================================================
-       MODAL DE BÚSQUEDA
-  ========================================================== -->
-
-  @if (searchOpen()) {
-
-    <div
-      class="search-overlay"
-      (click)="closeSearch()"
-    >
-
-      <section
-        class="search-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Buscar en Musex"
-        (click)="$event.stopPropagation()"
-      >
-
-        <!-- Cabecera -->
-
-        <div class="search-modal-header">
-
-          <div class="search-modal-title">
-
-            <span class="search-modal-icon">
-
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <circle
-                  cx="11"
-                  cy="11"
-                  r="7"
-                />
-
-                <path d="m20 20-4-4" />
-              </svg>
-
-            </span>
-
-            <span>
-              Buscar en Musex
-            </span>
-
-          </div>
-
-
-          <button
-            type="button"
-            class="search-close"
-            (click)="closeSearch()"
-            aria-label="Cerrar búsqueda"
-          >
-
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M18 6 6 18" />
-              <path d="m6 6 12 12" />
-            </svg>
-
-          </button>
-
-        </div>
-
-
-        <!-- Input -->
-
-        <div class="search-modal-input">
-
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <circle
-              cx="11"
-              cy="11"
-              r="7"
-            />
-
-            <path d="m20 20-4-4" />
-          </svg>
-
-
-          <input
-            #searchInput
-            type="search"
-            [value]="searchQuery()"
-            (input)="updateSearch($any($event.target).value)"
-            (keydown)="handleSearchKeydown($event)"
-            placeholder="Canciones, artistas, álbumes o playlists..."
-            autocomplete="off"
-            spellcheck="false"
-            aria-label="Buscar canciones, artistas, álbumes o playlists"
-            [attr.aria-activedescendant]="
-              selectedSearchIndex() >= 0
-                ? 'search-result-' + selectedSearchIndex()
-                : null
-            "
-          />
-
-
-          <kbd>
-            ESC
-          </kbd>
-
-        </div>
-
-
-        <!-- Resultados -->
-
-        <div class="search-modal-content">
-
-          @if (filteredSearchResults().length > 0) {
-
-            <section class="search-section">
-
-              <div class="search-section-header">
-
-                <span>
-                  {{ searchQuery() ? 'Resultados' : 'Resultados' }}
-                </span>
-
-              </div>
-
-
-              <!-- Lista scrolleable -->
-
-              <div
-                #searchResultsList
-                class="search-results-list"
-                role="listbox"
-                aria-label="Resultados de búsqueda"
-              >
-
-                @for (
-                  result of filteredSearchResults();
-                  track result.id;
-                  let index = $index
-                ) {
-
-                  <button
-                    type="button"
-                    class="search-result"
-                    [class.is-selected]="selectedSearchIndex() === index"
-                    [id]="'search-result-' + index"
-                    [attr.aria-selected]="selectedSearchIndex() === index"
-
-                    (mouseenter)="selectSearchResult(index)"
-
-                    (click)="
-                      selectSearchResult(index);
-                      confirmSearch()
-                    "
-                  >
-
-                    <!-- Icono -->
-
-                    <span class="search-result-icon">
-
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-
-                        <path d="M9 18V5l12-2v13" />
-
-                        <circle
-                          cx="6"
-                          cy="18"
-                          r="3"
-                        />
-
-                        <circle
-                          cx="18"
-                          cy="16"
-                          r="3"
-                        />
-
-                      </svg>
-
-                    </span>
-
-
-                    <!-- Información -->
-
-                    <span class="search-result-text">
-
-                      <span>
-                        {{ result.title }}
-                      </span>
-
-                      <small>
-                        {{ result.subtitle }}
-                      </small>
-
-                    </span>
-
-
-                    <!-- Resultado seleccionado -->
-
-                    @if (selectedSearchIndex() === index) {
-
-                      <span class="search-result-enter">
-                        Enter
-                      </span>
-
-                    }
-
-                  </button>
-
-                }
-
-              </div>
-
-            </section>
-
-          } @else {
-
-            <div class="search-empty">
-
-              <div class="search-empty-icon">
-
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-
-                  <circle
-                    cx="11"
-                    cy="11"
-                    r="7"
-                  />
-
-                  <path d="m20 20-4-4" />
-
-                  <path d="M8.5 8.5 13.5 13.5" />
-
-                </svg>
-
-              </div>
-
-              <strong>
-                No encontramos resultados
-              </strong>
-
-              <span>
-                Prueba con otro nombre, artista o álbum.
-              </span>
-
-            </div>
-
-          }
-
-
-          <!-- Atajos -->
-
-          <div class="search-shortcuts">
-
-            <span>
-              <kbd>↑</kbd>
-              <kbd>↓</kbd>
-              navegar
-            </span>
-
-            <span>
-              <kbd>Enter</kbd>
-              reproducir
-            </span>
-
-            <span>
-              <kbd>Esc</kbd>
-              cerrar
-            </span>
-
-          </div>
-
-        </div>
-
-      </section>
-
-    </div>
-
-  }
-
-
-  <!-- =========================================================
+    <!-- =========================================================
        MENÚ DE PERFIL LOCAL
+       ----------------------------------------------------------
+       Desktop: dropdown anclado arriba a la derecha.
+       Móvil: bottom sheet (ver top-bar.component.css).
   ========================================================== -->
 
   @if (userMenuOpen()) {
+
+    <div
+      class="user-menu-backdrop max-[620px]:block"
+      aria-hidden="true"
+      (click)="toggleUserMenu()"
+    ></div>
 
     <div
       class="user-menu"
@@ -540,6 +264,8 @@
         type="button"
         class="user-menu-item"
         role="menuitem"
+        [attr.aria-expanded]="profileSwitcherOpen()"
+        (click)="toggleProfileSwitcher()"
       >
 
         <svg
@@ -567,7 +293,82 @@
           Cambiar perfil
         </span>
 
+        <svg
+          class="user-menu-item-chevron"
+          [class.is-open]="profileSwitcherOpen()"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+
       </button>
+
+
+      <!-- ======================================================
+           LISTA DE PERFILES
+           ------------------------------------------------------
+           Interfaz visual del selector de perfiles.
+      ======================================================= -->
+
+      @if (profileSwitcherOpen()) {
+
+        <div class="profile-switcher-list">
+
+          @for (profile of availableProfiles(); track profile.id) {
+
+            <button
+              type="button"
+              class="profile-switcher-item"
+              [class.active]="profile.active"
+              (click)="selectProfile(profile.id)"
+            >
+
+              <span class="profile-switcher-avatar">
+                {{ profile.name.slice(0, 2).toUpperCase() }}
+              </span>
+
+              <span class="profile-switcher-text">
+
+                <strong>
+                  {{ profile.name }}
+                </strong>
+
+                <span>
+                  {{ profile.subtitle }}
+                </span>
+
+              </span>
+
+              @if (profile.active) {
+
+                <svg
+                  class="profile-switcher-check"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+
+              }
+
+            </button>
+
+          }
+
+        </div>
+
+      }
 
 
       <!-- Nuevo perfil -->

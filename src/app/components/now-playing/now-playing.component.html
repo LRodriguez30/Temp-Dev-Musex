@@ -1,10 +1,32 @@
-@if (playerState().rightPanel) {
-  <aside class="right-panel">
+@if (playerState().rightPanel && playerService.hasPlayableContent()) {
+  <aside
+    class="right-panel"
+  >
 
     <!-- =========================================================
          TABS
     ========================================================== -->
     <div class="now-playing-tabs">
+
+      <button
+        type="button"
+        class="now-playing-close"
+        aria-label="Ocultar reproductor"
+        title="Ocultar"
+        (click)="playerService.toggleRightPanel()"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+      </button>
 
       <button
         id="tabPlaying"

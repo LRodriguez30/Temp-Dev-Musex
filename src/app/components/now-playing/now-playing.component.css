@@ -5,12 +5,14 @@
  * que posteriormente necesite el componente.
  */
 
- /* =============================================================
+
+/* =============================================================
    NOW PLAYING
 ============================================================= */
 
 :host {
-  --musex-green: var(--musex-accent, var(--musex-accent));
+  --musex-green: var(--musex-accent, #9cff00);
+
   --musex-bg: #101113;
   --musex-panel: #141518;
   --musex-line: rgba(255, 255, 255, 0.08);
@@ -32,22 +34,29 @@
 
 /* =============================================================
    MAIN PANEL
+   -------------------------------------------------------------
+   Now Playing funciona como un overlay independiente.
+
+   No reserva espacio dentro de <main>.
+   No depende de la altura del Bottom Player.
 ============================================================= */
 
 .right-panel {
-  position: fixed;
+  position: absolute;
 
-  top: 70px;
+  top: 0;
   right: 0;
-  bottom: 88px;
+  bottom: 0;
 
-  z-index: 30;
+  z-index: 50;
 
   width: 363px;
+  max-width: 100vw;
 
   display: flex;
   flex-direction: column;
 
+  min-width: 0;
   overflow: hidden;
 
   background:
@@ -62,9 +71,81 @@
   box-shadow:
     -18px 0 45px rgba(0, 0, 0, 0.22);
 
-  animation: panel-enter 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation:
+    panel-enter
+    280ms
+    cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.now-playing-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 18px 18px 14px;
+  flex-shrink: 0;
+}
+
+.now-playing-label {
+  display: block;
+
+  margin-bottom: 4px;
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+
+  color: var(--musex-green);
+}
+
+.now-playing-header h2 {
+  margin: 0;
+
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.now-playing-close {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.55);
+
+  cursor: pointer;
+
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.now-playing-close:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.now-playing-close:active {
+  transform: scale(0.96);
+}
+
+.now-playing-close svg {
+  width: 18px;
+  height: 18px;
+}
 
 @keyframes panel-enter {
   from {
@@ -117,6 +198,7 @@
   font-family: inherit;
   font-size: 11px;
   font-weight: 600;
+
   letter-spacing: 0.01em;
 
   cursor: pointer;
@@ -152,7 +234,12 @@
   background: var(--musex-green);
 
   box-shadow:
-    0 0 12px color-mix(in srgb, var(--musex-accent) 45%, transparent);
+    0 0 12px
+    color-mix(
+      in srgb,
+      var(--musex-accent) 45%,
+      transparent
+    );
 }
 
 
@@ -163,6 +250,7 @@
 .playing-panel {
   flex: 1;
 
+  min-width: 0;
   min-height: 0;
 
   overflow-y: auto;
@@ -171,6 +259,7 @@
   padding: 24px 22px 30px;
 
   scrollbar-width: thin;
+
   scrollbar-color:
     rgba(255, 255, 255, 0.12)
     transparent;
@@ -209,10 +298,12 @@
   justify-content: center;
 }
 
+
 .cover-icon svg {
   width: 64px;
   height: 64px;
 }
+
 
 .cover-wrapper {
   position: relative;
@@ -277,6 +368,14 @@
 }
 
 
+.musex-default-cover {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+}
+
+
 /* =============================================================
    COVER GLOW
 ============================================================= */
@@ -303,7 +402,11 @@
 
 
 .cover-wrapper:has(+ *) .cover-glow {
-  animation: ambient-glow 4s ease-in-out infinite;
+  animation:
+    ambient-glow
+    4s
+    ease-in-out
+    infinite;
 }
 
 
@@ -311,11 +414,13 @@
   0%,
   100% {
     transform: scale(0.92);
+
     opacity: 0.07;
   }
 
   50% {
     transform: scale(1.04);
+
     opacity: 0.13;
   }
 }
@@ -358,7 +463,11 @@
 
   background: var(--musex-green);
 
-  animation: equalizer 800ms ease-in-out infinite;
+  animation:
+    equalizer
+    800ms
+    ease-in-out
+    infinite;
 }
 
 
@@ -404,12 +513,15 @@
 
   gap: 14px;
 
+  min-width: 0;
+
   margin-top: 22px;
 }
 
 
 .track-meta {
   min-width: 0;
+  max-width: 100%;
 }
 
 
@@ -424,6 +536,7 @@
   font-weight: 650;
 
   line-height: 1.2;
+
   letter-spacing: -0.02em;
 
   white-space: nowrap;
@@ -479,6 +592,8 @@
 
   margin-top: -4px;
 
+  padding: 0;
+
   border: 0;
   border-radius: 50%;
 
@@ -525,7 +640,10 @@
 .favorite-button.active svg {
   fill: currentColor;
 
-  animation: favorite-pop 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation:
+    favorite-pop
+    280ms
+    cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 
@@ -609,7 +727,12 @@
   background: var(--musex-green);
 
   box-shadow:
-    0 0 0 0 color-mix(in srgb, var(--musex-accent) 18%, transparent);
+    0 0 0 0
+    color-mix(
+      in srgb,
+      var(--musex-accent) 18%,
+      transparent
+    );
 
   transition:
     transform 150ms ease,
@@ -621,7 +744,8 @@
   transform: scale(1.25);
 
   box-shadow:
-    0 0 0 5px rgba(156, 255, 0, 0.08);
+    0 0 0 5px
+    rgba(156, 255, 0, 0.08);
 }
 
 
@@ -657,6 +781,7 @@
   background: var(--musex-green);
 }
 
+
 /* =============================================================
    TIME
 ============================================================= */
@@ -667,8 +792,10 @@
   justify-content: space-between;
 
   margin-top: 8px;
+
   padding: 0 2px;
 }
+
 
 .progress-times span {
   color: var(--musex-accent);
@@ -680,6 +807,7 @@
 
   font-size: 13px;
   font-weight: 700;
+
   line-height: 1;
 
   letter-spacing: 1px;
@@ -687,7 +815,12 @@
   font-variant-numeric: tabular-nums;
 
   text-shadow:
-    0 0 6px color-mix(in srgb, var(--musex-accent) 18%, transparent);
+    0 0 6px
+    color-mix(
+      in srgb,
+      var(--musex-accent) 18%,
+      transparent
+    );
 }
 
 
@@ -778,7 +911,12 @@
 .control-button.active:hover {
   color: var(--musex-green);
 
-  background: color-mix(in srgb, var(--musex-accent) 7%, transparent);
+  background:
+    color-mix(
+      in srgb,
+      var(--musex-accent) 7%,
+      transparent
+    );
 }
 
 
@@ -794,6 +932,7 @@
 
   pointer-events: none;
 }
+
 
 /* =============================================================
    PLAY BUTTON
@@ -825,7 +964,12 @@
   cursor: pointer;
 
   box-shadow:
-    0 4px 14px color-mix(in srgb, var(--musex-accent) 13%, transparent);
+    0 4px 14px
+    color-mix(
+      in srgb,
+      var(--musex-accent) 13%,
+      transparent
+    );
 
   transition:
     transform 160ms ease,
@@ -847,7 +991,12 @@
   transform: scale(1.055);
 
   box-shadow:
-    0 5px 18px color-mix(in srgb, var(--musex-accent) 22%, transparent);
+    0 5px 18px
+    color-mix(
+      in srgb,
+      var(--musex-accent) 22%,
+      transparent
+    );
 }
 
 
@@ -863,14 +1012,25 @@
 
   inset: -4px;
 
-  border: 1px solid color-mix(in srgb, var(--musex-accent) 18%, transparent);
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--musex-accent) 18%,
+      transparent
+    );
 
   border-radius: 50%;
 
-  animation: play-pulse 1.8s ease-out infinite;
+  animation:
+    play-pulse
+    1.8s
+    ease-out
+    infinite;
 
   pointer-events: none;
 }
+
 
 /* =============================================================
    REPEAT MODE BADGE
@@ -911,7 +1071,12 @@
   line-height: 1;
 
   box-shadow:
-    0 0 6px color-mix(in srgb, var(--musex-accent) 18%, transparent);
+    0 0 6px
+    color-mix(
+      in srgb,
+      var(--musex-accent) 18%,
+      transparent
+    );
 
   pointer-events: none;
 }
@@ -962,7 +1127,14 @@
   align-items: center;
   justify-content: space-between;
 
+  gap: 12px;
+
   margin-bottom: 12px;
+}
+
+
+.queue-header > div {
+  min-width: 0;
 }
 
 
@@ -992,6 +1164,8 @@
 
 
 .clear-queue {
+  flex-shrink: 0;
+
   padding: 5px 8px;
 
   border: 0;
@@ -1028,6 +1202,7 @@
 
   flex: 1;
 
+  min-width: 0;
   min-height: 0;
 
   overflow-y: auto;
@@ -1058,28 +1233,157 @@
   line-height: 1.5;
 }
 
-.musex-default-cover {
-  display: block;
-  width: 100%;
-  height: 100%;
+/* =============================================================
+   TABS HEADER
+============================================================= */
+
+.now-playing-tabs {
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  height: 50px;
+
+  padding: 0 12px 0 16px;
+
+  border-bottom: 1px solid var(--musex-line);
+
+  background: rgba(16, 17, 19, 0.88);
+
+  backdrop-filter: blur(18px);
 }
+
+
+.now-playing-tab-list {
+  display: flex;
+  align-items: center;
+
+  height: 100%;
+
+  min-width: 0;
+}
+
+
+/* =============================================================
+   PANEL SIZE BUTTON
+============================================================= */
+
+.panel-size-button {
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 30px;
+  height: 30px;
+
+  margin-left: 8px;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 7px;
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.38);
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    transform 180ms cubic-bezier(
+      0.22,
+      1,
+      0.36,
+      1
+    );
+}
+
+
+.panel-size-button svg {
+  width: 15px;
+  height: 15px;
+}
+
+
+.panel-size-button:hover {
+  background: rgba(255, 255, 255, 0.06);
+
+  color: rgba(255, 255, 255, 0.86);
+}
+
+
+.panel-size-button:active {
+  transform: scale(0.9);
+}
+
 
 /* =============================================================
    RESPONSIVE
+   -------------------------------------------------------------
+   Desktop:
+   - Panel visible.
+   - 363px de ancho.
+
+   Tablet / pantallas pequeñas:
+   - El panel desaparece.
+   - El contenido principal recupera todo el espacio.
+
+   El comportamiento móvil se mantiene como overlay oculto,
+   evitando crear un segundo layout complejo mientras seguimos
+   adaptando los demás componentes.
 ============================================================= */
 
-/*
- * Musex es principalmente una aplicación de escritorio.
- *
- * Cuando el espacio horizontal comienza a ser limitado,
- * Now Playing desaparece completamente en lugar de convertirse
- * en un panel móvil.
- */
+
+/* =============================================================
+   TABLET / SMALL DESKTOP
+============================================================= */
+
+@media (max-width: 1200px) {
+
+  .right-panel {
+    width: 340px;
+  }
+
+  .playing-panel {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .cover-wrapper {
+    width: min(100%, 270px);
+  }
+
+}
+
+
+/* =============================================================
+   COMPACT DESKTOP
+============================================================= */
 
 @media (max-width: 1100px) {
 
   .right-panel {
     display: none;
+  }
+
+}
+
+
+/* =============================================================
+   VERY SMALL DEVICES
+============================================================= */
+
+@media (max-width: 420px) {
+
+  .playing-panel {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
 }
@@ -1098,6 +1402,7 @@
   .favorite-button.active svg {
     animation: none !important;
   }
+
 
   .cover-container,
   .cover-image,

@@ -1,22 +1,18 @@
 import {
   Component,
-  ElementRef,
   HostListener,
-  ViewChild,
   inject,
   signal
 } from '@angular/core';
 
-import { LibraryService } from '../../core/services/library.service';
-import { Track } from '../../core/models/track.model';
-import { PlayerService } from '../../core/services/player.service';
+import { MobileMenuService } from '../../core/services/mobile-menu.service';
+import { ModalService } from '../../core/services/modal.service';
 
-interface SearchResult {
+interface Profile {
   id: string;
-  title: string;
+  name: string;
   subtitle: string;
-  type: 'track';
-  track: Track;
+  active: boolean;
 }
 
 @Component({
@@ -28,358 +24,72 @@ interface SearchResult {
 })
 export class TopBarComponent {
 
-  @ViewChild('searchInput')
-  private searchInput?: ElementRef<HTMLInputElement>;
-
-  @ViewChild('searchResultsList')
-  private searchResultsList?: ElementRef<HTMLDivElement>;
-
   // =========================================================
   // SERVICIOS
   // =========================================================
 
-  private readonly libraryService =
-    inject(LibraryService);
+  readonly mobileMenuService =
+    inject(MobileMenuService);
 
-  private readonly playerService = 
-    inject(PlayerService);
+  private readonly modalService =
+    inject(ModalService);
 
 
   // =========================================================
   // ESTADO
   // =========================================================
 
-  readonly searchOpen = signal(false);
+  readonly userMenuOpen =
+    signal(false);
 
-  readonly userMenuOpen = signal(false);
-
-  readonly searchQuery = signal('');
-
-  readonly selectedSearchIndex = signal(-1);
+  readonly profileSwitcherOpen =
+    signal(false);
 
 
   // =========================================================
-  // RESULTADOS
+  // PERFILES
   // =========================================================
 
-  readonly filteredSearchResults =
-    signal<SearchResult[]>([]);
+  /**
+   * Perfiles de ejemplo para la interfaz visual.
+   *
+   * TODO:
+   * Reemplazar por el sistema real de perfiles locales
+   * cuando exista persistencia.
+   */
+  readonly availableProfiles =
+    signal<Profile[]>([
+      {
+        id: 'lart',
+        name: 'LART',
+        subtitle: 'Biblioteca personal',
+        active: true
+      },
+      {
+        id: 'familia',
+        name: 'Familia',
+        subtitle: 'Compartido',
+        active: false
+      }
+    ]);
 
 
   // =========================================================
   // BÚSQUEDA
   // =========================================================
 
+  /**
+   * Abre el buscador global de Musex.
+   *
+   * El TopBar no administra el estado del buscador.
+   * ModalService es ahora el encargado de abrirlo.
+   */
   openSearch(): void {
 
     this.userMenuOpen.set(false);
+    this.profileSwitcherOpen.set(false);
 
-    this.searchOpen.set(true);
-
-    this.searchQuery.set('');
-
-    this.filteredSearchResults.set([]);
-
-    this.selectedSearchIndex.set(-1);
-
-
-    /*
-     * Esperamos al siguiente ciclo para que Angular
-     * haya creado el input antes de darle el foco.
-     */
-
-    setTimeout(() => {
-
-      this.searchInput?.nativeElement.focus();
-
-    });
-
-  }
-
-
-  closeSearch(): void {
-
-    this.searchOpen.set(false);
-
-    this.searchQuery.set('');
-
-    this.filteredSearchResults.set([]);
-
-    this.selectedSearchIndex.set(-1);
-
-  }
-
-
-  updateSearch(query: string): void {
-
-    this.searchQuery.set(query);
-
-    const normalizedQuery = query
-      .trim()
-      .toLowerCase();
-
-
-    /*
-     * Si no hay búsqueda, no mostramos resultados.
-     */
-
-    if (!normalizedQuery) {
-
-      this.filteredSearchResults.set([]);
-
-      this.selectedSearchIndex.set(-1);
-
-      return;
-
-    }
-
-
-    /*
-     * Buscamos directamente sobre la biblioteca
-     * real administrada por LibraryService.
-     */
-
-    const tracks =
-      this.libraryService.searchTracks(query);
-
-
-    /*
-     * Transformamos Track[] al modelo que utiliza
-     * actualmente el modal de búsqueda.
-     */
-
-    const results: SearchResult[] =
-      tracks.map(track => ({
-
-        id: track.id,
-
-        title: track.title,
-
-        subtitle:
-          `${track.artist} · ${track.album}`,
-
-        type: 'track',
-
-        track
-
-      }));
-
-
-    this.filteredSearchResults.set(results);
-
-    this.selectedSearchIndex.set(
-      results.length > 0
-        ? 0
-        : -1
-    );
-
-    setTimeout(() => {
-
-      this.searchResultsList
-        ?.nativeElement
-        .scrollTo({
-          top: 0,
-          behavior: 'smooth'
-        });
-
-    });
-  }
-
-
-  private scrollToSelectedResult(): void {
-
-    const index =
-      this.selectedSearchIndex();
-
-    if (index < 0) {
-      return;
-    }
-
-    const element =
-      document.getElementById(
-        `search-result-${index}`
-      );
-
-    if (!element) {
-      return;
-    }
-
-    element.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest'
-    });
-
-  }
-
-  // =========================================================
-  // NAVEGACIÓN DE BÚSQUEDA
-  // =========================================================
-
-  handleSearchKeydown(event: KeyboardEvent): void {
-
-    const results =
-      this.filteredSearchResults();
-
-
-    // =========================================================
-    // ABAJO
-    // =========================================================
-
-    if (event.key === 'ArrowDown') {
-
-      event.preventDefault();
-
-      if (results.length === 0) {
-        return;
-      }
-
-      const currentIndex =
-        this.selectedSearchIndex();
-
-      const nextIndex =
-        currentIndex < results.length - 1
-          ? currentIndex + 1
-          : 0;
-
-      this.selectedSearchIndex.set(
-        nextIndex
-      );
-
-      setTimeout(() => {
-        this.scrollToSelectedResult();
-      });
-
-      return;
-    }
-
-
-    // =========================================================
-    // ARRIBA
-    // =========================================================
-
-    if (event.key === 'ArrowUp') {
-
-      event.preventDefault();
-
-      if (results.length === 0) {
-        return;
-      }
-
-      const currentIndex =
-        this.selectedSearchIndex();
-
-      const previousIndex =
-        currentIndex > 0
-          ? currentIndex - 1
-          : results.length - 1;
-
-      this.selectedSearchIndex.set(
-        previousIndex
-      );
-
-      setTimeout(() => {
-        this.scrollToSelectedResult();
-      });
-
-      return;
-    }
-
-
-    // =========================================================
-    // ENTER
-    // =========================================================
-
-    if (event.key === 'Enter') {
-
-      event.preventDefault();
-
-      this.confirmSearch();
-
-      return;
-    }
-
-
-    // =========================================================
-    // ESC
-    // =========================================================
-
-    if (event.key === 'Escape') {
-
-      event.preventDefault();
-
-      this.closeSearch();
-
-    }
-
-  }
-
-
-  selectSearchResult(index: number): void {
-
-    this.selectedSearchIndex.set(index);
-
-  }
-
-
-  // =========================================================
-  // SELECCIÓN
-  // =========================================================
-
-  confirmSearch(): void {
-
-    const index =
-      this.selectedSearchIndex();
-
-    const results =
-      this.filteredSearchResults();
-
-
-    if (
-      index < 0 ||
-      index >= results.length
-    ) {
-      return;
-    }
-
-
-    const result =
-      results[index];
-
-
-    /*
-     * Ya tenemos el Track real de la biblioteca.
-     *
-     * Aquí conectaremos posteriormente:
-     *
-     * - PlayerService → reproducir ahora
-     * - QueueService  → añadir a cola
-     *
-     * El Track conserva su `path`, por lo que la
-     * reproducción seguirá utilizando la arquitectura
-     * actual de Musex/Tauri.
-     */
-
-    console.log(
-      'Musex search selected:',
-      result.track
-    );
-
-    void this.playerService.playTrack(result.track.id);
-
-    this.closeSearch();
-
-  }
-
-
-  // =========================================================
-  // LIMPIAR BÚSQUEDA
-  // =========================================================
-
-  clearRecentSearches(): void {
-
-    this.filteredSearchResults.set([]);
-
-    this.selectedSearchIndex.set(-1);
+    this.modalService.openSearch();
 
   }
 
@@ -390,11 +100,54 @@ export class TopBarComponent {
 
   toggleUserMenu(): void {
 
-    this.searchOpen.set(false);
+    /*
+     * Si el menú está abierto y el usuario vuelve
+     * a pulsar el botón, simplemente lo cerramos.
+     */
 
     this.userMenuOpen.update(
       open => !open
     );
+
+
+    /*
+     * Al abrir el menú de perfil nos aseguramos
+     * de que el selector interno empiece cerrado.
+     */
+
+    if (!this.userMenuOpen()) {
+
+      this.profileSwitcherOpen.set(false);
+
+    }
+
+  }
+
+
+  // =========================================================
+  // SELECTOR DE PERFILES
+  // =========================================================
+
+  toggleProfileSwitcher(): void {
+
+    this.profileSwitcherOpen.update(
+      open => !open
+    );
+
+  }
+
+
+  selectProfile(profileId: string): void {
+
+    this.availableProfiles.update(
+      profiles =>
+        profiles.map(profile => ({
+          ...profile,
+          active: profile.id === profileId
+        }))
+    );
+
+    this.profileSwitcherOpen.set(false);
 
   }
 
@@ -417,6 +170,9 @@ export class TopBarComponent {
      *
      * macOS:
      * Cmd + K
+     *
+     * El buscador se encarga internamente de su
+     * navegación por teclado una vez abierto.
      */
 
     if (
@@ -434,15 +190,20 @@ export class TopBarComponent {
 
 
     /*
-     * Escape cierra primero la búsqueda
-     * y después el menú de perfil.
+     * Escape:
+     *
+     * El ModalComponent global se encarga del Escape
+     * cuando existe un modal abierto.
+     *
+     * Aquí solamente manejamos el menú de perfil,
+     * que no pertenece al sistema global de modales.
      */
 
     if (event.key === 'Escape') {
 
-      if (this.searchOpen()) {
+      if (this.profileSwitcherOpen()) {
 
-        this.closeSearch();
+        this.profileSwitcherOpen.set(false);
 
         return;
 

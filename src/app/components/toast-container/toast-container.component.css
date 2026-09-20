@@ -1,11 +1,28 @@
-/*
- * El contenedor utiliza los estilos globales de Musex
- * para las animaciones y la apariencia de las notificaciones.
- *
- * La clase .toast definida en styles.css proporciona
- * la animación inicial de entrada.
- */
+.toast {
+  position: relative;
+  overflow: hidden;
+}
 
-:host {
-  display: contents;
+.toast-progress {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  height: 2px;
+
+  background: var(--musex-accent);
+
+  transform-origin: left;
+  animation: toast-progress linear forwards;
+}
+
+@keyframes toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
 }

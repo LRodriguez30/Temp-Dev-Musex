@@ -3,9 +3,6 @@ import { Injectable, signal } from '@angular/core';
 /**
  * Tipos de contenido que pueden mostrarse mediante el sistema
  * de modales de Musex.
- *
- * Estos valores representan las ventanas contempladas
- * originalmente en el prototipo.
  */
 export type ModalType =
   | 'notifications'
@@ -14,21 +11,28 @@ export type ModalType =
   | 'track-menu'
   | 'track-details'
   | 'playlist'
+  | 'add-to-playlist'
   | 'new-playlist'
   | 'settings'
-  | 'download-settings';
+  | 'download-settings'
+  | 'search';
 
 /**
  * Estado global del sistema de modales.
  */
 export interface ModalState {
+
   /**
-   * Indica si existe un modal abierto.
+   * Indica si el modal está visualmente abierto.
    */
   open: boolean;
 
   /**
    * Tipo de contenido que debe representar el modal.
+   *
+   * Este valor permanece durante la animación de salida
+   * para evitar que Angular destruya el contenido antes
+   * de que termine la transición.
    */
   type: ModalType | null;
 
@@ -44,9 +48,6 @@ export interface ModalState {
 
   /**
    * Identificador de la canción relacionada con el modal.
-   *
-   * Se utiliza para menús, detalles u otras acciones
-   * relacionadas con una pista concreta.
    */
   trackId: string | null;
 
@@ -59,10 +60,9 @@ export interface ModalState {
 /**
  * Gestiona el estado global de las ventanas modales de Musex.
  *
- * El servicio no contiene la interfaz del modal. Su responsabilidad
- * es únicamente indicar qué ventana debe mostrarse y con qué contexto.
- *
- * La representación visual continúa perteneciendo a ModalComponent.
+ * El servicio controla únicamente el estado y el contexto.
+ * La representación visual y las animaciones pertenecen
+ * a ModalComponent.
  */
 @Injectable({
   providedIn: 'root'
@@ -86,6 +86,11 @@ export class ModalService {
    */
   readonly state = this.modalState.asReadonly();
 
+
+  // =============================================================
+  // OPEN
+  // =============================================================
+
   /**
    * Abre un modal con la configuración indicada.
    */
@@ -98,6 +103,7 @@ export class ModalService {
       playlistId?: string | null;
     } = {}
   ): void {
+
     this.modalState.set({
       open: true,
       type,
@@ -108,15 +114,51 @@ export class ModalService {
     });
   }
 
+
+  // =============================================================
+  // CLOSE
+  // =============================================================
+
   /**
-   * Cierra el modal actualmente abierto.
+   * Inicia el cierre visual del modal.
+   *
+   * El contexto del modal NO se elimina todavía.
+   * Esto permite que ModalComponent reproduzca la animación
+   * de salida antes de desmontar el contenido.
    */
   close(): void {
+
     this.modalState.update(state => ({
       ...state,
       open: false
     }));
   }
+
+
+  // =============================================================
+  // FINISH CLOSE
+  // =============================================================
+
+  /**
+   * Limpia completamente el estado después de que termina
+   * la animación de salida.
+   */
+  finishClose(): void {
+
+    this.modalState.set({
+      open: false,
+      type: null,
+      title: '',
+      subtitle: '',
+      trackId: null,
+      playlistId: null
+    });
+  }
+
+
+  // =============================================================
+  // STATE
+  // =============================================================
 
   /**
    * Comprueba si actualmente existe un modal abierto.
@@ -126,20 +168,28 @@ export class ModalService {
   }
 
   /**
-   * Comprueba si el modal actualmente abierto
-   * corresponde a un tipo determinado.
+   * Comprueba el tipo de modal actualmente representado.
+   *
+   * IMPORTANTE:
+   * Durante la animación de salida `open` ya puede ser false,
+   * pero el tipo debe permanecer disponible hasta que
+   * ModalComponent termine su animación.
    */
   is(type: ModalType): boolean {
-    return (
-      this.modalState().open &&
-      this.modalState().type === type
-    );
+
+    return this.modalState().type === type;
   }
+
+
+  // =============================================================
+  // MODAL OPENERS
+  // =============================================================
 
   /**
    * Abre el modal de notificaciones.
    */
   openNotifications(): void {
+
     this.open('notifications', {
       title: 'Notificaciones'
     });
@@ -149,6 +199,7 @@ export class ModalService {
    * Abre el modal del perfil del usuario.
    */
   openProfile(): void {
+
     this.open('profile', {
       title: 'Perfil'
     });
@@ -158,6 +209,7 @@ export class ModalService {
    * Abre el diálogo de confirmación para cerrar Musex.
    */
   openExitConfirmation(): void {
+
     this.open('confirm-exit', {
       title: 'Cerrar Musex',
       subtitle: '¿Quieres cerrar la aplicación?'
@@ -168,6 +220,7 @@ export class ModalService {
    * Abre el menú contextual de una canción.
    */
   openTrackMenu(trackId: string): void {
+
     this.open('track-menu', {
       title: 'Opciones de canción',
       trackId
@@ -178,6 +231,7 @@ export class ModalService {
    * Abre los detalles de una canción.
    */
   openTrackDetails(trackId: string): void {
+
     this.open('track-details', {
       title: 'Detalles de la canción',
       trackId
@@ -188,6 +242,7 @@ export class ModalService {
    * Abre la información de una playlist.
    */
   openPlaylist(playlistId: string): void {
+
     this.open('playlist', {
       title: 'Playlist',
       playlistId
@@ -195,9 +250,21 @@ export class ModalService {
   }
 
   /**
+   * Abre el modal para añadir una canción a una playlist.
+   */
+  openAddToPlaylist(trackId: string): void {
+
+    this.open('add-to-playlist', {
+      title: 'Añadir a playlist',
+      trackId
+    });
+  }
+
+  /**
    * Abre el formulario para crear una nueva playlist.
    */
   openNewPlaylist(): void {
+
     this.open('new-playlist', {
       title: 'Nueva playlist',
       subtitle: 'Crea una nueva colección de canciones.'
@@ -208,6 +275,7 @@ export class ModalService {
    * Abre la configuración general de Musex.
    */
   openSettings(): void {
+
     this.open('settings', {
       title: 'Configuración'
     });
@@ -217,8 +285,15 @@ export class ModalService {
    * Abre la configuración relacionada con las descargas.
    */
   openDownloadSettings(): void {
+
     this.open('download-settings', {
       title: 'Configuración de descargas'
+    });
+  }
+
+  openSearch(): void {
+    this.open('search', {
+      title: 'Buscar en Musex'
     });
   }
 }

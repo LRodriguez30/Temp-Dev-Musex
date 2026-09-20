@@ -1,0 +1,939 @@
+/* =============================================================
+   MUSEX — MAIN CONTENT
+   -------------------------------------------------------------
+   Área real donde viven las vistas del Router.
+============================================================= */
+
+.main-content {
+  position: relative;
+
+  flex: 1 1 auto;
+
+  width: 100%;
+
+  min-width: 0;
+  min-height: 0;
+
+  overflow: hidden;
+}
+
+
+/* =============================================================
+   ROUTED VIEWS
+   -------------------------------------------------------------
+   Las vistas internas conservan su propio scroll.
+============================================================= */
+
+.main-content > router-outlet {
+  display: contents;
+}
+
+
+/* =============================================================
+   CONTENT LAYER
+   -------------------------------------------------------------
+   Contenedor padre de:
+
+     - Sidebar
+     - Main
+     - Now Playing
+
+   Esta capa representa todo el espacio disponible debajo
+   del Top Bar.
+
+   Sidebar, Main y Now Playing son "position: absolute" dentro
+   de esta capa (que es "position: fixed"), así que cuando
+   Content Layer anima su `bottom`, los tres se mueven juntos
+   sin necesitar transición propia.
+
+   IMPORTANTE — ASIMETRÍA DE LA ANIMACIÓN:
+   -------------------------------------------------------------
+   La entrada y la salida del Bottom Player usan curvas y
+   duraciones distintas (ver bottom-player.component.css:
+   bottom-player-enter = 560ms / bottom-player-exit = 420ms).
+
+   Para que el contenido se sienta acompañando esa misma
+   sensación, la transición "base" (usada al CERRAR, cuando se
+   quita la clase) usa la curva/duración de salida, y la
+   transición dentro de `.bottom-player-visible` (usada al
+   ABRIR) usa la curva/duración de entrada.
+============================================================= */
+
+.content-layer {
+
+  position: fixed;
+
+  top: 68px;
+  bottom: 0;
+
+  left: 0;
+  right: 0;
+
+  /*
+   * z-index explícito y BAJO.
+   *
+   * Esto confina a TODOS sus hijos (sidebar, main, now-playing)
+   * dentro de este nivel de apilamiento, sin importar qué
+   * z-index interno tenga cada uno (ej: sidebar usa z-50
+   * internamente). Así garantizamos que nada de lo que está
+   * dentro de Content Layer pueda quedar por encima del
+   * Bottom Player, que vive fuera de este contenedor.
+   */
+  z-index: 10;
+
+  transition:
+    bottom 420ms cubic-bezier(0.70, 0, 0.84, 0);
+}
+
+
+/* =============================================================
+   BOTTOM PLAYER VISIBLE
+   -------------------------------------------------------------
+   El Bottom Player ocupa 88px.
+
+   Por lo tanto, el Content Layer termina exactamente
+   encima de él.
+
+   Desktop:
+     Bottom Player = 88px
+============================================================= */
+
+.content-layer.bottom-player-visible {
+
+  bottom: 88px;
+
+  transition:
+    bottom 560ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+
+/* =============================================================
+   MAIN WORKSPACE
+   -------------------------------------------------------------
+   Ya no es "fixed": es "absolute" dentro de Content Layer, por
+   lo que hereda su movimiento automáticamente cuando el
+   Bottom Player aparece o desaparece.
+============================================================= */
+
+.main-shell {
+  position: absolute;
+
+  top: 0;
+  bottom: 0;
+}
+
+
+/* =============================================================
+   GLOBAL BOTTOM PLAYER
+   -------------------------------------------------------------
+   El Bottom Player se mantiene completamente independiente
+   del Content Layer.
+
+   position: fixed permite que atraviese todo el ancho de
+   la aplicación sin modificar el flujo normal.
+============================================================= */
+
+app-bottom-player {
+  position: fixed;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  width: 100%;
+
+  height: 88px;
+  min-height: 88px;
+
+  display: block;
+
+  z-index: 100;
+
+  pointer-events: auto;
+}
+
+@media (max-width: 620px) {
+
+  app-bottom-player {
+    bottom: 72px; /* altura de la mobile-navigation */
+
+    height: 64px;
+    min-height: 64px;
+  }
+
+  .content-layer {
+    margin-bottom: 70px;
+  }
+
+}
+
+/* =============================================================
+   SHOW NOW PLAYING
+   -------------------------------------------------------------
+   Botón lateral para volver a abrir el panel Now Playing.
+============================================================= */
+
+.show-now-playing {
+
+  position: absolute;
+
+  top: 50%;
+  right: 0;
+
+  z-index: 20;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 58px;
+
+  padding: 0;
+
+  transform: translateY(-50%);
+
+  border: 1px solid #292b30;
+  border-right: 0;
+
+  border-radius: 10px 0 0 10px;
+
+  background: rgba(17, 18, 20, 0.96);
+
+  color: rgba(255, 255, 255, 0.55);
+
+  cursor: pointer;
+
+  box-shadow:
+    -4px 0 16px rgba(0, 0, 0, 0.20);
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    width 160ms ease;
+}
+
+
+/* =============================================================
+   HOVER
+============================================================= */
+
+.show-now-playing:hover {
+
+  width: 32px;
+
+  color: #ffffff;
+
+  background: #17191b;
+}
+
+
+/* =============================================================
+   FLECHA
+   -------------------------------------------------------------
+   Tamaño controlado explícitamente.
+============================================================= */
+
+.show-now-playing svg {
+
+  display: block;
+
+  width: 14px !important;
+  height: 14px !important;
+
+  min-width: 14px;
+  min-height: 14px;
+
+  max-width: 14px;
+  max-height: 14px;
+
+  flex: 0 0 14px;
+}
+
+
+/* =============================================================
+   PATH
+============================================================= */
+
+.show-now-playing svg path {
+
+  vector-effect: non-scaling-stroke;
+}
+
+
+
+/* =========================================================
+   TRACK INFORMATION MODAL
+========================================================= */
+
+.music-metadata-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    background: rgba(0, 0, 0, 0.68);
+
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    animation: metadata-overlay-in 180ms ease-out;
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.music-metadata-modal {
+    position: relative;
+
+    width: min(520px, 100%);
+    max-height: calc(100vh - 48px);
+
+    overflow-y: auto;
+
+    background: #111214;
+
+    border: 1px solid #292b30;
+    border-radius: 16px;
+
+    box-shadow:
+        0 24px 70px rgba(0, 0, 0, 0.55),
+        0 0 0 1px
+        color-mix(in srgb, var(--musex-accent) 2.5%, transparent);
+
+    color: white;
+
+    animation: metadata-modal-in 220ms ease-out;
+}
+
+
+/* =========================================================
+   MODAL SCROLLBAR
+========================================================= */
+
+.music-metadata-modal::-webkit-scrollbar {
+    width: 6px;
+}
+
+.music-metadata-modal::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.music-metadata-modal::-webkit-scrollbar-thumb {
+    background:
+        color-mix(in srgb, var(--musex-accent) 22%, transparent);
+
+    border-radius: 999px;
+}
+
+.music-metadata-modal::-webkit-scrollbar-thumb:hover {
+    background:
+        color-mix(in srgb, var(--musex-accent) 42%, transparent);
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.music-metadata-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 22px 22px 18px;
+
+    border-bottom: 1px solid #292b30;
+}
+
+.music-metadata-kicker {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: var(--musex-accent);
+
+    font-family:
+        "Courier New",
+        "Lucida Console",
+        monospace;
+
+    font-size: 9px;
+    font-weight: 700;
+
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.music-metadata-header h2 {
+    margin: 0;
+
+    font-family:
+        "Outfit",
+        "Inter",
+        system-ui,
+        sans-serif;
+
+    font-size: 20px;
+    font-weight: 600;
+
+    letter-spacing: -0.02em;
+}
+
+
+/* =========================================================
+   CLOSE BUTTON
+========================================================= */
+
+.music-metadata-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 34px;
+    height: 34px;
+
+    flex-shrink: 0;
+
+    border: 1px solid #292b30;
+    border-radius: 8px;
+
+    background: #17191b;
+    color: #777a80;
+
+    cursor: pointer;
+
+    transition:
+        color 160ms ease,
+        border-color 160ms ease,
+        background 160ms ease,
+        transform 160ms ease;
+}
+
+.music-metadata-close svg {
+    width: 16px;
+    height: 16px;
+}
+
+.music-metadata-close:hover {
+    color: #ffffff;
+
+    border-color: #3a3d42;
+
+    background: #1c1f21;
+}
+
+.music-metadata-close:active {
+    transform: scale(0.94);
+}
+
+
+/* =========================================================
+   TRACK PREVIEW
+========================================================= */
+
+.music-metadata-preview {
+    display: flex;
+    align-items: center;
+
+    gap: 16px;
+
+    padding: 20px 22px;
+
+    background: #0d0e10;
+}
+
+.music-metadata-cover-wrapper {
+    flex-shrink: 0;
+}
+
+.music-metadata-cover {
+    position: relative;
+
+    width: 72px;
+    height: 72px;
+
+    flex-shrink: 0;
+
+    overflow: visible;
+
+    border-radius: 9px;
+
+    background: #17191b;
+
+    border: 1px solid #292b30;
+}
+
+.music-metadata-cover img {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    object-fit: cover;
+
+    border-radius: 8px;
+}
+
+.music-metadata-preview-info {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+.music-metadata-preview-label {
+    color: #62666c;
+
+    font-family:
+        "Courier New",
+        "Lucida Console",
+        monospace;
+
+    font-size: 9px;
+    font-weight: 700;
+
+    letter-spacing: 0.1em;
+}
+
+.music-metadata-preview-info strong {
+    overflow: hidden;
+
+    color: #ffffff;
+
+    font-size: 16px;
+    font-weight: 600;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.music-metadata-preview-info > span:last-child {
+    overflow: hidden;
+
+    color: #85898f;
+
+    font-size: 13px;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   EDITABLE FIELDS
+========================================================= */
+
+.music-metadata-fields {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 14px;
+
+    padding: 22px;
+}
+
+.music-metadata-field {
+    display: flex;
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+.music-metadata-field span {
+    color: #74787e;
+
+    font-family:
+        "Courier New",
+        "Lucida Console",
+        monospace;
+
+    font-size: 9px;
+    font-weight: 700;
+
+    letter-spacing: 0.1em;
+}
+
+.music-metadata-field input {
+    width: 100%;
+    height: 40px;
+
+    padding: 0 11px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #292b30;
+    border-radius: 7px;
+
+    outline: none;
+
+    background: #17191b;
+    color: #eeeeee;
+
+    font-family:
+        "Outfit",
+        "Inter",
+        system-ui,
+        sans-serif;
+
+    font-size: 13px;
+
+    transition:
+        border-color 160ms ease,
+        background 160ms ease,
+        box-shadow 160ms ease;
+}
+
+.music-metadata-field input::placeholder {
+    color: #55585d;
+}
+
+.music-metadata-field input:hover {
+    border-color: #34373c;
+}
+
+.music-metadata-field input:focus {
+    border-color:
+        color-mix(in srgb, var(--musex-accent) 55%, transparent);
+
+    background: #191c1e;
+
+    box-shadow:
+        0 0 0 3px
+        color-mix(in srgb, var(--musex-accent) 7%, transparent);
+}
+
+
+/* =========================================================
+   TECHNICAL INFORMATION
+========================================================= */
+
+.music-metadata-technical {
+    display: grid;
+
+    grid-template-columns:
+        0.8fr 0.8fr 1.4fr;
+
+    border-top: 1px solid #292b30;
+    border-bottom: 1px solid #292b30;
+}
+
+.music-metadata-technical > div {
+    min-width: 0;
+
+    padding: 15px 18px;
+
+    border-right: 1px solid #292b30;
+}
+
+.music-metadata-technical > div:last-child {
+    border-right: none;
+}
+
+.music-metadata-technical span {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #60646a;
+
+    font-family:
+        "Courier New",
+        "Lucida Console",
+        monospace;
+
+    font-size: 8px;
+    font-weight: 700;
+
+    letter-spacing: 0.1em;
+}
+
+.music-metadata-technical strong {
+    display: block;
+
+    overflow: hidden;
+
+    color: #b8bdc3;
+
+    font-family:
+        "Courier New",
+        "Lucida Console",
+        monospace;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.music-metadata-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    padding: 18px 22px;
+}
+
+.music-metadata-cancel,
+.music-metadata-save {
+    height: 38px;
+
+    padding: 0 15px;
+
+    border-radius: 7px;
+
+    font-family:
+        "Outfit",
+        "Inter",
+        system-ui,
+        sans-serif;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease,
+        transform 160ms ease;
+}
+
+.music-metadata-cancel {
+    border: 1px solid #292b30;
+
+    background: #17191b;
+    color: #85898f;
+}
+
+.music-metadata-cancel:hover {
+    background: #1c1f21;
+    color: #ffffff;
+}
+
+.music-metadata-save {
+    border: 1px solid var(--musex-accent);
+
+    background: var(--musex-accent);
+    color: #080909;
+}
+
+.music-metadata-save:hover {
+    background:
+        color-mix(in srgb, var(--musex-accent), white 15%);
+}
+
+.music-metadata-save:active,
+.music-metadata-cancel:active {
+    transform: scale(0.97);
+}
+
+
+/* =========================================================
+   DEFAULT DISC
+========================================================= */
+
+.music-table-default-disc {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+}
+
+
+/* =========================================================
+   COVER ACTIONS
+========================================================= */
+
+.cover-actions {
+    display: flex;
+
+    justify-content: center;
+
+    margin-top: 12px;
+}
+
+.cover-remove-button {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    padding: 7px 10px;
+
+    border: 0;
+
+    background: transparent;
+
+    color: #8b8d91;
+
+    font-size: 12px;
+
+    cursor: pointer;
+
+    transition: color 0.15s ease;
+}
+
+.cover-remove-button:hover {
+    color: #ff5c5c;
+}
+
+.cover-action-button {
+    position: absolute;
+
+    right: -10px;
+    bottom: -10px;
+
+    z-index: 5;
+
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 2px solid #111214;
+    border-radius: 50%;
+
+    background: var(--musex-accent);
+    color: #0d0e10;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.35);
+
+    transition:
+        transform 0.15s ease,
+        background 0.15s ease;
+}
+
+.cover-action-button:hover {
+    transform: scale(1.08);
+}
+
+.cover-action-button:active {
+    transform: scale(0.96);
+}
+
+
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+@keyframes metadata-overlay-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes metadata-modal-in {
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(10px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0) scale(1);
+    }
+}
+
+
+/* =========================================================
+   MODAL RESPONSIVE
+========================================================= */
+
+@media (max-width: 560px) {
+
+    .music-metadata-overlay {
+        align-items: flex-end;
+
+        padding: 0;
+    }
+
+    .music-metadata-modal {
+        width: 100%;
+        max-height: 90vh;
+
+        border-radius: 16px 16px 0 0;
+
+        animation-name: metadata-modal-mobile-in;
+    }
+
+    .music-metadata-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .music-metadata-technical {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .music-metadata-technical > div:last-child {
+        grid-column: 1 / -1;
+
+        border-top: 1px solid #292b30;
+    }
+
+    .music-metadata-actions {
+        position: sticky;
+
+        bottom: 0;
+
+        background: #111214;
+
+        border-top: 1px solid #292b30;
+    }
+}
+
+@keyframes metadata-modal-mobile-in {
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(24px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0);
+    }
+}

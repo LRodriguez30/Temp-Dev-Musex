@@ -18,14 +18,26 @@ export class QueueService {
    * Los datos iniciales corresponden a la cola definida
    * originalmente en el prototipo de Musex.
    */
-  private readonly queue = signal<string[]>([
-    'after-dark',
-    'good-4-u',
-    'blinding-lights',
-    'another-love',
-    'sweater-weather',
-    'sunflower'
-  ]);
+  // private readonly queue = signal<string[]>([
+  //   'after-dark',
+  //   'good-4-u',
+  //   'blinding-lights',
+  //   'another-love',
+  //   'sweater-weather',
+  //   'sunflower'
+  // ]);
+
+  /**
+   * Cola interna de reproducción.
+   *
+   * IMPORTANTE:
+   * -------------------------------------------------------------
+   * Arranca vacía. Antes traía canciones de demostración
+   * precargadas, lo cual hacía que hasPlayableContent() fuera
+   * `true` desde el inicio y el Bottom Player se mostrara sin
+   * que el usuario hubiera cargado música todavía.
+   */
+  private readonly queue = signal<string[]>([]);
 
   /**
    * Exposición de solo lectura de la cola.

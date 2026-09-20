@@ -3,88 +3,1027 @@
      ------------------------------------------------------------
      Estructura principal persistente de la aplicación.
 
-     El layout divide el workspace en cuatro zonas:
+     Distribución:
 
-     1. Barra superior
-     2. Navegación lateral
-     3. Área principal de contenido
-     4. Panel lateral del reproductor
+     DESKTOP
+     ├── Top Bar
+     ├── Content Layer
+     │   ├── Sidebar       → 257px
+     │   ├── Main          → espacio restante
+     │   └── Now Playing   → 363px cuando está abierto
+     └── Bottom Player     → barra global inferior
 
-     El reproductor inferior y las capas globales se mantienen
-     fuera del área navegable para permanecer disponibles durante
-     toda la sesión.
+     TABLET
+     ├── Top Bar
+     ├── Content Layer
+     │   ├── Sidebar       → 78px
+     │   ├── Main
+     │   └── Now Playing
+     └── Bottom Player
+
+     MOBILE
+     ├── Top Bar
+     ├── Content Layer
+     │   └── Main
+     ├── Bottom Player
+     └── Bottom Navigation → manejada por Sidebar
+
+     Full Player:
+     -------------------------------------------------------------
+     Se renderiza fuera de Content Layer y Bottom Player
+     para funcionar como overlay global.
+
+     IMPORTANTE — CASCADA DE MOVIMIENTO:
+     -------------------------------------------------------------
+     Sidebar, Main y Now Playing son "position: absolute" dentro
+     de Content Layer (que es "position: fixed").
+
+     Esto significa que NINGUNO de los tres necesita saber nada
+     sobre el Bottom Player: cuando Content Layer anima su
+     `bottom`, los tres se mueven juntos automáticamente.
 ============================================================= -->
 
 
 <!-- ============================================================
      TOP BAR
      ------------------------------------------------------------
-     Barra superior persistente de la aplicación.
+     Permanece completamente independiente del Bottom Player.
 ============================================================= -->
 
 <app-top-bar></app-top-bar>
 
 
 <!-- ============================================================
-     SIDEBAR
+     CONTENT LAYER
      ------------------------------------------------------------
-     Navegación principal y acceso a playlists.
+     Contenedor padre de todos los elementos que forman el
+     espacio principal de trabajo de Musex.
+
+     Contiene:
+
+       - Sidebar
+       - Main Workspace
+       - Now Playing
+
+     IMPORTANTE:
+     -------------------------------------------------------------
+     Este contenedor es el encargado de respetar el espacio
+     ocupado por el Bottom Player.
+
+     Cuando el Bottom Player está visible:
+
+       bottom = 88px
+
+     Cuando está oculto (o saliendo):
+
+       bottom = 0
+
+     De esta forma los tres elementos se comportan como una
+     única zona de contenido.
+
+     `bottomPlayerExiting()` se resta a propósito de la
+     condición: en cuanto el player empieza a salir, el
+     contenido ya debe empezar a bajar al mismo tiempo, no
+     esperar a que termine la animación de salida.
 ============================================================= -->
 
-<app-sidebar></app-sidebar>
+<div
+  class="
+    content-layer
 
+    fixed
 
-<!-- ============================================================
-     MAIN CONTENT
-     ------------------------------------------------------------
-     Área donde Angular renderiza las páginas mediante routing.
+    top-[68px]
+    bottom-0
 
-     Las dimensiones y posición son controladas por la clase
-     global "main-shell".
-============================================================= -->
-
-<main
-  class="main-shell fixed bottom-[88px] left-[257px] right-[363px] top-[70px] overflow-hidden"
+    left-0
+    right-0
+  "
+  [class.bottom-player-visible]="
+    bottomPlayerMounted() &&
+    !bottomPlayerExiting()
+  "
 >
-  <router-outlet></router-outlet>
-</main>
+
+
+  <!-- ==========================================================
+       SIDEBAR
+       ----------------------------------------------------------
+       Desktop:
+         257px
+
+       Tablet:
+         78px
+
+       Mobile:
+         oculto
+
+       El propio Sidebar contiene también la navegación inferior
+       para dispositivos móviles.
+  =========================================================== -->
+
+  <app-sidebar></app-sidebar>
+
+
+  <!-- ==========================================================
+       MAIN WORKSPACE
+       ----------------------------------------------------------
+       Este es el área real donde viven las vistas del Router.
+
+       Desktop:
+         left = 257px
+
+       Tablet:
+         left = 78px
+
+       Mobile:
+         left = 0
+
+       Right:
+         363px cuando Now Playing está abierto.
+         0px cuando está cerrado.
+
+       El Main pertenece al Content Layer y por lo tanto
+       respeta automáticamente el espacio inferior reservado
+       por el Bottom Player.
+  =========================================================== -->
+
+  <main
+    class="
+      main-shell
+
+      absolute
+
+      top-0
+      bottom-0
+
+      left-[257px]
+      right-0
+
+      overflow-hidden
+
+      flex
+      flex-col
+
+      transition-[left,right]
+      duration-280
+      ease-[cubic-bezier(0.22,1,0.36,1)]
+
+      max-[820px]:left-[78px]
+      max-[620px]:left-0
+    "
+    [style.right]="
+      playerService.state().rightPanel
+        ? '363px'
+        : '0px'
+    "
+    style="container-type: inline-size;"
+  >
+
+
+    <!-- ========================================================
+         MAIN CONTENT
+         --------------------------------------------------------
+         Aquí vive el RouterOutlet.
+
+         Las vistas internas controlan su propio scroll.
+         El layout principal permanece fijo.
+    ========================================================= -->
+
+    <div
+      class="
+        main-content
+
+        min-h-0
+        flex-1
+
+        overflow-hidden
+      "
+    >
+
+      <router-outlet></router-outlet>
+
+    </div>
+
+
+        <!-- ========================================================
+         SHOW NOW PLAYING
+         --------------------------------------------------------
+         Cuando el panel derecho está cerrado aparece un pequeño
+         botón para volver a abrirlo.
+
+         Solo tiene sentido si hay algo que mostrar: sin canción
+         actual ni cola cargada, reabrir el panel no serviría
+         de nada.
+
+         Desktop / Tablet:
+           visible cuando corresponde.
+
+         Mobile:
+           oculto.
+    ========================================================= -->
+
+    @if (
+      !playerService.state().rightPanel &&
+      playerService.hasPlayableContent()
+    ) {
+
+      <button
+        type="button"
+        class="
+          show-now-playing
+
+          max-[620px]:hidden
+        "
+        aria-label="Mostrar reproductor"
+        title="Mostrar reproductor"
+        (click)="
+          playerService.toggleRightPanel()
+        "
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+
+          <path d="M9 18l6-6-6-6" />
+
+        </svg>
+
+      </button>
+
+    }
+
+  </main>
+
+
+  <!-- ==========================================================
+       RIGHT PANEL — NOW PLAYING
+       ----------------------------------------------------------
+       Panel lateral derecho.
+
+       Desktop:
+         363px
+
+       Mobile:
+         se oculta mediante sus propios estilos.
+
+       Ya no necesita ser "fixed" al viewport: al ser
+       "position: absolute" dentro de Content Layer, hereda
+       automáticamente el movimiento causado por el Bottom
+       Player.
+  =========================================================== -->
+
+  <app-now-playing></app-now-playing>
+
+</div>
 
 
 <!-- ============================================================
-     RIGHT PANEL
+     BOTTOM PLAYER — GLOBAL
      ------------------------------------------------------------
-     Zona reservada para la información de reproducción actual
-     y la cola de reproducción.
+     Barra global de reproducción.
 
-     Su implementación visual se realizará posteriormente como
-     parte del desarrollo de los componentes del reproductor.
+     IMPORTANTE:
+     -------------------------------------------------------------
+     El Bottom Player está fuera del Content Layer.
+
+     Esto permite que:
+
+       - atraviese todo el ancho inferior;
+       - quede por encima del Sidebar;
+       - no dependa del Router;
+       - tenga su propia posición fixed;
+       - el Content Layer sea quien respete su espacio.
+
+     VISIBILIDAD:
+     -------------------------------------------------------------
+     Solo se monta cuando hay contenido reproducible
+     (bottomPlayerMounted). Se le agrega `.is-exiting` mientras
+     ejecuta su animación de salida, definida en su propio CSS,
+     y MainLayoutComponent retrasa el desmontaje real hasta que
+     esa animación termina.
+
+     Altura:
+
+       Desktop → 88px
+       Mobile  → responsive
 ============================================================= -->
 
-<app-now-playing></app-now-playing>
+@if (bottomPlayerMounted()) {
 
+  <app-bottom-player
+    [class.is-exiting]="bottomPlayerExiting()"
+  ></app-bottom-player>
+
+}
 
 <!-- ============================================================
-     BOTTOM PLAYER
+     FULL PLAYER — GLOBAL OVERLAY
      ------------------------------------------------------------
-     Reproductor persistente situado en la parte inferior.
+     Deliberadamente fuera de:
+
+       - Content Layer
+       - Main
+       - Sidebar
+       - Bottom Player
+       - Now Playing
+
+     Así puede cubrir absolutamente toda la aplicación.
 ============================================================= -->
 
-<app-bottom-player></app-bottom-player>
+@if (
+  playerService.fullPlayerOpen() &&
+  currentTrack
+) {
+
+  <app-full-player></app-full-player>
+
+}
 
 
 <!-- ============================================================
      GLOBAL MODAL
-     ------------------------------------------------------------
-     Contenedor único para ventanas modales de la aplicación.
 ============================================================= -->
 
-<app-modal></app-modal>
+<app-modal
+  [open]="modalService.state().open"
+  [title]="modalService.state().title"
+  [subtitle]="modalService.state().subtitle"
+  [bare]="
+    modalService.is('search') ||
+    modalService.is('track-details') ||
+    modalService.is('add-to-playlist')
+  "
+  (closed)="closeModal()"
+  (animationFinished)="onModalAnimationFinished()"
+>
+
+  @if (modalService.is('search')) {
+    <app-search-modal />
+  }
+  <!-- =========================================================
+       TRACK MENU
+  ========================================================== -->
+
+  @if (modalService.is('track-menu')) {
+
+    @if (modalTrack) {
+
+      <div class="space-y-1">
+
+        <button
+          type="button"
+          class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-white transition-colors hover:bg-[#17191b]"
+          (click)="openMetadata(modalTrack)"
+        >
+
+          <svg
+            class="h-5 w-5 text-zinc-400"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 20h9"></path>
+            <path
+              d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"
+            ></path>
+          </svg>
+
+          <span>Editar información</span>
+
+        </button>
+
+
+        <button
+          type="button"
+          class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-white transition-colors hover:bg-[#17191b]"
+          (click)="modalService.openAddToPlaylist(modalTrack.id)"
+        >
+
+          <svg
+            class="h-5 w-5 text-zinc-400"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+            <line
+              x1="21"
+              y1="8"
+              x2="21"
+              y2="2"
+            ></line>
+            <line
+              x1="18"
+              y1="5"
+              x2="24"
+              y2="5"
+            ></line>
+          </svg>
+
+          <span>Añadir a playlist</span>
+
+        </button>
+
+      </div>
+
+    }
+
+  }
+
+
+  <!-- =========================================================
+       TRACK INFORMATION MODAL
+  ========================================================== -->
+
+  @if (
+    modalService.is('track-details') &&
+    modalTrack &&
+    editingTrack()
+  ) {
+
+    <section
+      class="music-metadata-modal"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="'Información de ' + modalTrack.title"
+      (click)="$event.stopPropagation()"
+    >
+
+
+      <!-- =====================================================
+           MODAL HEADER
+      ====================================================== -->
+
+      <header class="music-metadata-header">
+
+        <div>
+
+          <span class="music-metadata-kicker">
+            METADATOS DE MÚSICA
+          </span>
+
+          <h2>
+            Información de la canción
+          </h2>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="music-metadata-close"
+          aria-label="Cerrar"
+          (click)="closeModal()"
+        >
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+
+          </svg>
+
+        </button>
+
+      </header>
+
+
+      <!-- =====================================================
+           TRACK PREVIEW
+      ====================================================== -->
+
+      <div class="music-metadata-preview">
+
+        <div class="music-metadata-cover-wrapper">
+
+          <div class="music-metadata-cover">
+
+            @if (
+              editingTrack()!.coverType === 'image' &&
+              editingTrack()!.image
+            ) {
+
+              <img
+                [src]="editingTrack()!.image"
+                [alt]="editingTrack()!.title"
+                style="width:100%;height:100%;object-fit:cover;"
+              />
+
+            } @else if (
+              editingTrack()!.coverType === 'icon'
+            ) {
+
+              <div
+                style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"
+                [style.background]="
+                  (editingTrack()!.coverColor || 'var(--musex-accent)') + '1a'
+                "
+              >
+
+                <svg
+                  viewBox="0 0 24 24"
+                  style="width:28px;height:28px;"
+                  fill="none"
+                  [attr.stroke]="
+                    editingTrack()!.coverColor ||
+                    'var(--musex-accent)'
+                  "
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+
+                  <path
+                    [attr.d]="
+                      getCoverIconPath(
+                        editingTrack()!.coverIcon
+                      )
+                    "
+                  ></path>
+
+                </svg>
+
+              </div>
+
+            } @else {
+
+              <svg
+                class="bottom-default-disc"
+                viewBox="0 0 100 100"
+                role="img"
+                aria-label="Disco Musex"
+              >
+
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="48"
+                  fill="var(--musex-accent)"
+                />
+
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="42"
+                  fill="none"
+                  stroke="#0d0e10"
+                  stroke-width="1.5"
+                  opacity="0.35"
+                />
+
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="35"
+                  fill="none"
+                  stroke="#0d0e10"
+                  stroke-width="1"
+                  opacity="0.3"
+                />
+
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="28"
+                  fill="none"
+                  stroke="#0d0e10"
+                  stroke-width="1"
+                  opacity="0.25"
+                />
+
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="13"
+                  fill="#0d0e10"
+                />
+
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="4"
+                  fill="var(--musex-accent)"
+                />
+
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="44"
+                  fill="none"
+                  stroke="#ffffff"
+                  stroke-width="0.8"
+                  opacity="0.12"
+                />
+
+              </svg>
+
+            }
+
+
+            <!-- =================================================
+                 CAMBIAR PORTADA
+            ================================================== -->
+
+            <input
+              #coverInput
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              hidden
+              (change)="onCoverImageSelected($event)"
+            />
+
+
+            <button
+              type="button"
+              class="cover-action-button"
+              aria-label="Cambiar portada"
+              title="Cambiar portada"
+              (click)="coverInput.click()"
+            >
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="15"
+                height="15"
+              >
+
+                <path
+                  d="M14.5 4h-5L8 6H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3l-1.5-2Z"
+                />
+
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="3"
+                />
+
+              </svg>
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <div class="music-metadata-preview-info">
+
+          <span class="music-metadata-preview-label">
+            MÚSICA ACTUAL
+          </span>
+
+          <strong>
+            {{ editingTrack()!.title }}
+          </strong>
+
+          <span>
+            {{ editingTrack()!.artist }}
+          </span>
+
+        </div>
+
+
+        <div class="cover-actions">
+
+          <button
+            type="button"
+            class="cover-remove-button"
+            (click)="removeCover()"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="14"
+              height="14"
+            >
+
+              <path d="M3 6h18" />
+              <path d="M8 6V4h8v2" />
+              <path d="M19 6l-1 14H6L5 6" />
+
+            </svg>
+
+            Quitar portada
+
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           EDITABLE INFORMATION
+      ====================================================== -->
+
+      <div class="music-metadata-fields">
+
+        <label class="music-metadata-field">
+
+          <span>
+            TÍTULO
+          </span>
+
+          <input
+            type="text"
+            [value]="editingTrack()!.title"
+            (input)="
+              updateEditingField(
+                'title',
+                $any($event.target).value
+              )
+            "
+          />
+
+        </label>
+
+
+        <label class="music-metadata-field">
+
+          <span>
+            ARTISTA
+          </span>
+
+          <input
+            type="text"
+            [value]="editingTrack()!.artist"
+            (input)="
+              updateEditingField(
+                'artist',
+                $any($event.target).value
+              )
+            "
+          />
+
+        </label>
+
+
+        <label class="music-metadata-field">
+
+          <span>
+            ÁLBUM
+          </span>
+
+          <input
+            type="text"
+            [value]="editingTrack()!.album"
+            (input)="
+              updateEditingField(
+                'album',
+                $any($event.target).value
+              )
+            "
+          />
+
+        </label>
+
+
+        <label class="music-metadata-field">
+
+          <span>
+            GÉNERO
+          </span>
+
+          <input
+            type="text"
+            [value]="editingTrack()!.genre ?? ''"
+            (input)="
+              updateEditingField(
+                'genre',
+                $any($event.target).value
+              )
+            "
+            placeholder="Sin género"
+          />
+
+        </label>
+
+      </div>
+
+
+      <!-- =====================================================
+           FILE INFORMATION
+      ====================================================== -->
+
+      <div class="music-metadata-technical">
+
+        <div>
+
+          <span>
+            DURACIÓN
+          </span>
+
+          <strong>
+            {{ formatDuration(editingTrack()!.duration) }}
+          </strong>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            FUENTE
+          </span>
+
+          <strong>
+            {{ editingTrack()!.source || 'LOCAL' }}
+          </strong>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            ARCHIVO
+          </span>
+
+          <strong [title]="editingTrack()!.path">
+            {{ editingTrack()!.path }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           ACTIONS
+      ====================================================== -->
+
+      <footer class="music-metadata-actions">
+
+        <button
+          type="button"
+          class="music-metadata-cancel"
+          (click)="closeModal()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="music-metadata-save"
+          (click)="saveMetadata()"
+        >
+          Guardar cambios
+        </button>
+
+      </footer>
+
+    </section>
+
+  }
+
+
+  <!-- =========================================================
+       ADD TO PLAYLIST MODAL
+  ========================================================== -->
+
+  @if (
+    modalService.is('add-to-playlist') &&
+    modalTrack
+  ) {
+
+    <section
+      class="music-metadata-modal"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="
+        'Agregar ' +
+        modalTrack.title +
+        ' a una playlist'
+      "
+      (click)="$event.stopPropagation()"
+    >
+
+
+      <!-- =====================================================
+           MODAL HEADER
+      ====================================================== -->
+
+      <header class="music-metadata-header">
+
+        <div>
+
+          <span class="music-metadata-kicker">
+            AGREGAR A PLAYLIST
+          </span>
+
+          <h2>
+            Agregar a playlist
+          </h2>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="music-metadata-close"
+          aria-label="Cerrar"
+          (click)="closeModal()"
+        >
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+
+          </svg>
+
+        </button>
+
+      </header>
+
+
+      <div
+        class="music-metadata-fields"
+        style="grid-template-columns: 1fr; padding: 16px 22px;"
+      >
+
+        @for (
+          playlist of playlists();
+          track playlist.id
+        ) {
+
+          <button
+            type="button"
+            class="music-metadata-cancel"
+            style="
+              width: 100%;
+              justify-content: flex-start;
+              text-align: left;
+            "
+            (click)="addTrackToPlaylist(playlist.id)"
+          >
+
+            {{ playlist.name }} · {{ playlist.count }} canciones
+
+          </button>
+
+        }
+
+
+        @if (playlists().length === 0) {
+
+          <p style="color: #74787e; font-size: 13px;">
+
+            Todavía no tienes playlists.
+            Crea una desde el sidebar.
+
+          </p>
+
+        }
+
+      </div>
+
+    </section>
+
+  }
+
+</app-modal>
 
 
 <!-- ============================================================
      GLOBAL TOASTS
-     ------------------------------------------------------------
-     Contenedor de notificaciones temporales.
 ============================================================= -->
 
 <app-toast-container></app-toast-container>
@@ -92,7 +1031,6 @@
 
 <!-- ============================================================
      GLOBAL QUEUE PANEL
-     ------------------------------------------------------------
-     Contenedor único para la cola de reproducción
 ============================================================= -->
+
 <app-queue-panel></app-queue-panel>

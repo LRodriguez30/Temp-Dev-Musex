@@ -40,7 +40,7 @@ export class FullPlayerComponent {
      * En escritorio permanece abierta por defecto.
      * En pantallas pequeñas puede ocultarse para recuperar espacio.
      */
-    readonly queueOpen = signal(true);
+    readonly queueOpen = signal(false);
 
     get currentTrack(): Track | undefined {
         return this.playerService.getCurrentTrack();
@@ -79,7 +79,7 @@ export class FullPlayerComponent {
     }
 
     closeFullPlayer(): void {
-        this.close.emit();
+        this.playerService.closeFullPlayer();
     }
 
     togglePlay(): void {

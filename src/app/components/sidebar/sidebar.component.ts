@@ -24,6 +24,8 @@ import {
 import { getCoverIconPath } from '../../core/data/playlist-icons';
 
 import { ThemeSettingsModalComponent } from '../theme-settings-modal/theme-settings-modal.component';
+import { PlayerService } from '../../core/services/player.service';
+import { MobileMenuService } from '../../core/services/mobile-menu.service';
 
 /**
  * Barra lateral principal de Musex.
@@ -42,7 +44,8 @@ import { ThemeSettingsModalComponent } from '../theme-settings-modal/theme-setti
     CreatePlaylistModalComponent,
     ThemeSettingsModalComponent
   ],
-  templateUrl: './sidebar.component.html'
+  templateUrl: './sidebar.component.html',
+  styleUrl: './sidebar.component.css'
 })
 export class SidebarComponent implements OnInit {
 
@@ -50,6 +53,8 @@ export class SidebarComponent implements OnInit {
 
   private readonly musexStorageService = inject(MusexStorageService);
   readonly playlistService = inject(PlaylistService);
+  readonly playerService = inject(PlayerService);
+  readonly mobileMenuService = inject(MobileMenuService);
   private readonly notificationService = inject(NotificationService);
 
   readonly storageSize = signal<number>(0);
@@ -83,6 +88,15 @@ export class SidebarComponent implements OnInit {
   readonly showCreateModal = signal<boolean>(false);
 
   readonly showThemeModal = signal(false);
+
+  /**
+   * Indica si el mini-player móvil está ocupando espacio
+   * sobre la navegación inferior.
+   *
+   * El panel "Más" necesita saberlo para posicionarse por
+   * encima de él y no quedar tapado ni tapar sus controles.
+   */
+  readonly hasPlayableContent = this.playerService.hasPlayableContent;
 
   openThemeSettings(): void {
     this.showThemeModal.set(true);
@@ -142,6 +156,11 @@ export class SidebarComponent implements OnInit {
     }
   }
 
+  @HostListener('window:resize')
+  handleWindowResize(): void {
+    this.mobileMenuService.closeIfNotMobile();
+  }
+  
   /**
    * Atajos de teclado para navegar rápidamente
    * entre las principales vistas de Musex.

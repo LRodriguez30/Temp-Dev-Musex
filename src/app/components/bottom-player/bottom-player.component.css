@@ -13,23 +13,613 @@
   --text-secondary: rgba(255, 255, 255, 0.5);
   --text-muted: rgba(255, 255, 255, 0.28);
 
+  display: block;
+
   font-family: "Outfit", "Inter", system-ui, sans-serif;
 }
 
+/* =============================================================
+   BOTTOM PLAYER — EXIT ANIMATION
+   -------------------------------------------------------------
+   El MainLayout mantiene el componente montado durante 420ms
+   y añade la clase `.is-exiting` al host.
+============================================================= */
+
+:host(.is-exiting) .bottom-player {
+
+  animation:
+    bottom-player-exit
+    420ms
+    cubic-bezier(0.70, 0, 0.84, 0.0)
+    both;
+
+}
+
+
+/* =============================================================
+   CONTENIDO
+   -------------------------------------------------------------
+   El contenido cae ligeramente hacia abajo y pierde presencia.
+============================================================= */
+
+:host(.is-exiting) .bottom-player-content {
+
+  animation:
+    bottom-player-content-exit
+    340ms
+    cubic-bezier(0.70, 0, 0.84, 0.0)
+    both;
+
+}
+
+
+/* =============================================================
+   CURRENT TRACK
+============================================================= */
+
+:host(.is-exiting) .bottom-current {
+
+  animation:
+    bottom-current-exit
+    300ms
+    cubic-bezier(0.70, 0, 0.84, 0.0)
+    both;
+
+}
+
+
+/* =============================================================
+   COVER
+   -------------------------------------------------------------
+   La portada se reduce y gira ligeramente mientras desaparece.
+============================================================= */
+
+:host(.is-exiting) .bottom-cover {
+
+  animation:
+    bottom-cover-exit
+    360ms
+    cubic-bezier(0.70, 0, 0.84, 0.0)
+    both;
+
+}
+
+
+/* =============================================================
+   METADATA
+============================================================= */
+
+:host(.is-exiting) .bottom-meta {
+
+  animation:
+    bottom-meta-exit
+    300ms
+    cubic-bezier(0.70, 0, 0.84, 0.0)
+    both;
+
+}
+
+
+/* =============================================================
+   CENTER PLAYER
+============================================================= */
+
+:host(.is-exiting) .bottom-center {
+
+  animation:
+    bottom-center-exit
+    320ms
+    cubic-bezier(0.70, 0, 0.84, 0.0)
+    both;
+
+}
+
+
+/* =============================================================
+   EXTRA CONTROLS
+============================================================= */
+
+:host(.is-exiting) .bottom-extra {
+
+  animation:
+    bottom-extra-exit
+    300ms
+    cubic-bezier(0.70, 0, 0.84, 0.0)
+    both;
+
+}
+
+
+/* =============================================================
+   FAVORITE
+============================================================= */
+
+:host(.is-exiting) .bottom-favorite {
+
+  animation:
+    bottom-control-exit
+    260ms
+    ease-in
+    both;
+
+}
+
+
+/* =============================================================
+   PLAYING INDICATOR
+============================================================= */
+
+:host(.is-exiting) .bottom-playing-indicator {
+
+  animation:
+    bottom-indicator-exit
+    220ms
+    ease-in
+    both;
+
+}
+
+
+/* =============================================================
+   VISUALIZER
+============================================================= */
+
+:host(.is-exiting) .bottom-visualizer {
+
+  animation:
+    bottom-visualizer-exit
+    240ms
+    ease-in
+    both;
+
+}
+
+
+/* =============================================================
+   TOP SIGNAL
+   -------------------------------------------------------------
+   La línea verde se retrae hacia el centro.
+============================================================= */
+
+:host(.is-exiting) .bottom-player::before {
+
+  animation:
+    bottom-player-signal-exit
+    320ms
+    cubic-bezier(0.70, 0, 0.84, 0.0)
+    both;
+
+}
+
+
+/* =============================================================
+   SWEEP
+   -------------------------------------------------------------
+   El barrido blanco no continúa durante la salida.
+============================================================= */
+
+:host(.is-exiting) .bottom-player::after {
+
+  animation:
+    bottom-player-sweep-exit
+    280ms
+    ease-in
+    both;
+
+}
+
+
+/* =============================================================
+   KEYFRAME — PLAYER
+   -------------------------------------------------------------
+   El reproductor se comprime hacia abajo y desaparece.
+============================================================= */
+
+@keyframes bottom-player-exit {
+
+  0% {
+
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scaleY(1);
+
+    filter:
+      blur(0)
+      brightness(1);
+
+  }
+
+  55% {
+
+    opacity: 0.75;
+
+    transform:
+      translateY(8px)
+      scaleY(0.94);
+
+    filter:
+      blur(1px)
+      brightness(0.92);
+
+  }
+
+  100% {
+
+    opacity: 0;
+
+    transform:
+      translateY(100%)
+      scaleY(0.82);
+
+    filter:
+      blur(5px)
+      brightness(0.75);
+
+  }
+
+}
+
+
+/* =============================================================
+   KEYFRAME — CONTENT
+============================================================= */
+
+@keyframes bottom-player-content-exit {
+
+  0% {
+
+    opacity: 1;
+
+    transform:
+      translateY(0);
+
+  }
+
+  100% {
+
+    opacity: 0;
+
+    transform:
+      translateY(22px);
+
+  }
+
+}
+
+
+/* =============================================================
+   KEYFRAME — CURRENT
+============================================================= */
+
+@keyframes bottom-current-exit {
+
+  0% {
+
+    opacity: 1;
+
+    transform:
+      translateX(0)
+      translateY(0);
+
+  }
+
+  100% {
+
+    opacity: 0;
+
+    transform:
+      translateX(-14px)
+      translateY(12px);
+
+  }
+
+}
+
+
+/* =============================================================
+   KEYFRAME — COVER
+============================================================= */
+
+@keyframes bottom-cover-exit {
+
+  0% {
+
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1)
+      rotate(0deg);
+
+  }
+
+  55% {
+
+    opacity: 0.65;
+
+    transform:
+      translateY(7px)
+      scale(0.88)
+      rotate(-2deg);
+
+  }
+
+  100% {
+
+    opacity: 0;
+
+    transform:
+      translateY(24px)
+      scale(0.55)
+      rotate(-6deg);
+
+  }
+
+}
+
+
+/* =============================================================
+   KEYFRAME — META
+============================================================= */
+
+@keyframes bottom-meta-exit {
+
+  0% {
+
+    opacity: 1;
+
+    transform:
+      translateX(0)
+      translateY(0);
+
+  }
+
+  100% {
+
+    opacity: 0;
+
+    transform:
+      translateX(-20px)
+      translateY(14px);
+
+  }
+
+}
+
+
+/* =============================================================
+   KEYFRAME — CENTER
+============================================================= */
+
+@keyframes bottom-center-exit {
+
+  0% {
+
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+
+  }
+
+  100% {
+
+    opacity: 0;
+
+    transform:
+      translateY(18px)
+      scale(0.94);
+
+  }
+
+}
+
+
+/* =============================================================
+   KEYFRAME — EXTRA
+============================================================= */
+
+@keyframes bottom-extra-exit {
+
+  0% {
+
+    opacity: 1;
+
+    transform:
+      translateX(0)
+      translateY(0);
+
+  }
+
+  100% {
+
+    opacity: 0;
+
+    transform:
+      translateX(16px)
+      translateY(14px);
+
+  }
+
+}
+
+
+/* =============================================================
+   KEYFRAME — CONTROLS
+============================================================= */
+
+@keyframes bottom-control-exit {
+
+  0% {
+
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+
+  }
+
+  100% {
+
+    opacity: 0;
+
+    transform:
+      translateY(10px)
+      scale(0.75);
+
+  }
+
+}
+
+
+/* =============================================================
+   KEYFRAME — PLAYING INDICATOR
+============================================================= */
+
+@keyframes bottom-indicator-exit {
+
+  0% {
+
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+
+  }
+
+  100% {
+
+    opacity: 0;
+
+    transform:
+      translateY(8px)
+      scale(0.7);
+
+  }
+
+}
+
+
+/* =============================================================
+   KEYFRAME — VISUALIZER
+============================================================= */
+
+@keyframes bottom-visualizer-exit {
+
+  0% {
+
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scaleY(1);
+
+  }
+
+  100% {
+
+    opacity: 0;
+
+    transform:
+      translateY(8px)
+      scaleY(0);
+
+  }
+
+}
+
+
+/* =============================================================
+   KEYFRAME — GREEN SIGNAL
+   -------------------------------------------------------------
+   La línea se recoge hacia el centro antes de desaparecer.
+============================================================= */
+
+@keyframes bottom-player-signal-exit {
+
+  0% {
+
+    opacity: 1;
+
+    transform:
+      scaleX(1)
+      translateY(0);
+
+  }
+
+  65% {
+
+    opacity: 0.75;
+
+    transform:
+      scaleX(0.42)
+      translateY(1px);
+
+  }
+
+  100% {
+
+    opacity: 0;
+
+    transform:
+      scaleX(0)
+      translateY(2px);
+
+  }
+
+}
+
+
+/* =============================================================
+   KEYFRAME — WHITE SWEEP
+============================================================= */
+
+@keyframes bottom-player-sweep-exit {
+
+  0% {
+
+    opacity: 0.65;
+
+    transform:
+      translateX(0);
+
+  }
+
+  100% {
+
+    opacity: 0;
+
+    transform:
+      translateX(100%);
+
+  }
+
+}
 
 /* =============================================================
    PLAYER CONTAINER
 ============================================================= */
 
 .bottom-player {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: relative;
+
+  left: auto;
+  right: auto;
+  bottom: auto;
 
   z-index: 40;
 
+  width: 100%;
+
   height: 88px;
+  min-height: 88px;
+
+  flex: 0 0 88px;
 
   background: var(--player-bg);
 
@@ -42,29 +632,117 @@
     0 -8px 30px rgba(0, 0, 0, 0.22);
 
   isolation: isolate;
+
+  overflow: hidden;
+
+  /*
+   * -----------------------------------------------------------
+   * ENTRADA DEL PLAYER
+   * -----------------------------------------------------------
+   *
+   * El reproductor no simplemente aparece.
+   *
+   * 1. Surge desde debajo del workspace.
+   * 2. Hace un pequeño overshoot vertical.
+   * 3. La interfaz interna entra ligeramente después.
+   * 4. La línea verde recorre todo el reproductor.
+   *
+   * Esto hace que la aparición se sienta como una acción
+   * asociada a la reproducción de música.
+   */
+  animation:
+    bottom-player-enter
+    560ms
+    cubic-bezier(0.16, 1, 0.3, 1)
+    both;
 }
 
 
-/* Línea superior de identidad Musex */
+/* =============================================================
+   PLAYER — BORDE SUPERIOR
+============================================================= */
 
 .bottom-player::before {
   content: "";
 
   position: absolute;
+
   top: 0;
   left: 0;
-  right: 0;
 
+  width: 100%;
   height: 2px;
 
-  background: var(--musex-green);
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--musex-green) 12%,
+      var(--musex-green) 50%,
+      var(--musex-green) 88%,
+      transparent 100%
+    );
 
   opacity: 0.72;
 
   box-shadow:
-    0 0 8px color-mix(in srgb, var(--musex-accent) 18%, transparent);
+    0 0 8px color-mix(
+      in srgb,
+      var(--musex-accent) 18%,
+      transparent
+    );
 
   pointer-events: none;
+
+  transform-origin: left center;
+
+  animation:
+    bottom-player-signal
+    700ms
+    cubic-bezier(0.16, 1, 0.3, 1)
+    both;
+}
+
+
+/* =============================================================
+   PLAYER — LÍNEA DE SELECCIÓN
+   -------------------------------------------------------------
+   Una segunda línea muy fina crea el efecto de "señal"
+   recorriendo el reproductor.
+============================================================= */
+
+.bottom-player::after {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.8) 50%,
+      transparent 100%
+    );
+
+  opacity: 0;
+
+  transform:
+    translateX(-100%);
+
+  pointer-events: none;
+
+  animation:
+    bottom-player-sweep
+    760ms
+    cubic-bezier(0.22, 1, 0.36, 1)
+    90ms
+    both;
 }
 
 
@@ -73,6 +751,9 @@
 ============================================================= */
 
 .bottom-player-content {
+  position: relative;
+  z-index: 2;
+
   display: flex;
   align-items: center;
 
@@ -84,6 +765,17 @@
   padding: 0 18px;
 
   box-sizing: border-box;
+
+  /*
+   * La interfaz entra ligeramente después del contenedor.
+   * Esto crea sensación de profundidad.
+   */
+  animation:
+    bottom-player-content-enter
+    520ms
+    cubic-bezier(0.16, 1, 0.3, 1)
+    70ms
+    both;
 }
 
 
@@ -101,20 +793,27 @@
   gap: 14px;
 
   min-height: 0;
+
+  animation:
+    bottom-current-enter
+    480ms
+    cubic-bezier(0.16, 1, 0.3, 1)
+    110ms
+    both;
 }
 
 
-/* -------------------------------------------------------------
-   Cover
-------------------------------------------------------------- */
+/* =============================================================
+   COVER
+============================================================= */
 
 .bottom-cover {
   position: relative;
 
-  flex-shrink: 0;
-
   width: 60px;
   height: 60px;
+
+  flex-shrink: 0;
 
   overflow: hidden;
 
@@ -125,32 +824,28 @@
 
   box-shadow:
     0 4px 14px rgba(0, 0, 0, 0.35),
-    0 0 10px color-mix(in srgb, var(--musex-accent) 12%, transparent);
+    0 0 10px color-mix(
+      in srgb,
+      var(--musex-accent) 12%,
+      transparent
+    );
 
   isolation: isolate;
+
+  /*
+   * La portada entra como si terminara de asentarse
+   * sobre el reproductor.
+   */
+  animation:
+    bottom-cover-enter
+    620ms
+    cubic-bezier(0.16, 1, 0.3, 1)
+    100ms
+    both;
 }
+
 
 .bottom-cover-image {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-}
-
-.bottom-cover-icon {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.bottom-cover-icon svg {
-  width: 22px;
-  height: 22px;
-}
-
-.bottom-cover img {
   display: block;
 
   width: 100%;
@@ -163,14 +858,39 @@
     filter 220ms ease;
 }
 
-.bottom-cover:hover img {
+
+.bottom-cover-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+}
+
+
+.bottom-cover-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+
+.bottom-cover:hover .bottom-cover-image {
   transform: scale(1.045);
 }
 
 
-/* -------------------------------------------------------------
-   Mini equalizer
-------------------------------------------------------------- */
+.bottom-default-disc {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+}
+
+
+/* =============================================================
+   MINI EQUALIZER
+============================================================= */
 
 .bottom-playing-indicator {
   position: absolute;
@@ -184,6 +904,7 @@
   gap: 2px;
 
   height: 13px;
+
   padding: 3px 4px;
 
   border-radius: 4px;
@@ -196,6 +917,7 @@
   pointer-events: none;
 }
 
+
 .bottom-playing-indicator span {
   display: block;
 
@@ -206,20 +928,32 @@
   background: var(--musex-green);
 
   box-shadow:
-    0 0 5px color-mix(in srgb, var(--musex-accent) 45%, transparent);
+    0 0 5px color-mix(
+      in srgb,
+      var(--musex-accent) 45%,
+      transparent
+    );
 
-  animation: bottom-equalizer 850ms ease-in-out infinite alternate;
+  animation:
+    bottom-equalizer
+    850ms
+    ease-in-out
+    infinite
+    alternate;
 }
+
 
 .bottom-playing-indicator span:nth-child(1) {
   height: 5px;
   animation-delay: -120ms;
 }
 
+
 .bottom-playing-indicator span:nth-child(2) {
   height: 10px;
   animation-delay: -320ms;
 }
+
 
 .bottom-playing-indicator span:nth-child(3) {
   height: 7px;
@@ -232,13 +966,20 @@
 ============================================================= */
 
 .bottom-meta {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
   flex: 1;
 
   min-width: 0;
 
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  animation:
+    bottom-meta-enter
+    440ms
+    cubic-bezier(0.16, 1, 0.3, 1)
+    170ms
+    both;
 }
 
 
@@ -285,10 +1026,10 @@
   align-items: center;
   justify-content: center;
 
-  flex-shrink: 0;
-
   width: 34px;
   height: 34px;
+
+  flex-shrink: 0;
 
   padding: 0;
 
@@ -305,7 +1046,15 @@
     color 160ms ease,
     background-color 160ms ease,
     transform 160ms ease;
+
+  animation:
+    bottom-control-enter
+    420ms
+    cubic-bezier(0.16, 1, 0.3, 1)
+    220ms
+    both;
 }
+
 
 .bottom-favorite:hover {
   color: rgba(255, 255, 255, 0.82);
@@ -315,9 +1064,11 @@
   transform: translateY(-1px);
 }
 
+
 .bottom-favorite:active {
   transform: scale(0.92);
 }
+
 
 .bottom-favorite svg {
   width: 17px;
@@ -329,15 +1080,28 @@
     transform 180ms ease;
 }
 
+
 .bottom-favorite.active {
   color: var(--musex-green);
 }
 
+
 .bottom-favorite.active svg {
-  fill: color-mix(in srgb, var(--musex-accent) 12%, transparent);
+  fill: color-mix(
+    in srgb,
+    var(--musex-accent) 12%,
+    transparent
+  );
 
   filter:
-    drop-shadow(0 0 5px color-mix(in srgb, var(--musex-accent) 18%, transparent));
+    drop-shadow(
+      0 0 5px
+      color-mix(
+        in srgb,
+        var(--musex-accent) 18%,
+        transparent
+      )
+    );
 
   animation: favorite-pop 220ms ease;
 }
@@ -348,7 +1112,10 @@
 ============================================================= */
 
 .bottom-center {
+  position: relative;
+
   display: flex;
+
   flex: 1;
 
   min-width: 0;
@@ -358,6 +1125,13 @@
   justify-content: center;
 
   gap: 5px;
+
+  animation:
+    bottom-center-enter
+    460ms
+    cubic-bezier(0.16, 1, 0.3, 1)
+    140ms
+    both;
 }
 
 
@@ -366,6 +1140,9 @@
 ============================================================= */
 
 .bottom-controls {
+  position: relative;
+  z-index: 1;
+
   display: flex;
   align-items: center;
   justify-content: center;
@@ -375,10 +1152,6 @@
   height: 38px;
 }
 
-
-/* -------------------------------------------------------------
-   Generic control
-------------------------------------------------------------- */
 
 .bottom-control {
   position: relative;
@@ -409,6 +1182,7 @@
     transform 160ms ease;
 }
 
+
 .bottom-control svg {
   width: 17px;
   height: 17px;
@@ -418,6 +1192,7 @@
     opacity 160ms ease;
 }
 
+
 .bottom-control:hover {
   color: rgba(255, 255, 255, 0.88);
 
@@ -426,25 +1201,27 @@
   transform: translateY(-1px);
 }
 
+
 .bottom-control:active {
   transform: scale(0.91);
 }
 
 
-/* Active states */
-
 .bottom-control.active {
   color: var(--musex-green);
 }
 
+
 .bottom-control.active:hover {
   color: var(--musex-green);
 
-  background: color-mix(in srgb, var(--musex-accent) 7%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--musex-accent) 7%,
+    transparent
+  );
 }
 
-
-/* Disabled */
 
 .bottom-control.disabled,
 .bottom-control:disabled {
@@ -485,13 +1262,18 @@
   cursor: pointer;
 
   box-shadow:
-    0 4px 14px color-mix(in srgb, var(--musex-accent) 13%, transparent);
+    0 4px 14px color-mix(
+      in srgb,
+      var(--musex-accent) 13%,
+      transparent
+    );
 
   transition:
     transform 160ms ease,
     box-shadow 160ms ease,
     background-color 160ms ease;
 }
+
 
 .bottom-play svg {
   width: 18px;
@@ -500,19 +1282,23 @@
   transition: transform 160ms ease;
 }
 
+
 .bottom-play:hover {
   transform: scale(1.055);
 
   box-shadow:
-    0 5px 18px color-mix(in srgb, var(--musex-accent) 22%, transparent);
+    0 5px 18px color-mix(
+      in srgb,
+      var(--musex-accent) 22%,
+      transparent
+    );
 }
+
 
 .bottom-play:active {
   transform: scale(0.94);
 }
 
-
-/* Pulse sutil mientras reproduce */
 
 .bottom-play.playing::before {
   content: "";
@@ -521,7 +1307,11 @@
 
   inset: -4px;
 
-  border: 1px solid color-mix(in srgb, var(--musex-accent) 18%, transparent);
+  border: 1px solid color-mix(
+    in srgb,
+    var(--musex-accent) 18%,
+    transparent
+  );
 
   border-radius: 50%;
 
@@ -540,15 +1330,7 @@
 }
 
 
-/*
- * El icono base sigue siendo el mismo.
- * El pequeño indicador permite distinguir:
- *
- * 1 = repetir canción actual
- * Q = repetir cola completa
- */
-
-.repeat-mode-badge {
+.repeat-queue-badge {
   position: absolute;
 
   right: 2px;
@@ -578,15 +1360,17 @@
   line-height: 1;
 
   box-shadow:
-    0 0 6px color-mix(in srgb, var(--musex-accent) 18%, transparent);
+    0 0 6px color-mix(
+      in srgb,
+      var(--musex-accent) 18%,
+      transparent
+    );
 
   pointer-events: none;
 }
 
-.repeat-control.repeat-track svg {
-  transform: scale(1.01);
-}
 
+.repeat-control.repeat-track svg,
 .repeat-control.repeat-queue svg {
   transform: scale(1.01);
 }
@@ -597,6 +1381,9 @@
 ============================================================= */
 
 .bottom-progress {
+  position: relative;
+  z-index: 1;
+
   display: flex;
   align-items: center;
 
@@ -607,14 +1394,10 @@
 }
 
 
-/* -------------------------------------------------------------
-   Time display
-------------------------------------------------------------- */
-
 .player-time {
-  flex-shrink: 0;
-
   width: 50px;
+
+  flex-shrink: 0;
 
   font-family:
     "Courier New",
@@ -631,17 +1414,31 @@
   user-select: none;
 }
 
+
 .player-time-current {
-  color: color-mix(in srgb, var(--musex-accent) 78%, transparent);
+  color: color-mix(
+    in srgb,
+    var(--musex-accent) 78%,
+    transparent
+  );
 
   text-align: right;
 
   text-shadow:
-    0 0 7px color-mix(in srgb, var(--musex-accent) 16%, transparent);
+    0 0 7px color-mix(
+      in srgb,
+      var(--musex-accent) 16%,
+      transparent
+    );
 }
 
+
 .player-time-duration {
-  color: color-mix(in srgb, var(--musex-accent) 34%, transparent);
+  color: color-mix(
+    in srgb,
+    var(--musex-accent) 34%,
+    transparent
+  );
 
   text-align: left;
 }
@@ -692,6 +1489,7 @@
   background: transparent;
 }
 
+
 .player-progress::-webkit-slider-thumb {
   appearance: none;
   -webkit-appearance: none;
@@ -707,7 +1505,11 @@
   background: var(--musex-green);
 
   box-shadow:
-    0 0 7px color-mix(in srgb, var(--musex-accent) 35%, transparent);
+    0 0 7px color-mix(
+      in srgb,
+      var(--musex-accent) 35%,
+      transparent
+    );
 
   opacity: 0;
 
@@ -716,10 +1518,12 @@
     transform 150ms ease;
 }
 
+
 .player-progress:hover::-webkit-slider-thumb,
 .player-progress:active::-webkit-slider-thumb {
   opacity: 1;
 }
+
 
 .player-progress:hover::-webkit-slider-thumb {
   transform: scale(1.12);
@@ -737,6 +1541,7 @@
   background: transparent;
 }
 
+
 .player-progress::-moz-range-progress {
   height: 4px;
 
@@ -744,6 +1549,7 @@
 
   background: var(--musex-green);
 }
+
 
 .player-progress::-moz-range-thumb {
   width: 9px;
@@ -755,10 +1561,15 @@
   background: var(--musex-green);
 
   box-shadow:
-    0 0 7px color-mix(in srgb, var(--musex-accent) 35%, transparent);
+    0 0 7px color-mix(
+      in srgb,
+      var(--musex-accent) 35%,
+      transparent
+    );
 
   opacity: 0;
 }
+
 
 .player-progress:hover::-moz-range-thumb,
 .player-progress:active::-moz-range-thumb {
@@ -779,12 +1590,19 @@
   min-width: 220px;
 
   gap: 4px;
+
+  animation:
+    bottom-extra-enter
+    440ms
+    cubic-bezier(0.16, 1, 0.3, 1)
+    190ms
+    both;
 }
 
 
-/* -------------------------------------------------------------
-   Volume
-------------------------------------------------------------- */
+/* =============================================================
+   VOLUME
+============================================================= */
 
 .volume-range {
   --volume: 100%;
@@ -814,8 +1632,6 @@
 }
 
 
-/* Chrome / Edge / Safari */
-
 .volume-range::-webkit-slider-runnable-track {
   height: 4px;
 
@@ -823,6 +1639,7 @@
 
   background: transparent;
 }
+
 
 .volume-range::-webkit-slider-thumb {
   appearance: none;
@@ -839,7 +1656,11 @@
   background: var(--musex-green);
 
   box-shadow:
-    0 0 6px color-mix(in srgb, var(--musex-accent) 28%, transparent);
+    0 0 6px color-mix(
+      in srgb,
+      var(--musex-accent) 28%,
+      transparent
+    );
 
   opacity: 0;
 
@@ -848,14 +1669,13 @@
     transform 150ms ease;
 }
 
+
 .volume-range:hover::-webkit-slider-thumb {
   opacity: 1;
 
   transform: scale(1.1);
 }
 
-
-/* Firefox */
 
 .volume-range::-moz-range-track {
   height: 4px;
@@ -866,6 +1686,7 @@
   background: transparent;
 }
 
+
 .volume-range::-moz-range-progress {
   height: 4px;
 
@@ -873,6 +1694,7 @@
 
   background: var(--musex-green);
 }
+
 
 .volume-range::-moz-range-thumb {
   width: 8px;
@@ -886,23 +1708,15 @@
   opacity: 0;
 }
 
+
 .volume-range:hover::-moz-range-thumb {
   opacity: 1;
 }
 
-.bottom-default-disc {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
 
 /* =============================================================
    RETRO MUSIC VISUALIZER
 ============================================================= */
-
-.bottom-center {
-  position: relative;
-}
 
 .bottom-visualizer {
   position: absolute;
@@ -914,6 +1728,7 @@
   justify-content: center;
 
   gap: 5px;
+
   padding: 8px 6px 0;
 
   overflow: hidden;
@@ -924,22 +1739,25 @@
 
   z-index: 0;
 
-  mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    black 3%,
-    black 97%,
-    transparent 100%
-  );
+  mask-image:
+    linear-gradient(
+      to right,
+      transparent 0%,
+      black 3%,
+      black 97%,
+      transparent 100%
+    );
 
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    black 3%,
-    black 97%,
-    transparent 100%
-  );
+  -webkit-mask-image:
+    linear-gradient(
+      to right,
+      transparent 0%,
+      black 3%,
+      black 97%,
+      transparent 100%
+    );
 }
+
 
 .visualizer-bar {
   flex: 1;
@@ -959,27 +1777,12 @@
     musexVisualizer
     var(--bar-duration)
     steps(6)
-    infinite alternate;
+    infinite
+    alternate;
 
   animation-delay: var(--bar-delay);
 }
 
-.full-player-visualizer {
-  position: absolute;
-  inset: 0;
-
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-
-  gap: 8px;
-
-  opacity: 0.055;
-
-  pointer-events: none;
-
-  overflow: hidden;
-}
 
 /* =============================================================
    FULL PLAYER
@@ -999,7 +1802,11 @@
   background:
     radial-gradient(
       circle at 50% 35%,
-      color-mix(in srgb, var(--musex-accent) 4%, transparent),
+      color-mix(
+        in srgb,
+        var(--musex-accent) 4%,
+        transparent
+      ),
       transparent 38%
     ),
     #0d0e10;
@@ -1011,7 +1818,7 @@
 
 
 /* =============================================================
-   HEADER
+   FULL PLAYER — HEADER
 ============================================================= */
 
 .full-player-header {
@@ -1049,7 +1856,11 @@
   opacity: 0.72;
 
   box-shadow:
-    0 0 8px color-mix(in srgb, var(--musex-accent) 18%, transparent);
+    0 0 8px color-mix(
+      in srgb,
+      var(--musex-accent) 18%,
+      transparent
+    );
 }
 
 
@@ -1105,7 +1916,7 @@
 
 
 /* =============================================================
-   MAIN
+   FULL PLAYER — MAIN
 ============================================================= */
 
 .full-player-main {
@@ -1125,13 +1936,14 @@
 
 
 /* =============================================================
-   COVER
+   FULL PLAYER — COVER
 ============================================================= */
 
 .full-player-cover {
   position: relative;
 
   width: min(390px, 48vh);
+
   aspect-ratio: 1;
 
   overflow: hidden;
@@ -1142,7 +1954,11 @@
 
   box-shadow:
     0 25px 70px rgba(0, 0, 0, 0.45),
-    0 0 40px color-mix(in srgb, var(--musex-accent) 7%, transparent);
+    0 0 40px color-mix(
+      in srgb,
+      var(--musex-accent) 7%,
+      transparent
+    );
 
   isolation: isolate;
 }
@@ -1216,7 +2032,11 @@
   background: var(--musex-green);
 
   box-shadow:
-    0 0 6px color-mix(in srgb, var(--musex-accent) 40%, transparent);
+    0 0 6px color-mix(
+      in srgb,
+      var(--musex-accent) 40%,
+      transparent
+    );
 
   animation:
     bottom-equalizer
@@ -1232,10 +2052,12 @@
   animation-delay: -120ms;
 }
 
+
 .full-player-playing span:nth-child(2) {
   height: 17px;
   animation-delay: -320ms;
 }
+
 
 .full-player-playing span:nth-child(3) {
   height: 11px;
@@ -1244,7 +2066,7 @@
 
 
 /* =============================================================
-   INFORMATION
+   FULL PLAYER — INFORMATION
 ============================================================= */
 
 .full-player-info {
@@ -1301,7 +2123,7 @@
 
 
 /* =============================================================
-   FAVORITE
+   FULL PLAYER — FAVORITE
 ============================================================= */
 
 .full-player-favorite {
@@ -1351,7 +2173,7 @@
 
 
 /* =============================================================
-   PROGRESS
+   FULL PLAYER — PROGRESS
 ============================================================= */
 
 .full-player-progress {
@@ -1367,11 +2189,15 @@
 
 
 .full-player-time {
-  flex-shrink: 0;
-
   width: 45px;
 
-  color: color-mix(in srgb, var(--musex-accent) 58%, transparent);
+  flex-shrink: 0;
+
+  color: color-mix(
+    in srgb,
+    var(--musex-accent) 58%,
+    transparent
+  );
 
   font-family:
     "Courier New",
@@ -1391,7 +2217,7 @@
 
 
 /* =============================================================
-   PROGRESS RANGE
+   FULL PLAYER — PROGRESS RANGE
 ============================================================= */
 
 .full-player-progress-range {
@@ -1440,7 +2266,11 @@
   background: var(--musex-green);
 
   box-shadow:
-    0 0 8px color-mix(in srgb, var(--musex-accent) 35%, transparent);
+    0 0 8px color-mix(
+      in srgb,
+      var(--musex-accent) 35%,
+      transparent
+    );
 }
 
 
@@ -1474,7 +2304,7 @@
 
 
 /* =============================================================
-   CONTROLS
+   FULL PLAYER — CONTROLS
 ============================================================= */
 
 .full-player-controls {
@@ -1558,7 +2388,11 @@
   cursor: pointer;
 
   box-shadow:
-    0 7px 25px color-mix(in srgb, var(--musex-accent) 16%, transparent);
+    0 7px 25px color-mix(
+      in srgb,
+      var(--musex-accent) 16%,
+      transparent
+    );
 
   transition:
     transform 160ms ease,
@@ -1570,7 +2404,11 @@
   transform: scale(1.055);
 
   box-shadow:
-    0 8px 30px color-mix(in srgb, var(--musex-accent) 25%, transparent);
+    0 8px 30px color-mix(
+      in srgb,
+      var(--musex-accent) 25%,
+      transparent
+    );
 }
 
 
@@ -1586,7 +2424,7 @@
 
 
 /* =============================================================
-   REPEAT BADGE
+   FULL PLAYER — REPEAT BADGE
 ============================================================= */
 
 .full-repeat-badge {
@@ -1618,7 +2456,7 @@
 
 
 /* =============================================================
-   EXTRA
+   FULL PLAYER — EXTRA
 ============================================================= */
 
 .full-player-extra {
@@ -1679,11 +2517,12 @@
 
 
 /* =============================================================
-   FULL PLAYER VISUALIZER
+   FULL PLAYER — VISUALIZER
 ============================================================= */
 
 .full-player-visualizer {
   position: absolute;
+
   inset: 72px 0 0;
 
   display: flex;
@@ -1700,21 +2539,23 @@
 
   pointer-events: none;
 
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    black 12%,
-    black 88%,
-    transparent
-  );
+  mask-image:
+    linear-gradient(
+      to right,
+      transparent,
+      black 12%,
+      black 88%,
+      transparent
+    );
 
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent,
-    black 12%,
-    black 88%,
-    transparent
-  );
+  -webkit-mask-image:
+    linear-gradient(
+      to right,
+      transparent,
+      black 12%,
+      black 88%,
+      transparent
+    );
 }
 
 
@@ -1735,175 +2576,11 @@
     musexVisualizer
     var(--bar-duration)
     steps(6)
-    infinite alternate;
+    infinite
+    alternate;
 
   animation-delay: var(--bar-delay);
 }
-
-
-/* =============================================================
-   RESPONSIVE
-============================================================= */
-
-@media (max-width: 700px) {
-
-  .full-player-header {
-    padding: 0 16px;
-  }
-
-  .full-player-main {
-    width: calc(100% - 32px);
-
-    padding-top: 20px;
-  }
-
-  .full-player-cover {
-    width: min(330px, 55vh);
-  }
-
-  .full-player-text h1 {
-    font-size: 21px;
-  }
-
-  .full-player-controls {
-    gap: 8px;
-  }
-}
-
-
-@media (max-height: 700px) {
-
-  .full-player-main {
-    padding-top: 10px;
-    padding-bottom: 20px;
-  }
-
-  .full-player-cover {
-    width: min(280px, 42vh);
-  }
-
-  .full-player-info {
-    margin-top: 18px;
-  }
-
-  .full-player-progress {
-    margin-top: 16px;
-  }
-
-  .full-player-controls {
-    margin-top: 16px;
-  }
-
-  .full-player-extra {
-    margin-top: 10px;
-  }
-}
-
-
-@media (prefers-reduced-motion: reduce) {
-
-  .full-player-close,
-  .full-player-control,
-  .full-player-play,
-  .full-player-favorite {
-    transition: none;
-  }
-
-  .full-player-playing span,
-  .full-visualizer-bar {
-    animation: none;
-  }
-}
-
-/* =============================================================
-   RETRO EQUALIZER
-============================================================= */
-
-@keyframes musexVisualizer {
-
-  0% {
-    transform: scaleY(0.15);
-  }
-
-  20% {
-    transform: scaleY(0.55);
-  }
-
-  40% {
-    transform: scaleY(0.25);
-  }
-
-  60% {
-    transform: scaleY(0.85);
-  }
-
-  80% {
-    transform: scaleY(0.45);
-  }
-
-  100% {
-    transform: scaleY(1);
-  }
-
-}
-
-/* =============================================================
-   PLAYER CONTENT ABOVE THE VISUALIZER
-============================================================= */
-
-.bottom-controls,
-.bottom-progress {
-  position: relative;
-  z-index: 1;
-}
-
-/* =============================================================
-   ANIMATIONS
-============================================================= */
-
-@keyframes bottom-equalizer {
-  0% {
-    transform: scaleY(0.45);
-  }
-
-  100% {
-    transform: scaleY(1);
-  }
-}
-
-
-@keyframes favorite-pop {
-  0% {
-    transform: scale(0.75);
-  }
-
-  65% {
-    transform: scale(1.15);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-
-
-@keyframes player-pulse {
-  0% {
-    opacity: 0.65;
-    transform: scale(0.96);
-  }
-
-  70% {
-    opacity: 0;
-    transform: scale(1.14);
-  }
-
-  100% {
-    opacity: 0;
-    transform: scale(1.14);
-  }
-}
-
 
 /* =============================================================
    RESPONSIVE — 1200px
@@ -2000,108 +2677,800 @@
 
 
 /* =============================================================
-   RESPONSIVE — 800px
+   MOBILE — OCULTAR DESKTOP, MOSTRAR MINI PLAYER
+   -------------------------------------------------------------
+   A partir de aquí, el contenido de escritorio desaparece
+   por completo y se reemplaza por el mini-player, que está
+   pensado específicamente para móvil (igual que Spotify /
+   Apple Music), en vez de intentar comprimir el layout
+   completo de escritorio.
 ============================================================= */
 
-@media (max-width: 800px) {
+@media (max-width: 620px) {
+
+  .bottom-player {
+    height: calc(64px + env(safe-area-inset-bottom, 0px));
+    min-height: calc(64px + env(safe-area-inset-bottom, 0px));
+    flex-basis: calc(64px + env(safe-area-inset-bottom, 0px));
+
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 
   .bottom-player-content {
-    gap: 12px;
-
-    padding: 0 12px;
-  }
-
-  .bottom-current {
-    width: 180px;
-    min-width: 180px;
-  }
-
-  .bottom-cover {
-    width: 50px;
-    height: 50px;
-
-    border-radius: 9px;
-  }
-
-  .bottom-title {
-    font-size: 13px;
-  }
-
-  .bottom-artist {
-    margin-top: 4px;
-
-    font-size: 11px;
-  }
-
-  .bottom-favorite {
     display: none;
   }
 
-  .bottom-extra {
+}
+
+@media (min-width: 621px) {
+
+  .mini-player {
     display: none;
   }
 
-  .bottom-controls {
-    gap: 6px;
+}
+
+
+/* =============================================================
+   MINI PLAYER
+   -------------------------------------------------------------
+   Barra compacta: portada, título/artista, anterior, play,
+   siguiente. El resto de las opciones (shuffle, repeat,
+   volumen, cola, favorito) están en el Full Player, al que
+   se llega tocando esta barra.
+============================================================= */
+
+.mini-player {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+  height: 100%;
+
+  gap: 11px;
+
+  padding: 0 10px;
+
+  box-sizing: border-box;
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+.mini-player:active {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+
+/* =============================================================
+   MINI PLAYER — PROGRESO
+============================================================= */
+
+.mini-player-progress {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 2px;
+
+  background: rgba(255, 255, 255, 0.08);
+}
+
+
+.mini-player-progress-fill {
+  height: 100%;
+
+  background: var(--musex-green);
+
+  box-shadow:
+    0 0 6px color-mix(
+      in srgb,
+      var(--musex-accent) 40%,
+      transparent
+    );
+}
+
+
+/* =============================================================
+   MINI PLAYER — COVER
+============================================================= */
+
+.mini-player-cover {
+  width: 44px;
+  height: 44px;
+
+  flex-shrink: 0;
+
+  overflow: hidden;
+
+  border-radius: 8px;
+
+  background: #111214;
+}
+
+
+.mini-player-cover-image {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+
+.mini-player-cover-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+}
+
+
+.mini-player-cover-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+
+.mini-player-default-disc {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+}
+
+
+/* =============================================================
+   MINI PLAYER — META
+   -------------------------------------------------------------
+   Fuente ligeramente más grande que la versión antigua
+   comprimida, para mejor legibilidad táctil.
+============================================================= */
+
+.mini-player-meta {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  flex: 1;
+
+  min-width: 0;
+}
+
+
+.mini-player-title {
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--text-primary);
+
+  font-size: 14px;
+  font-weight: 600;
+
+  line-height: 1.25;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+.mini-player-artist {
+  margin: 3px 0 0;
+
+  overflow: hidden;
+
+  color: var(--text-secondary);
+
+  font-size: 12px;
+  font-weight: 400;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+/* =============================================================
+   MINI PLAYER — CONTROLES
+   -------------------------------------------------------------
+   Área táctil mínima de 44px, aunque el ícono visual sea
+   más pequeño.
+============================================================= */
+
+.mini-player-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 44px;
+
+  flex-shrink: 0;
+
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.75);
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+.mini-player-control svg {
+  width: 20px;
+  height: 20px;
+}
+
+
+.mini-player-control:active {
+  transform: scale(0.92);
+}
+
+
+.mini-player-control.disabled,
+.mini-player-control:disabled {
+  color: rgba(255, 255, 255, 0.2);
+
+  pointer-events: none;
+}
+
+
+.mini-player-play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 40px;
+
+  flex-shrink: 0;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: var(--musex-green);
+
+  color: #080908;
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+
+  transition: transform 140ms ease;
+}
+
+
+.mini-player-play svg {
+  width: 18px;
+  height: 18px;
+}
+
+
+.mini-player-play:active {
+  transform: scale(0.92);
+}
+
+
+/* =============================================================
+   FULL PLAYER — RESPONSIVE
+============================================================= */
+
+@media (max-width: 700px) {
+
+  .full-player-header {
+    padding: 0 16px;
   }
 
-  .bottom-control {
-    width: 31px;
-    height: 31px;
+  .full-player-main {
+    width: calc(100% - 32px);
+
+    padding-top: 20px;
   }
 
-  .bottom-control svg {
-    width: 16px;
-    height: 16px;
+  .full-player-cover {
+    width: min(330px, 55vh);
   }
 
-  .bottom-play {
-    width: 39px;
-    height: 39px;
-
-    margin: 0 2px;
+  .full-player-text h1 {
+    font-size: 21px;
   }
 
-  .bottom-play svg {
-    width: 17px;
-    height: 17px;
+  .full-player-controls {
+    gap: 8px;
+  }
+}
+
+
+@media (max-height: 700px) {
+
+  .full-player-main {
+    padding-top: 10px;
+    padding-bottom: 20px;
   }
 
-  .bottom-progress {
-    max-width: 100%;
+  .full-player-cover {
+    width: min(280px, 42vh);
   }
 
-  .player-time {
-    width: 43px;
-
-    font-size: 13px;
+  .full-player-info {
+    margin-top: 18px;
   }
 
-  .repeat-mode-badge {
-    right: 1px;
-    bottom: 0;
+  .full-player-progress {
+    margin-top: 16px;
+  }
 
-    width: 10px;
-    height: 10px;
+  .full-player-controls {
+    margin-top: 16px;
+  }
 
-    font-size: 6px;
+  .full-player-extra {
+    margin-top: 10px;
   }
 }
 
 
 /* =============================================================
-   RESPONSIVE — 650px
+   RETRO EQUALIZER
 ============================================================= */
 
-/*
- * En pantallas pequeñas el Bottom Player deja de ser útil
- * como barra completa y se oculta para dejar espacio a la UI.
- */
+@keyframes musexVisualizer {
 
-@media (max-width: 650px) {
+  0% {
+    transform: scaleY(0.15);
+  }
 
-  .bottom-player {
-    display: none;
+  20% {
+    transform: scaleY(0.55);
+  }
+
+  40% {
+    transform: scaleY(0.25);
+  }
+
+  60% {
+    transform: scaleY(0.85);
+  }
+
+  80% {
+    transform: scaleY(0.45);
+  }
+
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+
+/* =============================================================
+   BOTTOM PLAYER — ENTRADA PRINCIPAL
+   -------------------------------------------------------------
+   El player parece subir desde fuera del viewport.
+
+   La curva cubic-bezier produce:
+   - salida rápida desde abajo
+   - desaceleración fuerte
+   - pequeño asentamiento final
+============================================================= */
+
+@keyframes bottom-player-enter {
+
+  0% {
+    opacity: 0;
+
+    transform:
+      translateY(100%)
+      scaleY(0.92);
+
+    filter:
+      blur(5px)
+      brightness(0.72);
+  }
+
+  42% {
+    opacity: 1;
+
+    transform:
+      translateY(-5px)
+      scaleY(1.015);
+
+    filter:
+      blur(0)
+      brightness(1.08);
+  }
+
+  68% {
+    transform:
+      translateY(2px)
+      scaleY(0.998);
+
+    filter:
+      brightness(1.02);
+  }
+
+  84% {
+    transform:
+      translateY(-1px)
+      scaleY(1.002);
+
+    filter:
+      brightness(1);
+  }
+
+  100% {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scaleY(1);
+
+    filter:
+      blur(0)
+      brightness(1);
+  }
+}
+
+
+/* =============================================================
+   BOTTOM PLAYER — SEÑAL VERDE
+   -------------------------------------------------------------
+   La línea principal aparece como una señal que se construye
+   desde el centro hacia los extremos.
+============================================================= */
+
+@keyframes bottom-player-signal {
+
+  0% {
+    opacity: 0;
+
+    transform:
+      scaleX(0);
+  }
+
+  35% {
+    opacity: 1;
+
+    transform:
+      scaleX(0.35);
+  }
+
+  70% {
+    opacity: 0.85;
+
+    transform:
+      scaleX(1.04);
+  }
+
+  100% {
+    opacity: 0.72;
+
+    transform:
+      scaleX(1);
+  }
+}
+
+
+/* =============================================================
+   BOTTOM PLAYER — DESTELLO
+   -------------------------------------------------------------
+   Una pequeña señal blanca atraviesa el borde superior.
+============================================================= */
+
+@keyframes bottom-player-sweep {
+
+  0% {
+    opacity: 0;
+
+    transform:
+      translateX(-110%);
+  }
+
+  18% {
+    opacity: 0.8;
+  }
+
+  55% {
+    opacity: 0.35;
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translateX(110%);
+  }
+}
+
+
+/* =============================================================
+   BOTTOM PLAYER — CONTENIDO
+============================================================= */
+
+@keyframes bottom-player-content-enter {
+
+  0% {
+    opacity: 0;
+
+    transform:
+      translateY(10px)
+      scale(0.985);
+  }
+
+  60% {
+    opacity: 1;
+
+    transform:
+      translateY(-1px)
+      scale(1);
+  }
+
+  100% {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+/* =============================================================
+   CURRENT TRACK — ENTRADA
+============================================================= */
+
+@keyframes bottom-current-enter {
+
+  0% {
+    opacity: 0;
+
+    transform:
+      translateX(-18px)
+      scale(0.97);
+  }
+
+  65% {
+    opacity: 1;
+
+    transform:
+      translateX(2px)
+      scale(1.005);
+  }
+
+  100% {
+    opacity: 1;
+
+    transform:
+      translateX(0)
+      scale(1);
+  }
+}
+
+
+/* =============================================================
+   COVER — ENTRADA
+   -------------------------------------------------------------
+   La portada tiene un pequeño giro inicial.
+   Es sutil: no queremos que parezca una ruleta.
+============================================================= */
+
+@keyframes bottom-cover-enter {
+
+  0% {
+    opacity: 0;
+
+    transform:
+      translateY(12px)
+      rotate(-7deg)
+      scale(0.78);
+
+    box-shadow:
+      0 0 0 rgba(0, 0, 0, 0),
+      0 0 0 transparent;
+  }
+
+  55% {
+    opacity: 1;
+
+    transform:
+      translateY(-2px)
+      rotate(1.5deg)
+      scale(1.035);
+  }
+
+  75% {
+    transform:
+      translateY(1px)
+      rotate(-0.5deg)
+      scale(0.995);
+  }
+
+  100% {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      rotate(0)
+      scale(1);
+  }
+}
+
+
+/* =============================================================
+   META — ENTRADA
+============================================================= */
+
+@keyframes bottom-meta-enter {
+
+  0% {
+    opacity: 0;
+
+    transform:
+      translateX(-10px);
+  }
+
+  100% {
+    opacity: 1;
+
+    transform:
+      translateX(0);
+  }
+}
+
+
+/* =============================================================
+   CENTER — ENTRADA
+============================================================= */
+
+@keyframes bottom-center-enter {
+
+  0% {
+    opacity: 0;
+
+    transform:
+      translateY(7px)
+      scale(0.98);
+  }
+
+  100% {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+/* =============================================================
+   EXTRA — ENTRADA
+============================================================= */
+
+@keyframes bottom-extra-enter {
+
+  0% {
+    opacity: 0;
+
+    transform:
+      translateX(12px);
+  }
+
+  100% {
+    opacity: 1;
+
+    transform:
+      translateX(0);
+  }
+}
+
+
+/* =============================================================
+   CONTROLES — ENTRADA
+============================================================= */
+
+@keyframes bottom-control-enter {
+
+  0% {
+    opacity: 0;
+
+    transform:
+      scale(0.75)
+      translateY(5px);
+  }
+
+  70% {
+    opacity: 1;
+
+    transform:
+      scale(1.04)
+      translateY(-1px);
+  }
+
+  100% {
+    opacity: 1;
+
+    transform:
+      scale(1)
+      translateY(0);
+  }
+}
+
+
+/* =============================================================
+   EQUALIZER
+============================================================= */
+
+@keyframes bottom-equalizer {
+
+  0% {
+    transform: scaleY(0.45);
+  }
+
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+
+/* =============================================================
+   FAVORITE
+============================================================= */
+
+@keyframes favorite-pop {
+
+  0% {
+    transform: scale(0.75);
+  }
+
+  65% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+
+/* =============================================================
+   PLAY PULSE
+============================================================= */
+
+@keyframes player-pulse {
+
+  0% {
+    opacity: 0.65;
+
+    transform:
+      scale(0.96);
+  }
+
+  70% {
+    opacity: 0;
+
+    transform:
+      scale(1.14);
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      scale(1.14);
   }
 }
 
@@ -2112,7 +3481,20 @@
 
 @media (prefers-reduced-motion: reduce) {
 
-  .bottom-cover img,
+  .bottom-player,
+  .bottom-player::before,
+  .bottom-player::after,
+  .bottom-player-content,
+  .bottom-current,
+  .bottom-cover,
+  .bottom-meta,
+  .bottom-center,
+  .bottom-extra,
+  .bottom-favorite {
+    animation: none;
+  }
+
+  .bottom-cover-image,
   .bottom-favorite,
   .bottom-favorite svg,
   .bottom-control,
@@ -2120,13 +3502,19 @@
   .bottom-play,
   .bottom-play svg,
   .player-progress::-webkit-slider-thumb,
-  .volume-range::-webkit-slider-thumb {
+  .volume-range::-webkit-slider-thumb,
+  .full-player-close,
+  .full-player-control,
+  .full-player-play,
+  .full-player-favorite {
     transition: none;
   }
 
   .bottom-playing-indicator span,
   .bottom-favorite.active svg,
-  .bottom-play.playing::before {
+  .bottom-play.playing::before,
+  .full-player-playing span,
+  .full-visualizer-bar {
     animation: none;
   }
 }

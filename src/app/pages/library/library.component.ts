@@ -34,6 +34,7 @@ import { MusicTableComponent } from '../../components/music-table/music-table.co
 import { DropZoneComponent } from '../../components/drop-zone/drop-zone.component';
 
 import { Track } from '../../core/models/track.model';
+import { ModalService } from '../../core/services/modal.service';
 
 /**
  * Página principal de la biblioteca de Musex.
@@ -82,6 +83,18 @@ export class LibraryComponent implements OnInit {
    */
   readonly playerService =
     inject(PlayerService);
+
+
+  private readonly modalService = 
+    inject(ModalService);
+
+  openMore(track: Track): void {
+    this.modalService.openTrackMenu(track.id);
+  }
+
+  openAddToPlaylist(track: Track): void {
+    this.modalService.openAddToPlaylist(track.id);
+  }
 
   // ===========================================================
   // ESTADO DE LA VISTA

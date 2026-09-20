@@ -158,19 +158,19 @@ export class LibraryService {
           const coverOverrides =
             this.getCoverOverride(track.id);
 
-            console.log(
-  'MUSEX COVER FINAL:',
-  {
-    id: track.id,
-    rustCoverPath: track.coverPath,
-    image: this.resolveCoverPath(track.coverPath),
-    coverType:
-      coverOverrides?.coverType ??
-      (track.coverPath
-        ? 'image'
-        : undefined)
-  }
-);
+          console.log(
+            'MUSEX COVER FINAL:',
+            {
+              id: track.id,
+              rustCoverPath: track.coverPath,
+              image: this.resolveCoverPath(track.coverPath),
+              coverType:
+                coverOverrides?.coverType ??
+                (track.coverPath
+                  ? 'image'
+                  : undefined)
+            }
+          );
 
           return {
             id: track.id,
@@ -620,6 +620,55 @@ export class LibraryService {
     this.tracks.set([]);
   }
 
+    // ===========================================================
+  // METADATA
+  // ===========================================================
+
+  /**
+   * Actualiza los datos básicos de una canción.
+   *
+   * Esta operación modifica únicamente el estado de Angular.
+   * La ruta física, duración y demás información técnica
+   * permanecen intactas.
+   */
+  updateMetadata(
+    trackId: string,
+    metadata: {
+      title: string;
+      artist: string;
+      album: string;
+      genre?: string;
+    }
+  ): void {
+
+    this.tracks.update(
+      tracks =>
+        tracks.map(track => {
+
+          if (track.id !== trackId) {
+            return track;
+          }
+
+          return {
+            ...track,
+
+            title:
+              metadata.title.trim(),
+
+            artist:
+              metadata.artist.trim(),
+
+            album:
+              metadata.album.trim(),
+
+            genre:
+              metadata.genre?.trim() ||
+              undefined
+          };
+        })
+    );
+  }
+  
   // ===========================================================
   // COVER
   // ===========================================================

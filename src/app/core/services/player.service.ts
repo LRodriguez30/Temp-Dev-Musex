@@ -1,6 +1,7 @@
 import {
     Injectable,
     OnDestroy,
+    computed,
     inject,
     signal
 } from '@angular/core';
@@ -69,7 +70,7 @@ export class PlayerService implements OnDestroy {
         muted: false,
         shuffle: false,
         repeat: 'off',
-        rightPanel: true,
+        rightPanel: false,
         queue: this.queueService.getQueue()
     });
 
@@ -108,6 +109,67 @@ export class PlayerService implements OnDestroy {
      * Posición actual dentro del orden aleatorio.
      */
     private shuffleIndex = -1;
+
+    /**
+     * Dirección visual utilizada para las transiciones
+     * cuando cambia la canción.
+     *
+     * next:
+     *   La nueva canción entra desde la derecha.
+     *
+     * previous:
+     *   La nueva canción entra desde la izquierda.
+     */
+    readonly trackTransitionDirection =
+        signal<'next' | 'previous'>('next');
+
+    /**
+     * Contador de transiciones de canción.
+     *
+     * Se incrementa incluso cuando se reproduce nuevamente
+     * la misma canción, por ejemplo con repeat=track.
+     *
+     * Esto permite que Angular/CSS pueda volver a ejecutar
+     * la animación.
+     */
+    readonly trackTransitionKey = signal(0);
+    
+
+    /**
+     * Indica si el Full Player está abierto.
+     *
+     * Este estado pertenece al PlayerService porque tanto el
+     * Bottom Player como el Main Layout necesitan conocerlo.
+     */
+    readonly fullPlayerOpen = signal(false);
+
+
+    /**
+     * Indica si existe contenido reproducible real: una canción
+     * actual cargada o una cola con canciones pendientes.
+     *
+     * El Bottom Player solo tiene sentido cuando existe algo
+     * que efectivamente se pueda reproducir.
+     */
+    readonly hasPlayableContent = computed(() =>
+        this.playerState().currentTrackId !== null ||
+        this.playerState().queue.length > 0
+    );
+
+    /**
+     * Abre o cierra el Full Player.
+     */
+    toggleFullPlayer(): void {
+    this.fullPlayerOpen.update(open => !open);
+    }
+
+
+    /**
+     * Cierra el Full Player.
+     */
+    closeFullPlayer(): void {
+    this.fullPlayerOpen.set(false);
+    }
 
     /**
      * Reproduce una canción específica.
@@ -807,9 +869,19 @@ export class PlayerService implements OnDestroy {
         await this.stopPlayback();
     }
 
-    /**
+        /**
      * Detiene la reproducción cuando no existen
      * más canciones disponibles.
+     *
+     * Este método solo se invoca cuando la cola terminó de
+     * forma NATURAL (llegó al final sin repeat=queue), por lo
+     * que aquí no solo se pausa: se limpia por completo el
+     * estado de reproducción.
+     *
+     * Esto deja currentTrackId en null y la cola vacía, lo cual
+     * hace que hasPlayableContent() pase a false y el
+     * MainLayoutComponent cierre el Bottom Player y el
+     * Now Playing con su animación de salida.
      *
      * Este método utiliza el comando stop_audio de Rust.
      */
@@ -825,9 +897,29 @@ export class PlayerService implements OnDestroy {
 
         this.stopPositionSync();
 
+        /**
+         * Reiniciamos también el estado de shuffle: no debe
+         * sobrevivir a una cola que ya terminó.
+         */
+        this.shuffleOrder = [];
+        this.shuffleIndex = -1;
+
+        /**
+         * Vaciamos la cola real, no solo la referencia local.
+         *
+         * NOTA: si el método de limpieza de QueueService se
+         * llama distinto a `clear()`, ajusta esta línea.
+         */
+        this.queueService.clear();
+
         this.playerState.update(state => ({
             ...state,
-            playing: false
+            playing: false,
+            currentTrackId: null,
+            currentTime: 0,
+            shuffle: false,
+            rightPanel: false,
+            queue: this.queueService.getQueue()
         }));
     }
 
