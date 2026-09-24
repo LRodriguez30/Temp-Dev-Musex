@@ -1,151 +1,1112 @@
-/*
- * La estructura visual utiliza Tailwind CSS.
- *
- * Este archivo queda reservado para estilos específicos
- * que posteriormente necesite el componente.
- */
+/* =============================================================
+   MUSEX — SIDEBAR
+   -------------------------------------------------------------
+   Tipografía, microinteracciones y animaciones específicas
+   del Sidebar, navegación móvil y panel "Más".
+============================================================= */
 
 
-/* ============================================================
+/* =============================================================
+   DESIGN TOKENS
+============================================================= */
+
+:host {
+  --musex-font-ui:
+    "Space Grotesk",
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+
+  --musex-font-mono:
+    "Courier New",
+    "Roboto Mono",
+    monospace;
+
+  --musex-sidebar-bg: #101113;
+  --musex-sidebar-panel: #111214;
+  --musex-sidebar-panel-hover: #151719;
+  --musex-sidebar-line: #292b2f;
+  --musex-sidebar-line-soft: #202225;
+  --musex-sidebar-text: #f4f4f5;
+  --musex-sidebar-text-soft: #a1a1aa;
+  --musex-sidebar-text-muted: #71717a;
+
+  display: block;
+}
+
+
+/* =============================================================
+   GLOBAL COMPONENT TYPOGRAPHY
+============================================================= */
+
+.sidebar,
+.mobile-navigation,
+.mobile-more-panel {
+  font-family: var(--musex-font-ui);
+  letter-spacing: -0.01em;
+}
+
+.sidebar-label,
+.mobile-navigation-item,
+.mobile-more-item {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+.playlist-label,
+.musex-panel-brand {
+  font-family: var(--musex-font-mono);
+  font-weight: 600;
+}
+
+
+/* =============================================================
+   DESKTOP / TABLET SIDEBAR
+============================================================= */
+
+.sidebar {
+  isolation: isolate;
+  box-shadow:
+    8px 0 24px rgba(0, 0, 0, 0.08);
+}
+
+.sidebar > div:first-child {
+  scrollbar-gutter: stable;
+}
+
+
+/* =============================================================
+   DESKTOP SIDEBAR LINKS
+============================================================= */
+
+.sidebar-link {
+  position: relative;
+  color: #d4d4d8;
+
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sidebar-link svg,
+.sidebar-link img {
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 180ms ease,
+    opacity 180ms ease;
+}
+
+.sidebar-link:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.035);
+  transform: translateX(2px);
+}
+
+.sidebar-link:hover svg,
+.sidebar-link:hover img {
+  transform: scale(1.045);
+}
+
+.sidebar-link.active {
+  color: #ffffff;
+  background: rgba(156, 255, 0, 0.055);
+}
+
+.sidebar-link.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 999px;
+  background: var(--musex-accent);
+
+  box-shadow:
+    0 0 10px rgba(156, 255, 0, 0.22);
+
+  animation: musex-sidebar-active-in 220ms ease-out;
+}
+
+.sidebar-link.active svg {
+  color: var(--musex-accent);
+}
+
+.sidebar-link.active img {
+  transform: scale(1.04);
+}
+
+@keyframes musex-sidebar-active-in {
+  from {
+    opacity: 0;
+    transform: scaleY(0.45);
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+
+/* =============================================================
+   SIDEBAR LABELS
+============================================================= */
+
+.sidebar-label {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.sidebar-count {
+  font-family: var(--musex-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+
+/* =============================================================
+   PLAYLIST HEADER
+============================================================= */
+
+.playlist-label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+}
+
+.playlist-label + button {
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.playlist-label + button:hover {
+  color: var(--musex-accent);
+  background: rgba(156, 255, 0, 0.06);
+  transform: rotate(90deg);
+}
+
+
+/* =============================================================
+   STORAGE CARD
+============================================================= */
+
+.musex-storage-card {
+  position: relative;
+  overflow: hidden;
+
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.musex-storage-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      110deg,
+      transparent 0%,
+      rgba(156, 255, 0, 0.035) 45%,
+      transparent 70%
+    );
+
+  transform: translateX(-110%);
+  pointer-events: none;
+}
+
+.musex-storage-card:hover {
+  border-color: rgba(156, 255, 0, 0.14);
+  background: #121315;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+}
+
+.musex-storage-card:hover::before {
+  animation: musex-storage-sweep 900ms ease-out;
+}
+
+@keyframes musex-storage-sweep {
+  from {
+    transform: translateX(-110%);
+  }
+
+  to {
+    transform: translateX(110%);
+  }
+}
+
+
+/* =============================================================
+   STORAGE ICON
+============================================================= */
+
+.musex-storage-icon {
+  transition:
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.musex-storage-card:hover .musex-storage-icon {
+  transform: translateY(-1px) scale(1.045);
+  box-shadow:
+    0 0 0 4px rgba(156, 255, 0, 0.025);
+}
+
+
+/* =============================================================
+   STORAGE LOADING
+============================================================= */
+
+.musex-storage-loading {
+  animation: musex-storage-content-in 260ms ease-out both;
+}
+
+.musex-storage-loader {
+  display: block;
+  position: relative;
+
+  animation:
+    musex-storage-loader-pulse 1.1s ease-in-out infinite;
+}
+
+.musex-storage-loader::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+
+  border: 1px solid rgba(156, 255, 0, 0.18);
+  border-radius: 999px;
+
+  animation:
+    musex-storage-loader-ring 1.4s ease-out infinite;
+}
+
+@keyframes musex-storage-loader-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes musex-storage-loader-ring {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.7);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+
+
+/* =============================================================
+   STORAGE PROGRESS
+   -------------------------------------------------------------
+   Durante la lectura es indeterminado.
+   No representa todavía un porcentaje real.
+============================================================= */
+
+.musex-storage-progress {
+  position: relative;
+  width: 100%;
+  height: 2px;
+  margin-top: 7px;
+
+  overflow: hidden;
+  border-radius: 999px;
+
+  background: #24262a;
+}
+
+.musex-storage-progress span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -35%;
+
+  width: 35%;
+
+  border-radius: inherit;
+  background: var(--musex-accent);
+
+  box-shadow:
+    0 0 8px rgba(156, 255, 0, 0.28);
+
+  animation:
+    musex-storage-progress-loading
+    1.15s
+    cubic-bezier(0.4, 0, 0.2, 1)
+    infinite;
+}
+
+@keyframes musex-storage-progress-loading {
+  from {
+    left: -35%;
+  }
+
+  to {
+    left: 100%;
+  }
+}
+
+
+/* =============================================================
+   STORAGE READY STATE
+============================================================= */
+
+.musex-storage-progress-ready span {
+  left: 0;
+  width: 100%;
+
+  animation: musex-storage-progress-ready 500ms ease-out both;
+}
+
+@keyframes musex-storage-progress-ready {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  to {
+    opacity: 0.65;
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
+.musex-storage-value {
+  font-family: var(--musex-font-mono);
+  letter-spacing: -0.02em;
+
+  animation:
+    musex-storage-value-in
+    360ms
+    cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+}
+
+@keyframes musex-storage-value-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =============================================================
+   STORAGE REFRESH BUTTON
+============================================================= */
+
+.musex-storage-refresh svg {
+  transition:
+    transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.musex-storage-refresh:hover svg {
+  transform: rotate(180deg);
+}
+
+.musex-storage-refresh:active svg {
+  transform: rotate(360deg);
+}
+
+@keyframes musex-storage-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =============================================================
    MOBILE NAVIGATION
-   ------------------------------------------------------------
-   Navegación inferior para teléfonos.
 ============================================================= */
 
+.mobile-navigation {
+  border-top-color: rgba(41, 43, 47, 0.92);
 
-/* ============================================================
-   NAVIGATION ITEM
-   ------------------------------------------------------------
-   Estado normal:
-   - Sin fondo.
-   - Sin borde.
-   - Color gris suave.
-============================================================= */
+  box-shadow:
+    0 -8px 28px rgba(0, 0, 0, 0.16);
+}
 
 .mobile-navigation-item {
+  min-height: 44px;
+
   border: 1px solid transparent;
   color: #71717a;
+
   background: transparent;
   outline: none;
+
   -webkit-tap-highlight-color: transparent;
+
+  transition:
+    color 180ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .mobile-navigation-item:hover {
   color: #a1a1aa;
 }
 
-
-/* ============================================================
-   ACTIVE STATE
-   ------------------------------------------------------------
-   El estado activo se representa únicamente mediante:
-   - Icono Musex accent.
-   - Texto blanco.
-   
-   No utiliza:
-   - Barra superior.
-   - Glow.
-   - Fondo.
-   - Borde.
-============================================================= */
-
 .mobile-navigation-item.mobile-navigation-active {
   color: #ffffff;
   background: transparent;
 }
 
-
-/* ============================================================
-   ACTIVE ICON
-============================================================= */
-
 .mobile-navigation-item.mobile-navigation-active svg {
   color: var(--musex-accent);
-  filter: none;
+
+  filter:
+    drop-shadow(
+      0 0 7px
+      rgba(156, 255, 0, 0.42)
+    );
+
+  transform:
+    translateY(-1px)
+    scale(1.05);
 }
-
-
-/* ============================================================
-   ACTIVE LABEL
-============================================================= */
 
 .mobile-navigation-item.mobile-navigation-active span:last-child {
   color: #ffffff;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
-
-
-/* ============================================================
-   NAVIGATION GLOW
-   ------------------------------------------------------------
-   Se mantiene oculto porque el diseño no utiliza
-   indicadores luminosos ni barras de selección.
-============================================================= */
 
 .mobile-navigation-glow {
   display: none;
 }
 
+.mobile-navigation-item:active {
+  transform: scale(0.95);
+}
 
-/* ============================================================
-   TOUCH FEEDBACK
-   ------------------------------------------------------------
-   Pequeña reducción al tocar una opción.
+.mobile-navigation-item svg {
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 180ms ease,
+    filter 180ms ease;
+}
+
+
+/* =============================================================
+   MOBILE MORE PANEL
 ============================================================= */
 
-.mobile-navigation-item:active {
+.mobile-more-backdrop {
+  animation:
+    musex-more-backdrop-in
+    180ms
+    ease-out
+    both;
+}
+
+@keyframes musex-more-backdrop-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+
+.mobile-more-panel {
+  top: 60px;
+  bottom: auto;
+
+  transform-origin: top center;
+
+  animation:
+    musex-more-panel-in
+    300ms
+    cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+}
+
+@keyframes musex-more-panel-in {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(-14px)
+      scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+/* =============================================================
+   MORE HEADER
+============================================================= */
+
+.mobile-more-header-icon {
+  transition:
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 200ms ease;
+}
+
+.mobile-more-panel .mobile-more-header-icon {
+  animation:
+    musex-more-header-icon-in
+    420ms
+    80ms
+    cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+}
+
+@keyframes musex-more-header-icon-in {
+  from {
+    opacity: 0;
+    transform:
+      rotate(-12deg)
+      scale(0.7);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      rotate(0)
+      scale(1);
+  }
+}
+
+.mobile-more-header h2 {
+  font-family: var(--musex-font-ui);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.mobile-more-header p {
+  font-family: var(--musex-font-mono);
+}
+
+
+/* =============================================================
+   CLOSE BUTTON
+============================================================= */
+
+.mobile-more-close {
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mobile-more-close:hover {
+  color: #ffffff;
+  border-color: rgba(156, 255, 0, 0.18);
+  background: rgba(156, 255, 0, 0.055);
+  transform: rotate(90deg);
+}
+
+.mobile-more-close:active {
+  transform:
+    rotate(90deg)
+    scale(0.9);
+}
+
+
+/* =============================================================
+   SWIPE HINT
+============================================================= */
+
+.mobile-more-swipe-hint {
+  font-family: var(--musex-font-mono);
+
+  animation:
+    musex-swipe-hint-in
+    450ms
+    120ms
+    ease-out
+    both;
+}
+
+.mobile-more-swipe-hint svg:first-child {
+  animation:
+    musex-swipe-left
+    1.8s
+    500ms
+    ease-in-out
+    infinite;
+}
+
+.mobile-more-swipe-hint svg:last-child {
+  animation:
+    musex-swipe-right
+    1.8s
+    500ms
+    ease-in-out
+    infinite;
+}
+
+@keyframes musex-swipe-hint-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes musex-swipe-left {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: translateX(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateX(-3px);
+  }
+}
+
+@keyframes musex-swipe-right {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: translateX(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateX(3px);
+  }
+}
+
+
+/* =============================================================
+   MORE HORIZONTAL SCROLLER
+============================================================= */
+
+.mobile-more-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mobile-more-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+
+/* =============================================================
+   MORE ITEMS
+============================================================= */
+
+.mobile-more-item {
+  position: relative;
+  min-height: 44px;
+
+  overflow: hidden;
+
+  font-family: var(--musex-font-ui);
+  -webkit-tap-highlight-color: transparent;
+
+  will-change: transform, opacity;
+
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.mobile-more-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(156, 255, 0, 0.055),
+      transparent 55%
+    );
+
+  opacity: 0;
+
+  transition:
+    opacity 180ms ease;
+}
+
+.mobile-more-item:hover {
+  border-color: rgba(156, 255, 0, 0.18);
+  background: #181a1c;
+
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.22);
+
+  transform: translateY(-3px);
+}
+
+.mobile-more-item:hover::after {
+  opacity: 1;
+}
+
+.mobile-more-item:active {
   transform: scale(0.96);
 }
 
 
-/* ============================================================
-   MORE BUTTON
+/* =============================================================
+   MORE ITEM ENTRY ANIMATION
 ============================================================= */
 
-.mobile-more-button {
-  appearance: none;
-  border: 1px solid transparent;
-  background: transparent;
-  font: inherit;
-  cursor: pointer;
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
+.mobile-more-item {
+  animation:
+    musex-more-item-in
+    380ms
+    cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+}
+
+.mobile-more-item:nth-child(1) {
+  animation-delay: 40ms;
+}
+
+.mobile-more-item:nth-child(2) {
+  animation-delay: 75ms;
+}
+
+.mobile-more-item:nth-child(3) {
+  animation-delay: 110ms;
+}
+
+.mobile-more-item:nth-child(4) {
+  animation-delay: 145ms;
+}
+
+.mobile-more-item:nth-child(5) {
+  animation-delay: 180ms;
+}
+
+.mobile-more-item:nth-child(6) {
+  animation-delay: 215ms;
+}
+
+@keyframes musex-more-item-in {
+  from {
+    opacity: 0;
+    transform:
+      translateY(18px)
+      scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
 }
 
 
-/* ============================================================
-   MORE BUTTON HOVER
+/* =============================================================
+   MORE ITEM ICON
 ============================================================= */
 
-.mobile-more-button:hover {
-  color: #a1a1aa;
+.mobile-more-item-icon {
+  position: relative;
+  z-index: 1;
+
+  transition:
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
 }
 
-
-/* ============================================================
-   MORE BUTTON ACTIVE
-   ------------------------------------------------------------
-   "Más" utiliza exactamente el mismo lenguaje visual
-   que las demás opciones.
-============================================================= */
-
-.mobile-more-button.mobile-navigation-active {
-  color: #ffffff;
-  background: transparent;
-}
-
-.mobile-more-button.mobile-navigation-active svg {
+.mobile-more-item:hover .mobile-more-item-icon {
+  border-color: rgba(156, 255, 0, 0.18);
+  background: rgba(156, 255, 0, 0.055);
   color: var(--musex-accent);
-  filter: none;
+
+  transform:
+    translateY(-2px)
+    scale(1.045);
+
+  box-shadow:
+    0 5px 16px rgba(0, 0, 0, 0.18);
+}
+
+.mobile-more-item-icon svg {
+  transition:
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mobile-more-item:hover .mobile-more-item-icon svg {
+  transform: scale(1.05);
 }
 
 
-/* ============================================================
-   SMALL PHONES
-   ------------------------------------------------------------
-   Ajustes para pantallas especialmente pequeñas.
+/* =============================================================
+   MORE ACTIVE ROUTE
+============================================================= */
+
+.mobile-more-item.mobile-more-active {
+  border-color: rgba(156, 255, 0, 0.22);
+  background: rgba(156, 255, 0, 0.055);
+
+  box-shadow:
+    inset 0 0 0 1px rgba(156, 255, 0, 0.025);
+}
+
+.mobile-more-item.mobile-more-active::before {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+
+  height: 2px;
+
+  border-radius: 0 0 999px 999px;
+
+  background: var(--musex-accent);
+
+  box-shadow:
+    0 0 10px rgba(156, 255, 0, 0.3);
+
+  animation:
+    musex-more-active-in
+    250ms
+    ease-out
+    both;
+}
+
+.mobile-more-item.mobile-more-active .mobile-more-item-icon {
+  border-color: rgba(156, 255, 0, 0.2);
+  color: var(--musex-accent);
+}
+
+@keyframes musex-more-active-in {
+  from {
+    opacity: 0;
+    transform: scaleX(0.4);
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+
+/* =============================================================
+   MORE ITEM TEXT
+============================================================= */
+
+.mobile-more-item > span:last-child {
+  position: relative;
+  z-index: 1;
+
+  letter-spacing: -0.01em;
+
+  transition:
+    color 160ms ease,
+    transform 180ms ease;
+}
+
+.mobile-more-item:hover > span:last-child {
+  transform: translateY(-1px);
+}
+
+
+/* =============================================================
+   PANEL FOOTER
+============================================================= */
+
+.musex-panel-brand {
+  font-size: 9px;
+  letter-spacing: 0.32em;
+  color: #45474c;
+
+  user-select: none;
+
+  animation:
+    musex-brand-in
+    500ms
+    240ms
+    ease-out
+    both;
+}
+
+@keyframes musex-brand-in {
+  from {
+    opacity: 0;
+    letter-spacing: 0.5em;
+  }
+
+  to {
+    opacity: 1;
+    letter-spacing: 0.32em;
+  }
+}
+
+
+/* =============================================================
+   SAFE AREA
+============================================================= */
+
+.mobile-navigation {
+  height:
+    calc(
+      72px +
+      env(safe-area-inset-bottom, 0px)
+    );
+
+  padding-bottom:
+    env(safe-area-inset-bottom, 0px);
+}
+
+.mobile-more-panel {
+  padding-bottom:
+    env(safe-area-inset-bottom, 0px);
+}
+
+.mobile-more-backdrop {
+  bottom:
+    calc(
+      72px +
+      env(safe-area-inset-bottom, 0px)
+    );
+}
+
+@media (max-width: 620px) {
+
+  #mobile-more-panel {
+    bottom:
+      calc(
+        72px +
+        env(safe-area-inset-bottom, 0px)
+      );
+  }
+
+}
+
+
+/* =============================================================
+   MINIMUM TOUCH TARGETS
+============================================================= */
+
+.mobile-navigation-item {
+  min-height: 44px;
+}
+
+.mobile-more-item {
+  min-height: 44px;
+}
+
+
+/* =============================================================
+   BOTTOM PLAYER
+============================================================= */
+
+app-bottom-player {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  width: 100%;
+  height: 88px;
+  min-height: 88px;
+
+  display: block;
+
+  z-index: 100;
+  pointer-events: auto;
+}
+
+@media (max-width: 620px) {
+
+  app-bottom-player {
+    bottom: 72px;
+
+    height: 64px;
+    min-height: 64px;
+  }
+
+}
+
+
+/* =============================================================
+   PANEL / BACKDROP WITH MINI PLAYER
+============================================================= */
+
+.mobile-more-panel.with-mini-player {
+  bottom:
+    calc(
+      72px +
+      64px +
+      env(safe-area-inset-bottom, 0px)
+    );
+}
+
+.mobile-more-backdrop.with-mini-player {
+  bottom:
+    calc(
+      72px +
+      64px +
+      env(safe-area-inset-bottom, 0px)
+    );
+}
+
+
+/* =============================================================
+   SMALL MOBILE
 ============================================================= */
 
 @media (max-width: 380px) {
+
   .mobile-navigation {
     padding-left: 0;
     padding-right: 0;
@@ -159,115 +1120,57 @@
   .mobile-navigation-item span:last-child {
     font-size: 10px;
   }
-}
 
-/* ============================================================
-   SAFE AREA — ANDROID / GESTURE BAR
-   ------------------------------------------------------------
-   La barra de gestos de Android se superpone a la navegación
-   inferior si no reservamos espacio para ella.
-============================================================= */
+  .mobile-more-scroll {
+    gap: 10px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 
-.mobile-navigation {
-  height: calc(72px + env(safe-area-inset-bottom, 0px));
-
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-
-.mobile-more-panel {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-
-.mobile-more-backdrop {
-  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-}
-
-
-/* ============================================================
-   MOBILE MORE PANEL — POSICIÓN AJUSTADA
-   ------------------------------------------------------------
-   El panel debe quedar exactamente encima de la navegación
-   inferior, incluyendo el espacio reservado por la gesture bar.
-============================================================= */
-
-@media (max-width: 620px) {
-
-  #mobile-more-panel {
-    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  .mobile-more-item {
+    width: 108px;
+    min-width: 108px;
   }
 
 }
 
 
-/* ============================================================
-   ÁREA TÁCTIL MÍNIMA
-   ------------------------------------------------------------
-   Los íconos de navegación deben tener al menos 44px de
-   objetivo táctil real, aunque el ícono visual sea más pequeño.
+/* =============================================================
+   ACCESSIBILITY — REDUCED MOTION
 ============================================================= */
 
-.mobile-navigation-item {
-  min-height: 44px;
-}
+@media (prefers-reduced-motion: reduce) {
 
-
-.mobile-more-item {
-  min-height: 44px;
-}
-
-app-bottom-player {
-  position: fixed;
-
-  left: 0;
-  right: 0;
-  bottom: 0;
-
-  width: 100%;
-
-  height: 88px;
-  min-height: 88px;
-
-  display: block;
-
-  z-index: 100;
-
-  pointer-events: auto;
-}
-
-@media (max-width: 620px) {
-
-  app-bottom-player {
-    bottom: 72px; /* altura de la mobile-navigation */
-
-    height: 64px;
-    min-height: 64px;
+  .sidebar-link,
+  .sidebar-link svg,
+  .sidebar-link img,
+  .mobile-navigation-item,
+  .mobile-navigation-item svg,
+  .mobile-more-item,
+  .mobile-more-item-icon,
+  .mobile-more-item-icon svg,
+  .mobile-more-close,
+  .musex-storage-card,
+  .musex-storage-icon,
+  .musex-storage-refresh svg {
+    transition-duration: 0.01ms !important;
   }
 
-}
+  .mobile-more-backdrop,
+  .mobile-more-panel,
+  .mobile-more-item,
+  .mobile-more-header-icon,
+  .mobile-more-swipe-hint,
+  .mobile-more-swipe-hint svg,
+  .musex-panel-brand,
+  .musex-storage-loading,
+  .musex-storage-loader,
+  .musex-storage-loader::after,
+  .musex-storage-progress span,
+  .musex-storage-value,
+  .musex-storage-progress-ready span,
+  .sidebar-link.active::before {
+    animation: none !important;
+  }
 
-/* ============================================================
-   PANEL "MÁS" — ENCIMA DEL MINI-PLAYER
-   ------------------------------------------------------------
-   Cuando hay música cargada, el mini-player ocupa 64px justo
-   encima de la navegación inferior. El panel "Más" y su
-   backdrop deben subir esa misma cantidad para no solaparse
-   con los controles del mini-player.
-============================================================= */
-
-.mobile-more-panel.with-mini-player {
-  bottom: calc(
-    72px +
-    64px +
-    env(safe-area-inset-bottom, 0px)
-  );
-}
-
-.mobile-more-backdrop.with-mini-player {
-  bottom: calc(
-    72px +
-    64px +
-    env(safe-area-inset-bottom, 0px)
-  );
 }

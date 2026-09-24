@@ -38,6 +38,13 @@ export class SongCardComponent {
   favorite = false;
 
   /**
+   * Indica si esta canción está siendo reproducida
+   * actualmente por el reproductor.
+   */
+  @Input()
+  playing = false;
+
+  /**
    * Evento emitido cuando el usuario solicita reproducir
    * la canción.
    */
@@ -75,7 +82,7 @@ export class SongCardComponent {
     },
     {
       id: 'star',
-      path: 'M12 3l2.63 5.33 5.87.85-4.25 4.14 1 5.85L12 16.9l-5.25 2.77 1-5.85L3.5 9.68l5.87-.85L12 3Z'
+      path: 'M12 3l2.63 5.33 5.87.85-4.25 4.14 1 5.85L12 16.9l-5.25 2.77L3.5 9.68l5.87-.85L12 3Z'
     },
     {
       id: 'zap',

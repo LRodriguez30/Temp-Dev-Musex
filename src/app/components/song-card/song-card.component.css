@@ -1,6 +1,299 @@
 /*
- * La estructura visual utiliza Tailwind CSS.
+ * SONG CARD
  *
- * Este archivo queda reservado para estilos específicos
- * que posteriormente necesite el componente.
+ * La estructura visual utiliza Tailwind CSS.
+ * Este archivo contiene únicamente los estados
+ * y comportamientos visuales propios del componente.
  */
+
+
+/* =============================================================
+   HOST
+============================================================= */
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+
+/* =============================================================
+   CARD
+============================================================= */
+
+.card {
+  position: relative;
+  overflow: hidden;
+
+  border: 1px solid #292b30;
+  background: #111214;
+
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+
+/* =============================================================
+   HOVER
+============================================================= */
+
+.card:hover {
+  border-color: #3a3d43;
+  background: #17191b;
+}
+
+
+/* =============================================================
+   CURRENTLY PLAYING
+============================================================= */
+
+.card.is-playing {
+  border-color: color-mix(
+    in srgb,
+    var(--musex-accent) 35%,
+    #292b30
+  );
+
+  background: #141615;
+}
+
+
+/* =============================================================
+   PLAYING — TOP LINE
+============================================================= */
+
+.card.is-playing::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 12px;
+  right: 12px;
+
+  height: 1px;
+
+  background: var(--musex-accent);
+
+  opacity: 0.75;
+
+  box-shadow:
+    0 0 8px
+      color-mix(
+        in srgb,
+        var(--musex-accent) 45%,
+        transparent
+      );
+
+  animation: playing-line 1.8s ease-in-out infinite;
+
+  z-index: 10;
+}
+
+
+/* =============================================================
+   COVER
+============================================================= */
+
+.song-cover {
+  position: relative;
+
+  border: 1px solid transparent;
+
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+
+/* =============================================================
+   PLAYING — COVER
+============================================================= */
+
+.card.is-playing .song-cover {
+  border-color: color-mix(
+    in srgb,
+    var(--musex-accent) 45%,
+    transparent
+  );
+
+  box-shadow:
+    0 0 0 1px
+      color-mix(
+        in srgb,
+        var(--musex-accent) 8%,
+        transparent
+      );
+}
+
+
+/* =============================================================
+   PLAYING — TITLE
+============================================================= */
+
+.card.is-playing .song-title {
+  color: #f4f4f5;
+}
+
+
+/* =============================================================
+   PLAYING — ARTIST
+============================================================= */
+
+.card.is-playing .song-info p {
+  color: color-mix(
+    in srgb,
+    var(--musex-accent) 65%,
+    #a1a1aa
+  );
+}
+
+
+/* =============================================================
+   PLAYING — EQUALIZER
+============================================================= */
+
+.song-playing-indicator {
+  position: absolute;
+
+  right: 5px;
+  bottom: 5px;
+
+  z-index: 20;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 2px;
+
+  width: 20px;
+  height: 18px;
+
+  border-radius: 4px;
+
+  background: rgba(13, 14, 16, 0.82);
+
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--musex-accent) 22%,
+      transparent
+    );
+}
+
+
+/* =============================================================
+   EQUALIZER BARS
+============================================================= */
+
+.song-playing-indicator i {
+  display: block;
+
+  width: 2px;
+  height: 5px;
+
+  border-radius: 999px;
+
+  background: var(--musex-accent);
+
+  transform-origin: center;
+
+  animation:
+    equalizer
+    800ms
+    ease-in-out
+    infinite;
+}
+
+
+.song-playing-indicator i:nth-child(1) {
+  animation-delay: -120ms;
+}
+
+
+.song-playing-indicator i:nth-child(2) {
+  animation-delay: -300ms;
+}
+
+
+.song-playing-indicator i:nth-child(3) {
+  animation-delay: -180ms;
+}
+
+
+.song-playing-indicator i:nth-child(4) {
+  animation-delay: -400ms;
+}
+
+
+/* =============================================================
+   PLAY BUTTON
+============================================================= */
+
+.song-play-button {
+  z-index: 30;
+}
+
+
+/* =============================================================
+   PLAY BUTTON — CURRENT TRACK
+============================================================= */
+
+.song-play-button.playing span {
+  border-color: color-mix(
+    in srgb,
+    var(--musex-accent) 45%,
+    transparent
+  );
+}
+
+
+/* =============================================================
+   ANIMATIONS
+============================================================= */
+
+@keyframes equalizer {
+  0%,
+  100% {
+    height: 4px;
+  }
+
+  25% {
+    height: 10px;
+  }
+
+  50% {
+    height: 6px;
+  }
+
+  75% {
+    height: 13px;
+  }
+}
+
+
+@keyframes playing-line {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 0.9;
+  }
+}
+
+
+/* =============================================================
+   REDUCED MOTION
+============================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .card.is-playing::before,
+  .song-playing-indicator i {
+    animation: none;
+  }
+}

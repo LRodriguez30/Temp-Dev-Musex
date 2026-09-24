@@ -198,8 +198,8 @@
     background: var(--table-row); 
  
     transition: 
-        background 160ms ease, 
-        border-color 160ms ease; 
+        background 200ms ease, 
+        border-color 200ms ease; 
 } 
  
 .music-table-row > * { 
@@ -215,6 +215,45 @@
  
     border-bottom-color: 
         color-mix(in srgb, var(--musex-accent) 9%, transparent); 
+} 
+ 
+ 
+/* ============================================================= 
+   CURRENTLY PLAYING ROW 
+   ------------------------------------------------------------- 
+   La fila activa recibe un tratamiento visual sutil para 
+   identificar inmediatamente qué canción está sonando. 
+============================================================= */ 
+ 
+.music-table-row.is-playing { 
+    background: 
+        linear-gradient( 
+            90deg, 
+            color-mix( 
+                in srgb, 
+                var(--musex-accent) 7%, 
+                var(--table-row) 
+            ), 
+            var(--table-row) 62%, 
+            var(--table-row) 100% 
+        ); 
+ 
+    border-bottom-color: 
+        color-mix(in srgb, var(--musex-accent) 10%, transparent); 
+} 
+ 
+.music-table-row.is-playing:hover { 
+    background: 
+        linear-gradient( 
+            90deg, 
+            color-mix( 
+                in srgb, 
+                var(--musex-accent) 10%, 
+                var(--table-row-hover) 
+            ), 
+            var(--table-row-hover) 62%, 
+            var(--table-row-hover) 100% 
+        ); 
 } 
  
  
@@ -263,6 +302,43 @@
  
  
 /* ============================================================= 
+   ACTIVE ROW INDICATOR 
+   ------------------------------------------------------------- 
+   En la canción que está sonando, la línea permanece visible 
+   y tiene una pequeña pulsación de intensidad. 
+============================================================= */ 
+ 
+.music-table-row.is-playing::before { 
+    height: 38px; 
+ 
+    opacity: 1; 
+ 
+    transform: 
+        translateY(-50%) scaleY(1); 
+ 
+    animation: 
+        music-table-playing-line 
+        1.6s 
+        ease-in-out 
+        infinite; 
+} 
+ 
+ 
+@keyframes music-table-playing-line { 
+ 
+    0%, 
+    100% { 
+        opacity: 0.55; 
+    } 
+ 
+    50% { 
+        opacity: 1; 
+    } 
+ 
+} 
+ 
+ 
+/* ============================================================= 
    TRACK NUMBER 
 ============================================================= */ 
  
@@ -299,6 +375,87 @@
     text-shadow: 
         0 0 7px 
         color-mix(in srgb, var(--musex-accent) 22%, transparent); 
+} 
+ 
+.music-table-track-number.is-playing { 
+    color: var(--musex-green); 
+ 
+    text-shadow: 
+        0 0 8px 
+        color-mix(in srgb, var(--musex-accent) 30%, transparent); 
+} 
+ 
+ 
+/* ============================================================= 
+   PLAYING EQUALIZER 
+============================================================= */ 
+ 
+.music-table-playing-indicator { 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+ 
+    width: 18px; 
+    height: 18px; 
+ 
+    gap: 2px; 
+} 
+ 
+.music-table-playing-indicator i { 
+    display: block; 
+ 
+    width: 2px; 
+    height: 12px; 
+ 
+    border-radius: 999px; 
+ 
+    background: var(--musex-accent); 
+ 
+    transform-origin: center; 
+ 
+    animation: 
+        music-table-equalizer 
+        700ms 
+        ease-in-out 
+        infinite; 
+} 
+ 
+.music-table-playing-indicator i:nth-child(1) { 
+    animation-delay: -100ms; 
+} 
+ 
+.music-table-playing-indicator i:nth-child(2) { 
+    animation-delay: -350ms; 
+} 
+ 
+.music-table-playing-indicator i:nth-child(3) { 
+    animation-delay: -200ms; 
+} 
+ 
+.music-table-playing-indicator i:nth-child(4) { 
+    animation-delay: -500ms; 
+} 
+ 
+ 
+@keyframes music-table-equalizer { 
+ 
+    0%, 
+    100% { 
+        transform: scaleY(0.3); 
+    } 
+ 
+    25% { 
+        transform: scaleY(0.9); 
+    } 
+ 
+    50% { 
+        transform: scaleY(0.45); 
+    } 
+ 
+    75% { 
+        transform: scaleY(1); 
+    } 
+ 
 } 
  
  
@@ -379,6 +536,25 @@
  
  
 /* ============================================================= 
+   PLAYING COVER 
+============================================================= */ 
+ 
+.music-table-cover.is-playing { 
+    border: 1px solid 
+        color-mix(in srgb, var(--musex-accent) 48%, transparent); 
+ 
+    box-shadow: 
+        0 5px 16px rgba(0, 0, 0, 0.36), 
+        0 0 12px 
+        color-mix(in srgb, var(--musex-accent) 15%, transparent); 
+} 
+ 
+.music-table-cover.is-playing img { 
+    filter: brightness(0.84); 
+} 
+ 
+ 
+/* ============================================================= 
    PLAY BUTTON 
 ============================================================= */ 
  
@@ -433,6 +609,10 @@
     color: #080908; 
  
     transform: translateX(1px); 
+ 
+    transition: 
+        transform 140ms ease, 
+        filter 140ms ease; 
 } 
  
 .music-table-row:hover .music-table-play { 
@@ -492,6 +672,23 @@
  
 .music-table-row:hover .music-table-title { 
     color: white; 
+} 
+ 
+ 
+/* ============================================================= 
+   PLAYING TITLE 
+============================================================= */ 
+ 
+.music-table-title.is-playing { 
+    color: var(--musex-green); 
+ 
+    text-shadow: 
+        0 0 8px 
+        color-mix(in srgb, var(--musex-accent) 12%, transparent); 
+} 
+ 
+.music-table-row:hover .music-table-title.is-playing { 
+    color: var(--musex-green); 
 } 
  
  
@@ -556,6 +753,30 @@
  
  
 /* ============================================================= 
+   PLAYING METADATA 
+============================================================= */ 
+ 
+.music-table-row.is-playing .music-table-artist, 
+.music-table-row.is-playing .music-table-album { 
+    color: 
+        color-mix( 
+            in srgb, 
+            var(--musex-accent) 32%, 
+            var(--table-secondary) 
+        ); 
+} 
+ 
+.music-table-row.is-playing .music-table-genre { 
+    color: 
+        color-mix( 
+            in srgb, 
+            var(--musex-accent) 70%, 
+            var(--table-secondary) 
+        ); 
+} 
+ 
+ 
+/* ============================================================= 
    DURATION 
 ============================================================= */ 
  
@@ -605,6 +826,14 @@
         color-mix(in srgb, var(--musex-accent) 30%, transparent), 
         0 0 12px 
         color-mix(in srgb, var(--musex-accent) 8%, transparent); 
+} 
+ 
+.music-table-row.is-playing .music-table-duration { 
+    color: var(--musex-green); 
+ 
+    text-shadow: 
+        0 0 7px 
+        color-mix(in srgb, var(--musex-accent) 26%, transparent); 
 } 
  
  
@@ -1517,7 +1746,7 @@
 
 /* =============================================================
    TABLET PEQUEÑA
-   ============================================================= */
+============================================================= */
 
 @media (max-width: 700px) {
 
@@ -1641,303 +1870,6 @@
 
 
 /* =============================================================
-   MOBILE — HEADER
-============================================================= */
-
-@media (max-width: 520px) {
-
-    .music-table-header {
-        display: grid;
-
-        grid-template-columns:
-            minmax(0, 1fr)
-            54px
-            64px;
-
-        width: 100%;
-        min-width: 0;
-
-        min-height: 38px;
-
-        padding:
-            0 10px;
-
-        box-sizing: border-box;
-
-        column-gap: 6px;
-    }
-
-
-    /*
-     * Ocultamos las columnas que ya no existen
-     * visualmente en móvil.
-     */
-
-    .music-table-header > span:nth-child(1),
-    .music-table-header > span:nth-child(3),
-    .music-table-header > span:nth-child(4),
-    .music-table-header > span:nth-child(5) {
-        display: none;
-    }
-
-
-    /*
-     * Título
-     */
-
-    .music-table-header > span:nth-child(2) {
-        display: block;
-
-        min-width: 0;
-
-        width: 100%;
-
-        overflow: hidden;
-
-        white-space: nowrap;
-        text-overflow: ellipsis;
-    }
-
-
-    /*
-     * Duración
-     *
-     * La columna queda exactamente en la misma posición
-     * que la columna de duración de cada fila.
-     */
-
-    .music-table-header > span:nth-child(6) {
-        display: block;
-
-        width: 100%;
-        min-width: 0;
-
-        text-align: right;
-
-        white-space: nowrap;
-    }
-
-
-    /*
-     * Acciones
-     */
-
-    .music-table-header > span:nth-child(7) {
-        display: block;
-
-        width: 100%;
-        min-width: 0;
-
-        text-align: right;
-
-        white-space: nowrap;
-    }
-}
-
-
-/* =============================================================
-   TELÉFONOS MUY PEQUEÑOS
-   ============================================================= */
-
-@media (max-width: 380px) {
-
-    /*
-     * Reducimos ligeramente las columnas secundarias,
-     * pero mantenemos las acciones en una sola fila.
-     */
-
-    .music-table-header {
-        grid-template-columns:
-            minmax(0, 1fr)
-            50px
-            60px;
-
-        column-gap: 5px;
-
-        padding:
-            0 8px;
-    }
-
-    .music-table-row {
-        grid-template-columns:
-            minmax(0, 1fr)
-            50px
-            60px;
-
-        column-gap: 5px;
-
-        min-height: 60px;
-
-        padding:
-            7px 8px;
-    }
-
-
-    /*
-     * Portada.
-     */
-
-    .music-table-cover {
-        width: 38px;
-        height: 38px;
-
-        min-width: 38px;
-
-        flex-basis: 38px;
-    }
-
-
-    /*
-     * Texto.
-     */
-
-    .music-table-title {
-        font-size: 11px;
-    }
-
-    .music-table-mobile-artist {
-        font-size: 8px;
-    }
-
-
-    /*
-     * Duración.
-     */
-
-    .music-table-duration {
-        font-size: 9px;
-    }
-
-
-    /*
-     * Acciones.
-     */
-
-    .music-table-actions {
-        width: 60px;
-        min-width: 60px;
-        max-width: 60px;
-
-        gap: 1px;
-    }
-
-    .music-table-playlist,
-    .music-table-options {
-        width: 28px;
-        height: 28px;
-
-        min-width: 28px;
-        max-width: 28px;
-
-        flex: 0 0 28px;
-    }
-
-    .music-table-playlist svg,
-    .music-table-options svg {
-        width: 13px;
-        height: 13px;
-
-        min-width: 13px;
-        min-height: 13px;
-
-        flex-basis: 13px;
-    }
-}
-
-
-/* =============================================================
-   TOUCH DEVICES
-   ============================================================= */
-
-@media (hover: none) and (pointer: coarse) {
-
-    .music-table-row:hover {
-        background: var(--table-row);
-
-        border-bottom-color:
-            rgba(255, 255, 255, 0.045);
-    }
-
-    .music-table-row:hover .music-table-title {
-        color: var(--table-text);
-    }
-
-    .music-table-row:hover .music-table-duration {
-        color: var(--musex-green);
-
-        text-shadow:
-            0 0 6px
-            color-mix(
-                in srgb,
-                var(--musex-accent) 16%,
-                transparent
-            );
-    }
-
-    .music-table-playlist:hover,
-    .music-table-options:hover {
-        border-color: transparent;
-
-        background: transparent;
-
-        color: rgba(255, 255, 255, 0.28);
-
-        transform: none;
-    }
-
-    .music-table-playlist:active,
-    .music-table-options:active {
-        background:
-            color-mix(
-                in srgb,
-                var(--musex-accent) 8%,
-                transparent
-            );
-
-        color: var(--musex-green);
-
-        transform: scale(0.94);
-    }
-}
- 
- 
-/* ============================================================= 
-   REDUCED MOTION 
-============================================================= */ 
- 
-@media (prefers-reduced-motion: reduce) { 
- 
-    .music-metadata-overlay, 
-    .music-metadata-modal { 
-        animation: none; 
-    } 
- 
-    .music-metadata-close, 
-    .music-metadata-field input, 
-    .music-metadata-cancel, 
-    .music-metadata-save { 
-        transition: none; 
-    } 
- 
-    .music-table-row, 
-    .music-table-row::before, 
-    .music-table-cover, 
-    .music-table-cover img, 
-    .music-table-play, 
-    .music-table-play svg, 
-    .music-table-title, 
-    .music-table-artist, 
-    .music-table-genre, 
-    .music-table-album, 
-    .music-table-duration, 
-    .music-table-playlist, 
-    .music-table-options { 
-        transition: none; 
-    } 
-}
-
-
-/* =============================================================
    MOBILE TABLE
    -------------------------------------------------------------
    En móvil mostramos únicamente:
@@ -1962,6 +1894,8 @@
 
     width: 100%;
     min-width: 0;
+
+    min-height: 38px;
 
     padding: 0 10px;
 
@@ -2072,12 +2006,25 @@
 
 
   /* -----------------------------------------------------------
-     Título
+     TÍTULO + PORTADA
   ----------------------------------------------------------- */
 
   .music-table-title-cell {
     grid-column: 1;
 
+    display: flex;
+    align-items: center;
+
+    min-width: 0;
+    width: 100%;
+  }
+
+
+  /* -----------------------------------------------------------
+     Contenido del título
+  ----------------------------------------------------------- */
+
+  .music-table-title-content {
     min-width: 0;
     width: 100%;
   }
@@ -2102,6 +2049,7 @@
     display: block;
 
     min-width: 0;
+    width: 100%;
 
     overflow: hidden;
 
@@ -2111,7 +2059,7 @@
 
 
   /* -----------------------------------------------------------
-     Duración
+     DURACIÓN
   ----------------------------------------------------------- */
 
   .music-table-duration {
@@ -2157,6 +2105,10 @@
   }
 
 
+  /* -----------------------------------------------------------
+     Botones de acción
+  ----------------------------------------------------------- */
+
   .music-table-playlist,
   .music-table-options {
     width: 31px;
@@ -2164,6 +2116,9 @@
 
     min-width: 31px;
     min-height: 31px;
+
+    max-width: 31px;
+    max-height: 31px;
 
     flex: 0 0 31px;
   }
@@ -2179,5 +2134,131 @@
 
     min-width: 38px;
     min-height: 38px;
+
+    flex: 0 0 38px;
+  }
+}
+
+
+/* =============================================================
+   TELÉFONOS MUY PEQUEÑOS
+   -------------------------------------------------------------
+   Menos de 380px:
+   mantenemos las mismas 3 columnas, pero compactamos
+   ligeramente sus dimensiones.
+============================================================= */
+
+@media (max-width: 380px) {
+
+  /* -----------------------------------------------------------
+     HEADER
+  ----------------------------------------------------------- */
+
+  .music-table-header {
+    grid-template-columns:
+      minmax(0, 1fr)
+      50px
+      60px;
+
+    column-gap: 5px;
+
+    padding: 0 8px;
+  }
+
+
+  /* -----------------------------------------------------------
+     FILAS
+  ----------------------------------------------------------- */
+
+  .music-table-row {
+    grid-template-columns:
+      minmax(0, 1fr)
+      50px
+      60px;
+
+    column-gap: 5px;
+
+    min-height: 60px;
+
+    padding: 7px 8px;
+  }
+
+
+  /* -----------------------------------------------------------
+     Portada
+  ----------------------------------------------------------- */
+
+  .music-table-cover {
+    width: 38px;
+    height: 38px;
+
+    min-width: 38px;
+    min-height: 38px;
+
+    flex-basis: 38px;
+  }
+
+
+  /* -----------------------------------------------------------
+     Título
+  ----------------------------------------------------------- */
+
+  .music-table-title {
+    font-size: 11px;
+  }
+
+
+  /* -----------------------------------------------------------
+     Artista
+  ----------------------------------------------------------- */
+
+  .music-table-mobile-artist {
+    font-size: 8px;
+  }
+
+
+  /* -----------------------------------------------------------
+     Duración
+  ----------------------------------------------------------- */
+
+  .music-table-duration {
+    font-size: 9px;
+  }
+
+
+  /* -----------------------------------------------------------
+     Acciones
+  ----------------------------------------------------------- */
+
+  .music-table-actions {
+    width: 60px;
+    min-width: 60px;
+    max-width: 60px;
+
+    gap: 1px;
+  }
+
+
+  .music-table-playlist,
+  .music-table-options {
+    width: 28px;
+    height: 28px;
+
+    min-width: 28px;
+    max-width: 28px;
+
+    flex: 0 0 28px;
+  }
+
+
+  .music-table-playlist svg,
+  .music-table-options svg {
+    width: 13px;
+    height: 13px;
+
+    min-width: 13px;
+    min-height: 13px;
+
+    flex-basis: 13px;
   }
 }

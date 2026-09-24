@@ -26,7 +26,8 @@ import { ModalService } from '../../core/services/modal.service';
     FormsModule,
     MusicTableComponent
   ],
-  templateUrl: './favorites.component.html'
+  templateUrl: './favorites.component.html',
+  styleUrl: './favorites.component.css'
 })
 export class FavoritesComponent {
 
@@ -66,6 +67,7 @@ export class FavoritesComponent {
    */
   sortBy: 'title' | 'artist' | 'recent' = 'title';
 
+  sortMenuOpen = false;
 
   // =========================================================
   // FAVORITES

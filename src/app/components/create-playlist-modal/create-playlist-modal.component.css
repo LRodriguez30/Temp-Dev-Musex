@@ -1,0 +1,76 @@
+.playlist-image-loading {
+  background: #111214;
+}
+
+.playlist-image-spinner {
+  width: 28px;
+  height: 28px;
+
+  border: 2px solid #292b30;
+  border-top-color: var(--musex-accent);
+  border-radius: 50%;
+
+  animation: playlist-spin 0.75s linear infinite;
+}
+
+.playlist-image-loading-bars {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.playlist-image-loading-bars span {
+  width: 3px;
+  height: 10px;
+
+  border-radius: 2px;
+
+  background: var(--musex-accent);
+
+  animation: playlist-bars 0.8s ease-in-out infinite;
+}
+
+.playlist-image-loading-bars span:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.playlist-image-loading-bars span:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+.playlist-image {
+  display: block;
+
+  animation: playlist-image-in 0.35s ease-out;
+}
+
+@keyframes playlist-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes playlist-bars {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scaleY(0.6);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes playlist-image-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

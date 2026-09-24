@@ -2,6 +2,60 @@
   display: contents;
 }
 
+
+/* =============================================================
+   QUEUE PANEL — TRANSITIONS
+============================================================= */
+
+.queue-panel {
+    animation:
+        queue-panel-enter
+        220ms
+        cubic-bezier(0.22, 1, 0.36, 1)
+        both;
+}
+
+.queue-panel.is-exiting {
+    animation:
+        queue-panel-exit
+        220ms
+        cubic-bezier(0.4, 0, 1, 1)
+        both;
+
+    pointer-events: none;
+}
+
+
+@keyframes queue-panel-enter {
+
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+}
+
+
+@keyframes queue-panel-exit {
+
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+}
+
+
 /* =============================================================
    QUEUE PAGE
 ============================================================= */
@@ -44,7 +98,11 @@
     background: var(--musex-accent);
 
     box-shadow:
-        0 0 8px color-mix(in srgb, var(--musex-accent) 45%, transparent);
+        0 0 8px color-mix(
+            in srgb,
+            var(--musex-accent) 45%,
+            transparent
+        );
 }
 
 
@@ -75,6 +133,15 @@
         queue-container-enter
         350ms
         cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+
+/*
+ * Durante la salida del panel no ejecutamos nuevamente
+ * la animación de entrada del contenedor.
+ */
+.queue-panel.is-exiting .queue-page-container {
+    animation: none;
 }
 
 
@@ -111,7 +178,11 @@
     opacity: 0.45;
 
     box-shadow:
-        0 0 12px color-mix(in srgb, var(--musex-accent) 12%, transparent);
+        0 0 12px color-mix(
+            in srgb,
+            var(--musex-accent) 12%,
+            transparent
+        );
 }
 
 
@@ -243,6 +314,7 @@
 
 @media (prefers-reduced-motion: reduce) {
 
+    .queue-panel,
     .queue-page-container {
         animation: none;
     }

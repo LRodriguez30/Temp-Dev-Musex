@@ -75,26 +75,46 @@ export class LibraryComponent implements OnInit {
   readonly downloadService =
     inject(DownloadService);
 
+  /**
+   * Servicio encargado de administrar el historial
+   * de descargas.
+   */
   private readonly downloadHistoryService =
     inject(DownloadHistoryService);
-    
+
   /**
    * Servicio encargado de controlar la reproducción.
    */
   readonly playerService =
     inject(PlayerService);
 
-
-  private readonly modalService = 
+  /**
+   * Servicio encargado de controlar los modales
+   * relacionados con las canciones.
+   */
+  private readonly modalService =
     inject(ModalService);
 
+
+  // ===========================================================
+  // MODALES
+  // ===========================================================
+
+  /**
+   * Abre el menú de opciones de una canción.
+   */
   openMore(track: Track): void {
     this.modalService.openTrackMenu(track.id);
   }
 
+  /**
+   * Abre el selector para agregar una canción
+   * a una playlist.
+   */
   openAddToPlaylist(track: Track): void {
     this.modalService.openAddToPlaylist(track.id);
   }
+
 
   // ===========================================================
   // ESTADO DE LA VISTA
@@ -104,6 +124,12 @@ export class LibraryComponent implements OnInit {
    * Orden actual aplicado a la biblioteca.
    */
   sortBy: 'title' | 'artist' | 'recent' = 'title';
+
+  /**
+   * Controla la visibilidad del menú personalizado
+   * de ordenamiento.
+   */
+  sortMenuOpen = false;
 
   /**
    * Estado utilizado para evitar múltiples escaneos
@@ -126,6 +152,7 @@ export class LibraryComponent implements OnInit {
    */
   importError: string | null = null;
 
+
   // ===========================================================
   // INICIALIZACIÓN
   // ===========================================================
@@ -134,6 +161,7 @@ export class LibraryComponent implements OnInit {
    * Carga la biblioteca real al inicializar la página.
    */
   async ngOnInit(): Promise<void> {
+
     await this.scanLibrary();
 
     await this.downloadHistoryService.load();
@@ -142,6 +170,31 @@ export class LibraryComponent implements OnInit {
       this.downloadHistoryService.entries()
     );
   }
+
+
+  // ===========================================================
+  // ORDENAMIENTO
+  // ===========================================================
+
+  /**
+   * Alterna la visibilidad del menú de ordenamiento.
+   */
+  toggleSortMenu(): void {
+    this.sortMenuOpen = !this.sortMenuOpen;
+  }
+
+  /**
+   * Cambia el criterio de ordenamiento y cierra
+   * inmediatamente el menú.
+   */
+  setSort(
+    sort: 'title' | 'artist' | 'recent'
+  ): void {
+
+    this.sortBy = sort;
+    this.sortMenuOpen = false;
+  }
+
 
   // ===========================================================
   // BIBLIOTECA
@@ -211,6 +264,7 @@ export class LibraryComponent implements OnInit {
     return this.downloadService.completed().length;
   }
 
+
   // ===========================================================
   // FAVORITOS
   // ===========================================================
@@ -233,6 +287,7 @@ export class LibraryComponent implements OnInit {
   toggleFavorite(trackId: string): void {
     this.libraryService.toggleFavorite(trackId);
   }
+
 
   // ===========================================================
   // ESCANEO
@@ -274,6 +329,7 @@ export class LibraryComponent implements OnInit {
     }
   }
 
+
   // ===========================================================
   // REPRODUCCIÓN
   // ===========================================================
@@ -284,6 +340,7 @@ export class LibraryComponent implements OnInit {
   playTrack(track: Track): void {
     void this.playerService.playTrack(track.id);
   }
+
 
   // ===========================================================
   // IMPORTACIÓN
@@ -410,6 +467,7 @@ export class LibraryComponent implements OnInit {
       this.importing = false;
     }
   }
+
 
   // ===========================================================
   // DROP ZONE

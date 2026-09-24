@@ -18,7 +18,7 @@
         >
 
           <!-- =====================================================
-               POSICIÓN / INDICADOR
+               POSICIÓN
           ====================================================== -->
 
           <div class="w-5 shrink-0 text-center">
@@ -49,7 +49,7 @@
 
 
           <!-- =====================================================
-              PORTADA / DISCO
+               PORTADA
           ====================================================== -->
 
           <button
@@ -61,7 +61,6 @@
 
             @if (track.coverType === 'image' && track.image) {
 
-              <!-- Portada personalizada -->
               <img
                 [src]="track.image"
                 [alt]="track.title"
@@ -70,7 +69,6 @@
 
             } @else if (track.coverType === 'icon') {
 
-              <!-- Portada con icono -->
               <div
                 class="queue-cover-icon"
                 [style.background]="
@@ -81,7 +79,9 @@
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
-                  [attr.stroke]="track.coverColor || 'var(--musex-accent)'"
+                  [attr.stroke]="
+                    track.coverColor || 'var(--musex-accent)'
+                  "
                   stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -96,10 +96,6 @@
 
             } @else {
 
-              <!-- =================================================
-                  SVG MUSEX ORIGINAL
-              ================================================== -->
-
               <svg
                 class="music-table-default-disc"
                 viewBox="0 0 100 100"
@@ -107,7 +103,6 @@
                 [attr.aria-label]="'Disco Musex para ' + track.title"
               >
 
-                <!-- Disco -->
                 <circle
                   cx="50"
                   cy="50"
@@ -115,7 +110,6 @@
                   fill="var(--musex-accent)"
                 />
 
-                <!-- Surcos -->
                 <circle
                   cx="50"
                   cy="50"
@@ -146,7 +140,6 @@
                   opacity="0.25"
                 />
 
-                <!-- Etiqueta central -->
                 <circle
                   cx="50"
                   cy="50"
@@ -154,7 +147,6 @@
                   fill="#0d0e10"
                 />
 
-                <!-- Centro -->
                 <circle
                   cx="50"
                   cy="50"
@@ -162,7 +154,6 @@
                   fill="var(--musex-accent)"
                 />
 
-                <!-- Brillo -->
                 <circle
                   cx="50"
                   cy="50"
@@ -181,64 +172,132 @@
 
 
           <!-- =====================================================
-               INFORMACIÓN
-          ====================================================== -->
+     INFORMACIÓN
+====================================================== -->
 
-          <button
-            type="button"
-            class="min-w-0 flex-1 text-left"
-            [attr.aria-label]="'Reproducir ' + track.title"
-            (click)="play(trackId)"
-          >
+<button
+  type="button"
+  class="min-w-0 flex-1 text-left"
+  [attr.aria-label]="'Reproducir ' + track.title"
+  (click)="play(trackId)"
+>
 
-            <p
-              class="truncate text-sm font-medium"
-              [class.text-[var(--musex-accent)]]="isPlaying(trackId)"
-            >
-              {{ track.title }}
-            </p>
+  <!-- Título -->
 
-            <p class="truncate text-xs text-zinc-500">
-              {{ track.artist }}
-            </p>
+  <p
+    class="truncate text-sm font-medium"
+    [class.text-[var(--musex-accent)]]="isPlaying(trackId)"
+  >
+    {{ track.title }}
+  </p>
 
-          </button>
+
+  <!-- Artista + duración -->
+
+  <div class="mt-1 flex min-w-0 items-center">
+
+    <p class="min-w-0 flex-1 truncate text-xs text-zinc-500">
+      {{ track.artist }}
+    </p>
+
+    <span class="queue-duration">
+      {{ formatTime(track.duration) }}
+    </span>
+
+  </div>
+
+</button>
 
 
           <!-- =====================================================
-               DURACIÓN
+               CONTROLES DE ORDEN
           ====================================================== -->
 
-          <span class="queue-duration">
-            {{ formatTime(track.duration) }}
-          </span>
-
-
-          <!-- =====================================================
-               ELIMINAR
-          ====================================================== -->
-
-          <button
-            type="button"
-            class="icon-btn shrink-0 rounded-lg p-2 text-zinc-500 opacity-0 transition-ui hover:bg-white/5 hover:text-white group-hover:opacity-100 focus:opacity-100"
-            [attr.aria-label]="'Quitar ' + track.title + ' de la cola'"
-            (click)="remove(trackId)"
+          <div
+            class="flex shrink-0 items-center gap-0.5"
           >
 
-            <svg
-              class="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M18 6 6 18"></path>
-              <path d="m6 6 12 12"></path>
-            </svg>
+            <!-- Subir -->
 
-          </button>
+            <button
+              type="button"
+              class="icon-btn rounded-lg p-1.5 text-zinc-500 opacity-0 transition-ui hover:bg-white/5 hover:text-white group-hover:opacity-100 focus:opacity-100 disabled:cursor-not-allowed disabled:opacity-20"
+              [disabled]="index === 0"
+              [attr.aria-label]="'Subir ' + track.title"
+              [attr.title]="index === 0 ? null : 'Subir'"
+              (click)="$event.stopPropagation(); move(index, index - 1)"
+            >
+
+              <svg
+                class="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m18 15-6-6-6 6"></path>
+              </svg>
+
+            </button>
+
+
+            <!-- Bajar -->
+
+            <button
+              type="button"
+              class="icon-btn rounded-lg p-1.5 text-zinc-500 opacity-0 transition-ui hover:bg-white/5 hover:text-white group-hover:opacity-100 focus:opacity-100 disabled:cursor-not-allowed disabled:opacity-20"
+              [disabled]="index === queue().length - 1"
+              [attr.aria-label]="'Bajar ' + track.title"
+              [attr.title]="
+                index === queue().length - 1
+                  ? null
+                  : 'Bajar'
+              "
+              (click)="$event.stopPropagation(); move(index, index + 1)"
+            >
+
+              <svg
+                class="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m6 9 6 6 6-6"></path>
+              </svg>
+
+            </button>
+
+
+            <!-- Eliminar -->
+
+            <button
+              type="button"
+              class="icon-btn shrink-0 rounded-lg p-2 text-zinc-500 opacity-0 transition-ui hover:bg-white/5 hover:text-white group-hover:opacity-100 focus:opacity-100"
+              [attr.aria-label]="'Quitar ' + track.title + ' de la cola'"
+              (click)="$event.stopPropagation(); remove(trackId)"
+            >
+
+              <svg
+                class="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
+
+            </button>
+
+          </div>
 
         </div>
 

@@ -9,7 +9,7 @@
      - Recomendaciones personalizadas
 ========================================================== -->
 
-<section class="view h-full overflow-y-auto scroll-area">
+<section class="home-page view h-full overflow-y-auto scroll-area">
   <div class="content-pad mx-auto max-w-[1060px] px-7 pb-12 pt-8">
 
     <!-- =======================================================
@@ -104,6 +104,7 @@
         <app-song-card
           [track]="continueListeningTrack"
           [favorite]="isFavorite(continueListeningTrack.id)"
+          [playing]="isTrackPlaying(continueListeningTrack)"
           (play)="playTrack(continueListeningTrack.id)"
           (favoriteToggle)="toggleFavorite(continueListeningTrack.id)"
           (addToPlaylist)="openAddToPlaylist($event)"
@@ -194,6 +195,7 @@
               <app-song-card
                 [track]="track"
                 [favorite]="isFavorite(track.id)"
+                [playing]="isTrackPlaying(track)"
                 (play)="playTrack(track.id)"
                 (favoriteToggle)="toggleFavorite(track.id)"
                 (addToPlaylist)="openAddToPlaylist($event)"

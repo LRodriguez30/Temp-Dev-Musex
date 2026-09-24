@@ -1,0 +1,25 @@
+/* =============================================================
+   PAGE ENTER
+============================================================= */
+
+.explore-page {
+  width: 100%;
+
+  animation:
+    explore-page-enter
+    350ms
+    ease
+    both;
+}
+
+@keyframes explore-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -6,6 +6,7 @@
 
 <article
   class="card group flex min-w-0 cursor-pointer items-center gap-3 rounded-xl border border-zinc-800 bg-[#111214] p-3 transition-ui hover:border-zinc-700 hover:bg-[#17191b]"
+  [class.is-playing]="playing"
   (click)="playTrack()"
 >
 
@@ -14,7 +15,7 @@
   ======================================================== -->
 
   <div
-    class="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[#17191b]"
+    class="song-cover relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[#17191b]"
   >
 
     @if (track.coverType === 'image' && track.image) {
@@ -159,13 +160,39 @@
 
 
     <!-- =====================================================
+         INDICADOR DE REPRODUCCIÓN
+    ====================================================== -->
+
+    @if (playing) {
+
+      <div
+        class="song-playing-indicator"
+        aria-label="Reproduciendo"
+      >
+
+        <i></i>
+        <i></i>
+        <i></i>
+        <i></i>
+
+      </div>
+
+    }
+
+
+    <!-- =====================================================
          BOTÓN DE REPRODUCCIÓN
     ====================================================== -->
 
     <button
       type="button"
-      class="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-ui group-hover:opacity-100"
-      [attr.aria-label]="'Reproducir ' + track.title"
+      class="song-play-button absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-ui group-hover:opacity-100"
+      [class.playing]="playing"
+      [attr.aria-label]="
+        playing
+          ? 'Pausar ' + track.title
+          : 'Reproducir ' + track.title
+      "
       (click)="playTrack(); $event.stopPropagation()"
     >
 
@@ -173,16 +200,51 @@
         class="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--musex-accent)] text-black"
       >
 
-        <svg
-          viewBox="0 0 24 24"
-          class="ml-0.5 h-4 w-4"
-          fill="currentColor"
-          aria-hidden="true"
-        >
+        @if (playing) {
 
-          <path d="M8 5.5v13l10-6.5z"></path>
+          <!-- Pausa -->
 
-        </svg>
+          <svg
+            viewBox="0 0 24 24"
+            class="h-4 w-4"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+
+            <rect
+              x="7"
+              y="5"
+              width="3.5"
+              height="14"
+              rx="1"
+            ></rect>
+
+            <rect
+              x="13.5"
+              y="5"
+              width="3.5"
+              height="14"
+              rx="1"
+            ></rect>
+
+          </svg>
+
+        } @else {
+
+          <!-- Play -->
+
+          <svg
+            viewBox="0 0 24 24"
+            class="ml-0.5 h-4 w-4"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+
+            <path d="M8 5.5v13l10-6.5z"></path>
+
+          </svg>
+
+        }
 
       </span>
 
@@ -195,10 +257,10 @@
        INFORMACIÓN PRINCIPAL
   ======================================================== -->
 
-  <div class="min-w-0 flex-1">
+  <div class="song-info min-w-0 flex-1">
 
     <h3
-      class="truncate text-sm font-medium text-white"
+      class="song-title truncate text-sm font-medium text-white"
     >
       {{ track.title }}
     </h3>

@@ -1,0 +1,53 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="318 345 638 547"
+  width="638"
+  height="547"
+>
+  <style>
+    :root {
+      --logo: #C4F828;
+    }
+  </style>
+
+  <!-- =========================================================
+       MUSEX LOGO
+  ========================================================= -->
+
+  <g
+    fill="none"
+    stroke="var(--logo)"
+    stroke-width="32"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+
+    <!-- Primera barra -->
+    <path d="M 350 608 V 640" />
+
+    <!-- Segunda barra -->
+    <path d="M 412 560 V 688" />
+
+    <!-- Tercera barra -->
+    <path d="M 472 476 V 772" />
+
+    <!-- Barra principal -->
+    <path d="M 534 416 V 830" />
+
+    <!-- Quinta barra -->
+    <path d="M 595 560 V 688" />
+
+    <!-- Símbolo Play -->
+    <path d="
+      M 579 374
+      L 909 583
+      C 939 602 939 639 909 658
+      L 579 863
+      C 558 876 534 861 534 836
+      V 400
+      C 534 375 558 361 579 374
+      Z
+    " />
+
+  </g>
+</svg>

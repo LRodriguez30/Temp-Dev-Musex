@@ -64,6 +64,7 @@ export class QueueComponent {
    */
   remove(trackId: string): void {
     const track = this.getTrack(trackId);
+
     this.queueService.remove(trackId);
 
     /**
@@ -85,11 +86,13 @@ export class QueueComponent {
    */
   removeAt(index: number): void {
     const trackId = this.queue()[index];
+
     const track = trackId
       ? this.getTrack(trackId)
       : undefined;
 
     this.queueService.removeAt(index);
+
     this.playerService.syncQueue();
 
     if (track) {
@@ -109,6 +112,7 @@ export class QueueComponent {
     }
 
     this.queueService.clear();
+
     this.playerService.syncQueue();
 
     this.notificationService.info(
@@ -118,9 +122,26 @@ export class QueueComponent {
   }
 
   /**
-   * Mueve una canción dentro de la cola.
+   * Mueve una canción a otra posición de la cola.
+   *
+   * El número que muestra el HTML se actualiza automáticamente
+   * porque depende directamente del índice reactivo de queue().
    */
   move(fromIndex: number, toIndex: number): void {
+
+    if (
+      fromIndex < 0 ||
+      fromIndex >= this.queue().length ||
+      toIndex < 0 ||
+      toIndex >= this.queue().length
+    ) {
+      return;
+    }
+
+    if (fromIndex === toIndex) {
+      return;
+    }
+
     this.queueService.move(
       fromIndex,
       toIndex
@@ -136,6 +157,9 @@ export class QueueComponent {
     return this.currentTrackId === trackId;
   }
 
+  /**
+   * Formatea la duración de una canción.
+   */
   formatTime(seconds: number): string {
     const totalSeconds =
       Math.max(0, Math.floor(seconds));
@@ -164,9 +188,15 @@ export class QueueComponent {
       .padStart(2, '0')}`;
   }
 
+  /**
+   * Devuelve el SVG correspondiente al icono
+   * utilizado como portada de la canción.
+   */
   getCoverIconPath(id: string | undefined): string {
     const icons: Record<string, string> = {
-      music: 'M9 18V5l12-2v13 M9 9l12-2',
+
+      music:
+        'M9 18V5l12-2v13 M9 9l12-2',
 
       heart:
         'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z',

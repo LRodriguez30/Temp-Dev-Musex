@@ -4,18 +4,9 @@
      Biblioteca local de Musex.
 ========================================================== -->
 
-<section
-  class="
-    view h-full overflow-y-auto scroll-area
-  "
->
+<section class="view h-full overflow-y-auto scroll-area">
 
-  <div
-    class="
-      library-page mx-auto max-w-[1320px]
-      px-8 pb-16 pt-10
-    "
-  >
+  <div class="library-page mx-auto max-w-[1320px]">
 
     <!-- =====================================================
          HEADER
@@ -223,8 +214,6 @@
 
           <span class="library-stat-icon">
 
-            <!-- STAR -->
-
             <svg
               viewBox="0 0 24 24"
               fill="currentColor"
@@ -424,42 +413,150 @@
             ORDENAR
           </span>
 
-          <div class="library-select-wrapper">
+          <div class="library-sort-control">
 
-            <select
-              [(ngModel)]="sortBy"
-              class="library-select"
+            <button
+              type="button"
+              class="library-sort-button"
+              [class.is-open]="sortMenuOpen"
+              [attr.aria-expanded]="sortMenuOpen"
+              aria-haspopup="listbox"
               aria-label="Ordenar biblioteca"
+              (click)="sortMenuOpen = !sortMenuOpen"
             >
 
-              <option value="title">
-                Título
-              </option>
+              <span class="library-sort-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M8 6h13"></path>
+                  <path d="M8 12h10"></path>
+                  <path d="M8 18h7"></path>
 
-              <option value="artist">
-                Artista
-              </option>
+                  <path d="M3 6h.01"></path>
+                  <path d="M3 12h.01"></path>
+                  <path d="M3 18h.01"></path>
+                </svg>
+              </span>
 
-              <option value="recent">
-                Más recientes
-              </option>
+              <span class="library-sort-value">
+                @if (sortBy === 'title') {
+                  Título
+                } @else if (sortBy === 'artist') {
+                  Artista
+                } @else {
+                  Más recientes
+                }
+              </span>
 
-            </select>
+              <span
+                class="library-sort-chevron"
+                [class.is-open]="sortMenuOpen"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </span>
 
-            <svg
-              class="library-select-arrow"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <polyline
-                points="6 9 12 15 18 9"
-              ></polyline>
-            </svg>
+            </button>
+
+
+            @if (sortMenuOpen) {
+
+              <div
+                class="library-sort-menu"
+                role="listbox"
+                aria-label="Opciones de orden"
+              >
+
+                <button
+                  type="button"
+                  class="library-sort-option"
+                  [class.is-selected]="sortBy === 'title'"
+                  (click)="sortBy = 'title'; sortMenuOpen = false"
+                >
+                  <span>Título</span>
+
+                  @if (sortBy === 'title') {
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  }
+                </button>
+
+
+                <button
+                  type="button"
+                  class="library-sort-option"
+                  [class.is-selected]="sortBy === 'artist'"
+                  (click)="sortBy = 'artist'; sortMenuOpen = false"
+                >
+                  <span>Artista</span>
+
+                  @if (sortBy === 'artist') {
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  }
+                </button>
+
+
+                <button
+                  type="button"
+                  class="library-sort-option"
+                  [class.is-selected]="sortBy === 'recent'"
+                  (click)="sortBy = 'recent'; sortMenuOpen = false"
+                >
+                  <span>Más recientes</span>
+
+                  @if (sortBy === 'recent') {
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  }
+                </button>
+
+              </div>
+
+            }
 
           </div>
 

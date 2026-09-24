@@ -1,0 +1,919 @@
+:host {
+  --musex-green: var(--musex-accent);
+
+  --favorites-panel: #131517;
+  --favorites-panel-hover: #17191b;
+  --favorites-border: #292b30;
+
+  --favorites-text: rgba(255, 255, 255, 0.94);
+  --favorites-secondary: rgba(255, 255, 255, 0.58);
+  --favorites-muted: rgba(255, 255, 255, 0.38);
+
+  font-family:
+    "Outfit",
+    "Inter",
+    system-ui,
+    sans-serif;
+}
+
+/* =============================================================
+   PAGE ENTER
+============================================================= */
+
+.favorites-page {
+  width: 100%;
+
+  animation:
+    favorites-page-enter
+    350ms
+    ease
+    both;
+}
+
+@keyframes favorites-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =============================================================
+   HEADER
+============================================================= */
+
+.favorites-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 32px;
+}
+
+.favorites-heading {
+  min-width: 0;
+}
+
+
+/* =============================================================
+   EYEBROW
+============================================================= */
+
+.favorites-eyebrow {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-bottom: 10px;
+
+  color:
+    color-mix(
+      in srgb,
+      var(--musex-accent) 72%,
+      transparent
+    );
+
+  font-family:
+    "Courier New",
+    "Lucida Console",
+    monospace;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 0.15em;
+}
+
+.favorites-eyebrow-dot {
+  width: 6px;
+  height: 6px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: var(--musex-green);
+
+  box-shadow:
+    0 0 6px
+      color-mix(
+        in srgb,
+        var(--musex-accent) 55%,
+        transparent
+      ),
+    0 0 12px
+      color-mix(
+        in srgb,
+        var(--musex-accent) 18%,
+        transparent
+      );
+}
+
+
+/* =============================================================
+   TITLE
+============================================================= */
+
+.favorites-title {
+  margin: 0;
+
+  color: var(--favorites-text);
+
+  font-size: 32px;
+  font-weight: 650;
+
+  line-height: 1.08;
+
+  letter-spacing: -0.035em;
+}
+
+.favorites-description {
+  margin: 8px 0 0;
+
+  color: var(--favorites-secondary);
+
+  font-size: 13px;
+
+  line-height: 1.4;
+}
+
+
+/* =============================================================
+   PLAY BUTTON
+============================================================= */
+
+.favorites-play-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  height: 39px;
+
+  flex-shrink: 0;
+
+  padding: 0 15px;
+
+  border: 0;
+  border-radius: 8px;
+
+  background: var(--musex-green);
+
+  color: #080908;
+
+  font-family: inherit;
+
+  font-size: 11px;
+  font-weight: 750;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 0 18px
+      color-mix(
+        in srgb,
+        var(--musex-accent) 8%,
+        transparent
+      );
+
+  transition:
+    transform 160ms ease,
+    filter 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.favorites-play-button:hover {
+  filter: brightness(1.05);
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 7px 20px rgba(0, 0, 0, 0.22),
+    0 0 18px
+      color-mix(
+        in srgb,
+        var(--musex-accent) 11%,
+        transparent
+      );
+}
+
+.favorites-play-button:active {
+  transform: scale(0.97);
+}
+
+.favorites-play-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.favorites-play-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+
+/* =============================================================
+   FAVORITES SECTION
+============================================================= */
+
+.favorites-section {
+  margin-top: 42px;
+}
+
+
+/* =============================================================
+   TOOLBAR
+============================================================= */
+
+.favorites-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding-bottom: 12px;
+
+  border-bottom: 1px solid var(--favorites-border);
+}
+
+
+/* =============================================================
+   COUNT
+============================================================= */
+
+.favorites-count {
+  display: flex;
+  align-items: center;
+
+  min-width: 0;
+
+  gap: 9px;
+}
+
+.favorites-count-label {
+  color:
+    color-mix(
+      in srgb,
+      var(--musex-accent) 60%,
+      transparent
+    );
+
+  font-family:
+    "Courier New",
+    "Lucida Console",
+    monospace;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 0.13em;
+
+  white-space: nowrap;
+}
+
+.favorites-count-dot {
+  width: 3px;
+  height: 3px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: #292b30;
+}
+
+.favorites-count-value {
+  color: var(--favorites-muted);
+
+  font-size: 10px;
+
+  white-space: nowrap;
+}
+
+
+/* =============================================================
+   SORT
+============================================================= */
+
+.favorites-sort {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  flex-shrink: 0;
+
+  margin-left: auto;
+}
+
+.favorites-sort-label {
+  color: rgba(255, 255, 255, 0.32);
+
+  font-family:
+    "Courier New",
+    "Lucida Console",
+    monospace;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 0.11em;
+
+  white-space: nowrap;
+}
+
+
+/* =============================================================
+   SORT CONTROL
+============================================================= */
+
+.favorites-sort-control {
+  position: relative;
+
+  flex-shrink: 0;
+}
+
+
+/* =============================================================
+   SORT BUTTON
+============================================================= */
+
+.favorites-sort-button {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  min-width: 140px;
+  height: 35px;
+
+  padding: 0 10px;
+
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 8px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.035),
+      rgba(255, 255, 255, 0.018)
+    );
+
+  color: rgba(255, 255, 255, 0.68);
+
+  font-family: inherit;
+
+  font-size: 10.5px;
+  font-weight: 520;
+
+  outline: none;
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.favorites-sort-button:hover {
+  color: rgba(255, 255, 255, 0.9);
+
+  border-color: rgba(255, 255, 255, 0.09);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.022)
+    );
+}
+
+.favorites-sort-button.is-open {
+  color: rgba(255, 255, 255, 0.9);
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--musex-accent) 22%,
+      rgba(255, 255, 255, 0.08)
+    );
+
+  background:
+    color-mix(
+      in srgb,
+      var(--musex-accent) 3%,
+      rgba(255, 255, 255, 0.02)
+    );
+}
+
+
+/* =============================================================
+   SORT ICON
+============================================================= */
+
+.favorites-sort-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  color: rgba(255, 255, 255, 0.34);
+}
+
+.favorites-sort-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+
+/* =============================================================
+   SORT VALUE
+============================================================= */
+
+.favorites-sort-value {
+  flex: 1;
+
+  min-width: 0;
+
+  overflow: hidden;
+
+  text-align: left;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+
+/* =============================================================
+   SORT CHEVRON
+============================================================= */
+
+.favorites-sort-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  width: 13px;
+  height: 13px;
+
+  color: rgba(255, 255, 255, 0.32);
+
+  transition:
+    transform 160ms ease,
+    color 160ms ease;
+}
+
+.favorites-sort-chevron svg {
+  width: 13px;
+  height: 13px;
+}
+
+.favorites-sort-chevron.is-open {
+  transform: rotate(180deg);
+
+  color:
+    color-mix(
+      in srgb,
+      var(--musex-accent) 65%,
+      rgba(255, 255, 255, 0.32)
+    );
+}
+
+
+/* =============================================================
+   SORT MENU
+============================================================= */
+
+.favorites-sort-menu {
+  position: absolute;
+
+  top: calc(100% + 6px);
+  right: 0;
+
+  z-index: 50;
+
+  width: 170px;
+
+  padding: 4px;
+
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 9px;
+
+  background: #151719;
+
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.35),
+    0 2px 8px rgba(0, 0, 0, 0.18);
+
+  animation:
+    favorites-sort-menu-in 120ms ease-out;
+}
+
+
+/* =============================================================
+   SORT OPTION
+============================================================= */
+
+.favorites-sort-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+  min-height: 34px;
+
+  padding: 0 9px;
+
+  border: 0;
+  border-radius: 6px;
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.58);
+
+  font-family: inherit;
+
+  font-size: 10.5px;
+  font-weight: 500;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    color 140ms ease,
+    background 140ms ease;
+}
+
+.favorites-sort-option:hover {
+  color: rgba(255, 255, 255, 0.9);
+
+  background:
+    rgba(255, 255, 255, 0.045);
+}
+
+.favorites-sort-option.is-selected {
+  color:
+    color-mix(
+      in srgb,
+      var(--musex-accent) 82%,
+      white
+    );
+}
+
+.favorites-sort-option svg {
+  width: 14px;
+  height: 14px;
+
+  flex-shrink: 0;
+
+  color: var(--musex-green);
+}
+
+
+/* =============================================================
+   SORT MENU ANIMATION
+============================================================= */
+
+@keyframes favorites-sort-menu-in {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(-4px)
+      scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+/* =============================================================
+   MUSIC TABLE
+============================================================= */
+
+.favorites-table {
+  margin-top: 12px;
+
+  min-width: 0;
+
+  overflow: hidden;
+
+  border: 1px solid var(--favorites-border);
+  border-radius: 12px;
+
+  background: var(--favorites-panel);
+
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.07);
+
+  transition:
+    border-color 180ms ease;
+}
+
+.favorites-table:hover {
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+
+/* =============================================================
+   EMPTY STATE
+============================================================= */
+
+.favorites-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 310px;
+
+  margin-top: 42px;
+
+  padding: 40px 20px;
+
+  border: 1px solid var(--favorites-border);
+  border-radius: 13px;
+
+  background: var(--favorites-panel);
+}
+
+.favorites-empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  width: 100%;
+  max-width: 360px;
+
+  text-align: center;
+}
+
+
+/* =============================================================
+   EMPTY ICON
+============================================================= */
+
+.favorites-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 56px;
+  height: 56px;
+
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--musex-accent) 13%,
+      transparent
+    );
+
+  border-radius: 15px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--musex-accent) 5.5%,
+      transparent
+    );
+
+  color: var(--musex-green);
+
+  box-shadow:
+    0 0 25px
+      color-mix(
+        in srgb,
+        var(--musex-accent) 4%,
+        transparent
+      );
+}
+
+.favorites-empty-icon svg {
+  width: 25px;
+  height: 25px;
+}
+
+
+/* =============================================================
+   EMPTY CODE
+============================================================= */
+
+.favorites-empty-code {
+  margin-top: 18px;
+
+  color:
+    color-mix(
+      in srgb,
+      var(--musex-accent) 55%,
+      transparent
+    );
+
+  font-family:
+    "Courier New",
+    "Lucida Console",
+    monospace;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 0.13em;
+}
+
+
+/* =============================================================
+   EMPTY TITLE
+============================================================= */
+
+.favorites-empty h2 {
+  margin: 8px 0 0;
+
+  color: rgba(255, 255, 255, 0.88);
+
+  font-size: 16px;
+  font-weight: 600;
+}
+
+
+/* =============================================================
+   EMPTY DESCRIPTION
+============================================================= */
+
+.favorites-empty p {
+  max-width: 320px;
+
+  margin: 8px 0 0;
+
+  color: var(--favorites-muted);
+
+  font-size: 12px;
+
+  line-height: 1.6;
+}
+
+
+/* =============================================================
+   RESPONSIVE — 750px
+============================================================= */
+
+@media (max-width: 750px) {
+  .favorites-header {
+    gap: 22px;
+  }
+
+  .favorites-title {
+    font-size: 29px;
+  }
+
+  .favorites-section {
+    margin-top: 36px;
+  }
+
+  .favorites-toolbar {
+    align-items: flex-end;
+  }
+}
+
+
+/* =============================================================
+   RESPONSIVE — 600px
+============================================================= */
+
+@media (max-width: 600px) {
+  .favorites-header {
+    flex-direction: column;
+    align-items: stretch;
+
+    gap: 18px;
+  }
+
+  .favorites-play-button {
+    width: 100%;
+  }
+
+  .favorites-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+
+    gap: 13px;
+  }
+
+  /*
+   * Ordenar permanece siempre a la derecha.
+   */
+
+  .favorites-sort {
+    width: 100%;
+
+    justify-content: flex-end;
+
+    margin-left: 0;
+  }
+
+  .favorites-sort-select {
+    min-width: 145px;
+  }
+}
+
+
+/* =============================================================
+   RESPONSIVE — 430px
+============================================================= */
+
+@media (max-width: 430px) {
+  .favorites-title {
+    font-size: 27px;
+  }
+
+  .favorites-description {
+    font-size: 12px;
+  }
+
+  .favorites-section {
+    margin-top: 32px;
+  }
+
+  .favorites-sort-label {
+    display: none;
+  }
+
+  .favorites-sort {
+    width: 100%;
+
+    justify-content: flex-end;
+  }
+
+  .favorites-sort-select {
+    min-width: 150px;
+
+    height: 35px;
+  }
+
+  .favorites-empty {
+    min-height: 290px;
+
+    margin-top: 32px;
+
+    padding-inline: 16px;
+  }
+}
+
+
+/* =============================================================
+   RESPONSIVE — 360px
+============================================================= */
+
+@media (max-width: 360px) {
+  .favorites-title {
+    font-size: 25px;
+  }
+
+  .favorites-count-label {
+    font-size: 7px;
+  }
+
+  .favorites-count-value {
+    font-size: 9px;
+  }
+
+  .favorites-sort-select {
+    min-width: 145px;
+  }
+
+  .favorites-empty {
+    min-height: 270px;
+  }
+}
+
+
+/* =============================================================
+   REDUCED MOTION
+============================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .favorites-play-button,
+  .favorites-sort-select,
+  .favorites-table {
+    transition: none;
+  }
+}

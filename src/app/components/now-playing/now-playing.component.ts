@@ -32,6 +32,8 @@ export class NowPlayingComponent {
 
   readonly playerState = this.playerService.state;
 
+  activePanel: 'playing' | 'lyrics' = 'playing';
+  
   /**
    * Canción actualmente seleccionada en el reproductor.
    */

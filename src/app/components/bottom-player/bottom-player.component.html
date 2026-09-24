@@ -656,13 +656,94 @@
       } @else {
 
         <svg
-          class="mini-player-default-disc"
+          class="music-table-default-disc"
           viewBox="0 0 100 100"
           role="img"
-          aria-hidden="true"
         >
-          <circle cx="50" cy="50" r="48" fill="var(--musex-accent)" />
-          <circle cx="50" cy="50" r="13" fill="#0d0e10" />
+
+          <!-- Borde exterior -->
+
+          <circle
+            cx="50"
+            cy="50"
+            r="47"
+            fill="none"
+            stroke="var(--musex-accent)"
+            stroke-width="3"
+            stroke-opacity="0.65"
+          />
+
+          <!-- Disco -->
+
+          <circle
+            cx="50"
+            cy="50"
+            r="43"
+            fill="var(--musex-accent)"
+          />
+
+          <!-- Surcos del vinilo -->
+
+          <circle
+            cx="50"
+            cy="50"
+            r="38"
+            fill="none"
+            stroke="#0d0e10"
+            stroke-width="1.5"
+            opacity="0.35"
+          />
+
+          <circle
+            cx="50"
+            cy="50"
+            r="31"
+            fill="none"
+            stroke="#0d0e10"
+            stroke-width="1"
+            opacity="0.3"
+          />
+
+          <circle
+            cx="50"
+            cy="50"
+            r="24"
+            fill="none"
+            stroke="#0d0e10"
+            stroke-width="1"
+            opacity="0.25"
+          />
+
+          <!-- Etiqueta central -->
+
+          <circle
+            cx="50"
+            cy="50"
+            r="13"
+            fill="#0d0e10"
+          />
+
+          <!-- Centro Musex -->
+
+          <circle
+            cx="50"
+            cy="50"
+            r="4"
+            fill="var(--musex-accent)"
+          />
+
+          <!-- Brillo -->
+
+          <circle
+            cx="50"
+            cy="50"
+            r="40"
+            fill="none"
+            stroke="#ffffff"
+            stroke-width="0.8"
+            opacity="0.12"
+          />
+
         </svg>
 
       }
@@ -681,6 +762,21 @@
       </p>
 
     </div>
+
+
+    <!-- Indicador de reproducción -->
+    @if (playerState().playing) {
+
+      <div
+        class="mini-player-playing"
+        aria-hidden="true"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+    }
 
 
     <!-- Los botones detienen la propagación para no abrir

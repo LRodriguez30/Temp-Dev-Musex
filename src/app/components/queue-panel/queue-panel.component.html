@@ -1,6 +1,9 @@
-@if (queuePanelService.open()) {
-<div class="fixed inset-x-0 bottom-[88px] top-0 z-[60] overflow-hidden bg-[#0d0e10]"
-    (click)="handleBackdropClick($event)">
+@if (queuePanelMounted()) {
+<div
+    class="queue-panel fixed inset-x-0 bottom-[88px] top-0 z-[60] overflow-hidden bg-[#0d0e10]"
+    [class.is-exiting]="queuePanelExiting()"
+    (click)="handleBackdropClick($event)"
+>
     <aside class="relative flex h-full w-full flex-col overflow-hidden bg-[#0d0e10]">
 
         <!-- =========================================================

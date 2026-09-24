@@ -235,6 +235,38 @@ export class PlaylistService {
   }
 
   /**
+   * Actualiza el orden de las canciones de una playlist.
+   *
+   * El nuevo orden recibido reemplaza únicamente el orden
+   * de trackIds. La playlist conserva el resto de sus datos.
+   */
+  updateTrackOrder(
+    playlistId: string,
+    trackIds: string[]
+  ): void {
+
+    this.playlists.update(playlists => {
+
+      const updated = playlists.map(playlist => {
+
+        if (playlist.id !== playlistId) {
+          return playlist;
+        }
+
+        return {
+          ...playlist,
+          trackIds: [...trackIds],
+          count: trackIds.length
+        };
+      });
+
+      this.saveToStorage(updated);
+
+      return updated;
+    });
+  }
+
+  /**
    * Obtiene los identificadores de canciones pertenecientes
    * a una playlist.
    */

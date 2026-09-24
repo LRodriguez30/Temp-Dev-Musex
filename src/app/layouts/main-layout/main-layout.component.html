@@ -228,18 +228,14 @@
       playerService.hasPlayableContent()
     ) {
 
-      <button
-        type="button"
-        class="
-          show-now-playing
-
-          max-[620px]:hidden
-        "
-        aria-label="Mostrar reproductor"
-        title="Mostrar reproductor"
-        (click)="
-          playerService.toggleRightPanel()
-        "
+      <button 
+        type="button" 
+        class="show-now-playing"
+        aria-label="Mostrar reproductor" 
+        title="Mostrar reproductor" 
+        (click)=" 
+          playerService.toggleRightPanel() 
+        " 
       >
 
         <svg

@@ -83,6 +83,7 @@
 
         <div
           class="music-table-row"
+          [class.is-playing]="isTrackPlaying(track)"
           role="row"
         >
 
@@ -91,11 +92,39 @@
                TRACK NUMBER
           ================================================== -->
 
-          <div class="music-table-track-number">
+          <div
+            class="music-table-track-number"
+            [class.is-playing]="isTrackPlaying(track)"
+          >
 
-            <span>
-              {{ (index + 1).toString().padStart(2, '0') }}
-            </span>
+            @if (isTrackPlaying(track)) {
+
+              <!-- =============================================
+                   PLAYING INDICATOR
+                   ---------------------------------------------
+                   Sustituye temporalmente el número de fila
+                   por un pequeño ecualizador animado.
+              ============================================== -->
+
+              <span
+                class="music-table-playing-indicator"
+                aria-label="Reproduciendo"
+              >
+
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+
+              </span>
+
+            } @else {
+
+              <span>
+                {{ (index + 1).toString().padStart(2, '0') }}
+              </span>
+
+            }
 
           </div>
 
@@ -106,7 +135,10 @@
 
           <div class="music-table-title-cell">
 
-            <div class="music-table-cover">
+            <div
+              class="music-table-cover"
+              [class.is-playing]="isTrackPlaying(track)"
+            >
 
               <!-- =============================================
                    IMAGE COVER
@@ -318,7 +350,10 @@
 
             <div class="music-table-title-content">
 
-              <p class="music-table-title">
+              <p
+                class="music-table-title"
+                [class.is-playing]="isTrackPlaying(track)"
+              >
                 {{ track.title }}
               </p>
 

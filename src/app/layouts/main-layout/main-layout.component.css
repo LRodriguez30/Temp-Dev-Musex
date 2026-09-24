@@ -263,6 +263,21 @@ app-bottom-player {
   vector-effect: non-scaling-stroke;
 }
 
+/* =============================================================
+   SHOW NOW PLAYING — MOBILE
+   -------------------------------------------------------------
+   La flecha para abrir Now Playing no tiene sentido en móvil,
+   porque el panel lateral no se utiliza en ese viewport.
+============================================================= */
+
+@media (max-width: 620px) {
+
+  .show-now-playing {
+    display: none !important;
+  }
+
+}
+
 
 
 /* =========================================================

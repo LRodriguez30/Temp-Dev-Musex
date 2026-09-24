@@ -150,6 +150,18 @@ export class HomeComponent {
   }
 
   /**
+   * Indica si una canción está reproduciéndose actualmente.
+   */
+  isTrackPlaying(track: Track): boolean {
+    const state = this.playerService.state();
+
+    return (
+      state.playing &&
+      state.currentTrackId === track.id
+    );
+  }
+
+  /**
    * Alterna el estado de favorito de una canción.
    */
   toggleFavorite(trackId: string): void {

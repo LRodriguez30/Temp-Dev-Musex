@@ -1,4 +1,7 @@
-import { Component, inject } from '@angular/core';
+import {
+  Component,
+  inject
+} from '@angular/core';
 
 import {
   NotificationService
@@ -11,7 +14,8 @@ import {
  * y las expone al template para su representación visual.
  *
  * La lógica de creación, duración y eliminación pertenece al
- * servicio; este componente se encarga únicamente de presentarlas.
+ * servicio; este componente se encarga únicamente de presentarlas
+ * y gestionar la transición visual de salida.
  */
 @Component({
   selector: 'app-toast-container',
@@ -25,20 +29,61 @@ export class ToastContainerComponent {
   /**
    * Servicio encargado de gestionar las notificaciones.
    */
-  private readonly notificationService = inject(NotificationService);
+  private readonly notificationService =
+    inject(NotificationService);
 
   /**
    * Lista reactiva de notificaciones actualmente visibles.
    */
-  readonly notifications = this.notificationService.items;
+  readonly notifications =
+    this.notificationService.items;
 
   /**
-   * Elimina una notificación concreta.
-   *
-   * El botón de cierre del toast utiliza este método para
-   * permitir al usuario descartarlo manualmente.
+   * IDs de notificaciones que están ejecutando
+   * la animación de salida.
+   */
+  private readonly leavingIds =
+    new Set<string>();
+
+
+  /**
+   * Comprueba si una notificación está saliendo.
+   */
+  isLeaving(notificationId: string): boolean {
+    return this.leavingIds.has(notificationId);
+  }
+
+
+  /**
+   * Inicia la animación de salida y elimina la
+   * notificación después de que termine.
    */
   dismiss(notificationId: string): void {
-    this.notificationService.remove(notificationId);
+
+    // Evita iniciar la animación más de una vez.
+    if (this.leavingIds.has(notificationId)) {
+      return;
+    }
+
+    // Marcamos la notificación como saliendo.
+    this.leavingIds.add(notificationId);
+
+
+    /*
+     * Debe coincidir con la duración de
+     * toast-leave en el CSS.
+     */
+    setTimeout(() => {
+
+      this.notificationService.remove(
+        notificationId
+      );
+
+      this.leavingIds.delete(
+        notificationId
+      );
+
+    }, 220);
   }
+
 }

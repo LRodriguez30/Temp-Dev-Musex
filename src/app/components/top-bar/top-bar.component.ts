@@ -8,13 +8,6 @@ import {
 import { MobileMenuService } from '../../core/services/mobile-menu.service';
 import { ModalService } from '../../core/services/modal.service';
 
-interface Profile {
-  id: string;
-  name: string;
-  subtitle: string;
-  active: boolean;
-}
-
 @Component({
   selector: 'app-top-bar',
   standalone: true,
@@ -42,37 +35,6 @@ export class TopBarComponent {
   readonly userMenuOpen =
     signal(false);
 
-  readonly profileSwitcherOpen =
-    signal(false);
-
-
-  // =========================================================
-  // PERFILES
-  // =========================================================
-
-  /**
-   * Perfiles de ejemplo para la interfaz visual.
-   *
-   * TODO:
-   * Reemplazar por el sistema real de perfiles locales
-   * cuando exista persistencia.
-   */
-  readonly availableProfiles =
-    signal<Profile[]>([
-      {
-        id: 'lart',
-        name: 'LART',
-        subtitle: 'Biblioteca personal',
-        active: true
-      },
-      {
-        id: 'familia',
-        name: 'Familia',
-        subtitle: 'Compartido',
-        active: false
-      }
-    ]);
-
 
   // =========================================================
   // BÚSQUEDA
@@ -81,13 +43,11 @@ export class TopBarComponent {
   /**
    * Abre el buscador global de Musex.
    *
-   * El TopBar no administra el estado del buscador.
-   * ModalService es ahora el encargado de abrirlo.
+   * El estado del buscador es administrado por ModalService.
    */
   openSearch(): void {
 
     this.userMenuOpen.set(false);
-    this.profileSwitcherOpen.set(false);
 
     this.modalService.openSearch();
 
@@ -95,59 +55,17 @@ export class TopBarComponent {
 
 
   // =========================================================
-  // MENÚ DE PERFIL
+  // MENÚ DE USUARIO
   // =========================================================
 
+  /**
+   * Abre o cierra el menú del usuario.
+   */
   toggleUserMenu(): void {
-
-    /*
-     * Si el menú está abierto y el usuario vuelve
-     * a pulsar el botón, simplemente lo cerramos.
-     */
 
     this.userMenuOpen.update(
       open => !open
     );
-
-
-    /*
-     * Al abrir el menú de perfil nos aseguramos
-     * de que el selector interno empiece cerrado.
-     */
-
-    if (!this.userMenuOpen()) {
-
-      this.profileSwitcherOpen.set(false);
-
-    }
-
-  }
-
-
-  // =========================================================
-  // SELECTOR DE PERFILES
-  // =========================================================
-
-  toggleProfileSwitcher(): void {
-
-    this.profileSwitcherOpen.update(
-      open => !open
-    );
-
-  }
-
-
-  selectProfile(profileId: string): void {
-
-    this.availableProfiles.update(
-      profiles =>
-        profiles.map(profile => ({
-          ...profile,
-          active: profile.id === profileId
-        }))
-    );
-
-    this.profileSwitcherOpen.set(false);
 
   }
 
@@ -162,18 +80,7 @@ export class TopBarComponent {
   )
   handleKeyboard(event: KeyboardEvent): void {
 
-    /*
-     * Ctrl + K
-     *
-     * Windows / Linux:
-     * Ctrl + K
-     *
-     * macOS:
-     * Cmd + K
-     *
-     * El buscador se encarga internamente de su
-     * navegación por teclado una vez abierto.
-     */
+    // Ctrl + K / Cmd + K
 
     if (
       (event.ctrlKey || event.metaKey) &&
@@ -189,32 +96,14 @@ export class TopBarComponent {
     }
 
 
-    /*
-     * Escape:
-     *
-     * El ModalComponent global se encarga del Escape
-     * cuando existe un modal abierto.
-     *
-     * Aquí solamente manejamos el menú de perfil,
-     * que no pertenece al sistema global de modales.
-     */
+    // Escape
 
-    if (event.key === 'Escape') {
+    if (
+      event.key === 'Escape' &&
+      this.userMenuOpen()
+    ) {
 
-      if (this.profileSwitcherOpen()) {
-
-        this.profileSwitcherOpen.set(false);
-
-        return;
-
-      }
-
-
-      if (this.userMenuOpen()) {
-
-        this.userMenuOpen.set(false);
-
-      }
+      this.userMenuOpen.set(false);
 
     }
 

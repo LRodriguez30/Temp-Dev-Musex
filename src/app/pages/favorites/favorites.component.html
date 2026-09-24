@@ -1,157 +1,51 @@
-<!-- =========================================================
-     MUSEX — FAVORITES VIEW
-     ---------------------------------------------------------
-     Colección dinámica de canciones favoritas.
-========================================================== -->
-
-<section
-  class="
-    view
-    h-full
-    overflow-y-auto
-    scroll-area
-  "
->
+<section class="favorites-page view h-full overflow-y-auto scroll-area">
   <div
-    class="
-      content-pad
-      mx-auto
-      w-full
-      max-w-[1060px]
-      px-4
-      pb-10
-      pt-6
-      sm:px-6
-      sm:pt-8
-      lg:px-7
-    "
+    class="content-pad mx-auto w-full max-w-[1060px] px-4 pb-10 pt-6 sm:px-6 sm:pt-8 lg:px-7"
   >
 
-    <!-- =======================================================
+    <!-- =====================================================
          HEADER
-    ======================================================== -->
+    ====================================================== -->
 
-    <header
-      class="
-        flex
-        flex-col
-        gap-5
-        sm:flex-row
-        sm:items-end
-        sm:justify-between
-      "
-    >
+    <header class="favorites-header">
 
-      <!-- =====================================================
-           TITLE
-      ====================================================== -->
+      <div class="favorites-heading">
 
-      <div class="min-w-0">
+        <div class="favorites-eyebrow">
+          <span class="favorites-eyebrow-dot"></span>
+          COLECCIÓN
+        </div>
 
-        <p
-          class="
-            text-[10px]
-            font-semibold
-            uppercase
-            tracking-[0.18em]
-            text-[var(--musex-accent)]
-            sm:text-xs
-          "
-        >
-          Colección
-        </p>
-
-        <h1
-          class="
-            mt-1.5
-            text-[24px]
-            font-semibold
-            tracking-tight
-            text-white
-            sm:mt-2
-            sm:text-[26px]
-          "
-        >
+        <h1 class="favorites-title">
           Favoritos
         </h1>
 
-        <p
-          class="
-            mt-1
-            text-xs
-            text-zinc-500
-            sm:text-sm
-          "
-        >
-          {{ favoriteCount() }}
-
-          {{
-            favoriteCount() === 1
-              ? 'canción favorita'
-              : 'canciones favoritas'
-          }}
+        <p class="favorites-description">
+          Tus canciones guardadas en un solo lugar.
         </p>
 
       </div>
 
-
-      <!-- =====================================================
-           PLAY FAVORITES
-      ====================================================== -->
-
-      @if (favorites().length > 0) {
+      @if (favoriteCount() > 0) {
 
         <button
           type="button"
-          class="
-            transition-ui
-            flex
-            h-10
-            w-full
-            shrink-0
-            items-center
-            justify-center
-            gap-2
-            rounded-lg
-            bg-[var(--musex-accent)]
-            px-5
-            text-xs
-            font-bold
-            uppercase
-            tracking-[0.04em]
-            text-black
-            shadow-[0_0_18px_rgba(156,255,0,0.08)]
-            transition-all
-            hover:brightness-105
-            active:scale-[0.98]
-            sm:w-auto
-            sm:rounded-full
-            sm:text-sm
-            sm:normal-case
-            sm:tracking-normal
-          "
+          class="favorites-play-button"
           (click)="playFavorites()"
         >
-
-          <svg
-            viewBox="0 0 24 24"
-            class="
-              h-[16px]
-              w-[16px]
-              shrink-0
-            "
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              d="M8 5.5v13L19 12 8 5.5Z"
-            ></path>
-          </svg>
-
-          <span>
-            Reproducir
+          <span class="favorites-play-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                d="M8 5.5v13a1 1 0 0 0 1.53.85l10-6.5a1 1 0 0 0 0-1.7l-10-6.5A1 1 0 0 0 8 5.5Z"
+              />
+            </svg>
           </span>
 
+          Reproducir
         </button>
 
       }
@@ -159,194 +53,233 @@
     </header>
 
 
-    <!-- =======================================================
-         FAVORITES CONTENT
-    ======================================================== -->
+    <!-- =====================================================
+         FAVORITES
+    ====================================================== -->
 
-    @if (favorites().length > 0) {
+    @if (favoriteCount() > 0) {
 
-      <section
-        class="
-          mt-7
-          sm:mt-8
-        "
-      >
+      <section class="favorites-section">
 
-        <!-- ===================================================
+        <!-- =================================================
              TOOLBAR
-        ==================================================== -->
+        ================================================== -->
 
-        <div
-          class="
-            flex
-            flex-col
-            gap-3
-            border-b
-            border-[#292b30]
-            pb-3
-            sm:flex-row
-            sm:items-center
-            sm:justify-between
-          "
-        >
+        <div class="favorites-toolbar">
 
-          <!-- =================================================
-               RESULT COUNT
-          ================================================== -->
+          <!-- COUNT -->
 
-          <div
-            class="
-              flex
-              min-w-0
-              items-center
-              gap-2
-            "
-          >
+          <div class="favorites-count">
 
-            <span
-              class="
-                font-mono
-                text-[9px]
-                font-bold
-                uppercase
-                tracking-[0.12em]
-                text-[var(--musex-accent)]/60
-              "
-            >
-              FAVORITES
+            <span class="favorites-count-label">
+              FAVORITOS
             </span>
 
-            <span
-              class="
-                h-1
-                w-1
-                rounded-full
-                bg-[#292b30]
-              "
-            ></span>
+            <span class="favorites-count-dot"></span>
 
-            <span
-              class="
-                text-[11px]
-                text-zinc-500
-              "
-            >
-              {{ tracks.length }}
-
-              {{
-                tracks.length === 1
-                  ? 'canción'
-                  : 'canciones'
-              }}
+            <span class="favorites-count-value">
+              {{ favoriteCount() }} canciones
             </span>
 
           </div>
 
 
-          <!-- =================================================
-               SORT
-          ================================================== -->
+          <!-- SORT -->
 
-          <div
-            class="
-              flex
-              w-full
-              items-center
-              justify-between
-              gap-2
-              sm:w-auto
-              sm:justify-end
-            "
-          >
+          <div class="favorites-sort">
 
-            <span
-              class="
-                text-[9px]
-                font-semibold
-                uppercase
-                tracking-[0.12em]
-                text-zinc-600
-              "
-            >
-              Ordenar por
+            <span class="favorites-sort-label">
+              ORDENAR
             </span>
 
-            <div class="relative">
+            <div class="favorites-sort-control">
 
-              <select
-                [(ngModel)]="sortBy"
-                class="
-                  h-9
-                  min-w-[125px]
-                  appearance-none
-                  rounded-lg
-                  border
-                  border-[#292b30]
-                  bg-[#131517]
-                  pl-3
-                  pr-8
-                  text-xs
-                  font-medium
-                  text-zinc-300
-                  outline-none
-                  transition
-                  hover:border-[#3a3d43]
-                  focus:border-[var(--musex-accent)]/40
-                  focus:ring-1
-                  focus:ring-[var(--musex-accent)]/10
-                "
+              <button
+                type="button"
+                class="favorites-sort-button"
+                [class.is-open]="sortMenuOpen"
+                [attr.aria-expanded]="sortMenuOpen"
+                aria-haspopup="listbox"
                 aria-label="Ordenar favoritos"
+                (click)="sortMenuOpen = !sortMenuOpen"
               >
 
-                <option
-                  value="title"
-                  class="bg-[#131517]"
+                <!-- SORT ICON -->
+
+                <span class="favorites-sort-icon">
+
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M8 6h13"></path>
+                    <path d="M8 12h10"></path>
+                    <path d="M8 18h7"></path>
+
+                    <path d="M3 6h.01"></path>
+                    <path d="M3 12h.01"></path>
+                    <path d="M3 18h.01"></path>
+                  </svg>
+
+                </span>
+
+
+                <!-- CURRENT VALUE -->
+
+                <span class="favorites-sort-value">
+
+                  @if (sortBy === 'title') {
+                    Título
+                  }
+
+                  @else if (sortBy === 'artist') {
+                    Artista
+                  }
+
+                  @else {
+                    Más recientes
+                  }
+
+                </span>
+
+
+                <!-- CHEVRON -->
+
+                <span
+                  class="favorites-sort-chevron"
+                  [class.is-open]="sortMenuOpen"
                 >
-                  Título
-                </option>
 
-                <option
-                  value="artist"
-                  class="bg-[#131517]"
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+
+                </span>
+
+              </button>
+
+
+              <!-- SORT MENU -->
+
+              @if (sortMenuOpen) {
+
+                <div
+                  class="favorites-sort-menu"
+                  role="listbox"
+                  aria-label="Opciones de orden"
                 >
-                  Artista
-                </option>
 
-                <option
-                  value="recent"
-                  class="bg-[#131517]"
-                >
-                  Recientes
-                </option>
+                  <!-- TITLE -->
 
-              </select>
+                  <button
+                    type="button"
+                    class="favorites-sort-option"
+                    [class.is-selected]="sortBy === 'title'"
+                    (click)="sortBy = 'title'; sortMenuOpen = false"
+                  >
+
+                    <span>
+                      Título
+                    </span>
+
+                    @if (sortBy === 'title') {
+
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+
+                    }
+
+                  </button>
 
 
-              <!-- SELECT ARROW -->
+                  <!-- ARTIST -->
 
-              <svg
-                viewBox="0 0 24 24"
-                class="
-                  pointer-events-none
-                  absolute
-                  right-2.5
-                  top-1/2
-                  h-3.5
-                  w-3.5
-                  -translate-y-1/2
-                  text-zinc-600
-                "
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                aria-hidden="true"
-              >
-                <path
-                  d="m7 9 5 5 5-5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                ></path>
-              </svg>
+                  <button
+                    type="button"
+                    class="favorites-sort-option"
+                    [class.is-selected]="sortBy === 'artist'"
+                    (click)="sortBy = 'artist'; sortMenuOpen = false"
+                  >
+
+                    <span>
+                      Artista
+                    </span>
+
+                    @if (sortBy === 'artist') {
+
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+
+                    }
+
+                  </button>
+
+
+                  <!-- RECENT -->
+
+                  <button
+                    type="button"
+                    class="favorites-sort-option"
+                    [class.is-selected]="sortBy === 'recent'"
+                    (click)="sortBy = 'recent'; sortMenuOpen = false"
+                  >
+
+                    <span>
+                      Más recientes
+                    </span>
+
+                    @if (sortBy === 'recent') {
+
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+
+                    }
+
+                  </button>
+
+                </div>
+
+              }
 
             </div>
 
@@ -355,137 +288,64 @@
         </div>
 
 
-        <!-- ===================================================
+        <!-- =================================================
              MUSIC TABLE
-        ==================================================== -->
+        ================================================== -->
 
-        <div class="mt-3">
+        <div class="favorites-table">
 
           <app-music-table
             [tracks]="tracks"
             (play)="playTrack($event)"
             (more)="openMore($event)"
             (addToPlaylist)="openAddToPlaylist($event)"
-          ></app-music-table>
+          />
 
         </div>
 
       </section>
 
-    } @else {
+    }
 
-      <!-- =====================================================
-           EMPTY STATE
-      ====================================================== -->
 
-      <section
-        class="
-          mt-7
-          flex
-          min-h-[300px]
-          items-center
-          justify-center
-          rounded-xl
-          border
-          border-[#292b30]
-          bg-[#131517]
-          px-6
-          sm:mt-8
-          sm:min-h-[360px]
-        "
-      >
+    <!-- =====================================================
+         EMPTY STATE
+    ====================================================== -->
 
-        <div
-          class="
-            flex
-            w-full
-            max-w-[360px]
-            flex-col
-            items-center
-            text-center
-          "
-        >
+    @else {
 
-          <!-- =================================================
-               EMPTY STAR
-          ================================================== -->
+      <section class="favorites-empty">
 
-          <div
-            class="
-              flex
-              h-14
-              w-14
-              items-center
-              justify-center
-              rounded-2xl
-              border
-              border-[var(--musex-accent)]/10
-              bg-[var(--musex-accent)]/[0.06]
-              text-[var(--musex-accent)]
-              shadow-[0_0_24px_rgba(156,255,0,0.04)]
-            "
-          >
+        <div class="favorites-empty-content">
+
+          <div class="favorites-empty-icon">
 
             <svg
               viewBox="0 0 24 24"
-              class="h-7 w-7"
-              fill="currentColor"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
               aria-hidden="true"
             >
-
               <path
-                d="
-                  M12 2.5
-                  l2.94 5.95
-                  6.56.95
-                  -4.75 4.63
-                  1.12 6.54
-                  L12 17.48
-                  6.13 20.57
-                  7.25 14.03
-                  2.5 9.4
-                  9.06 8.45
-                  12 2.5Z
-                "
-              ></path>
-
+                d="M20.8 8.7c0 5.5-8.8 10.3-8.8 10.3S3.2 14.2 3.2 8.7A4.7 4.7 0 0 1 8 4c1.6 0 3.1.8 4 2.1A4.8 4.8 0 0 1 16 4a4.7 4.7 0 0 1 4.8 4.7Z"
+              />
             </svg>
 
           </div>
 
+          <span class="favorites-empty-code">
+            FAVORITES / EMPTY
+          </span>
 
-          <!-- =================================================
-               EMPTY TITLE
-          ================================================== -->
-
-          <h2
-            class="
-              mt-5
-              text-base
-              font-semibold
-              text-white
-            "
-          >
+          <h2>
             Aún no tienes favoritos
           </h2>
 
-
-          <!-- =================================================
-               EMPTY DESCRIPTION
-          ================================================== -->
-
-          <p
-            class="
-              mt-2
-              max-w-[320px]
-              text-xs
-              leading-6
-              text-zinc-500
-              sm:text-sm
-            "
-          >
-            Las canciones que marques con estrella
-            aparecerán aquí.
+          <p>
+            Guarda las canciones que más te gustan y aparecerán aquí.
           </p>
 
         </div>

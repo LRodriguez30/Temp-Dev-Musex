@@ -2965,6 +2965,257 @@
   transform: scale(0.92);
 }
 
+/* =============================================================
+   MINI PLAYER — PLAYING INDICATOR
+   -------------------------------------------------------------
+   Indicador compacto de reproducción para móvil.
+   Aparece únicamente mientras la canción está reproduciéndose.
+============================================================= */
+
+.mini-player-playing {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  gap: 2px;
+
+  width: 18px;
+  height: 18px;
+
+  padding: 0 2px 2px;
+  box-sizing: border-box;
+
+  flex: 0 0 18px;
+
+  opacity: 0.9;
+
+  pointer-events: none;
+}
+
+.mini-player-playing span {
+  display: block;
+
+  width: 2px;
+
+  border-radius: 2px;
+
+  background: var(--musex-green);
+
+  box-shadow:
+    0 0 5px color-mix(
+      in srgb,
+      var(--musex-accent) 40%,
+      transparent
+    );
+
+  transform-origin: bottom;
+
+  animation:
+    mini-player-equalizer
+    700ms
+    ease-in-out
+    infinite
+    alternate;
+}
+
+.mini-player-playing span:nth-child(1) {
+  height: 7px;
+  animation-delay: -120ms;
+}
+
+.mini-player-playing span:nth-child(2) {
+  height: 13px;
+  animation-delay: -300ms;
+}
+
+.mini-player-playing span:nth-child(3) {
+  height: 9px;
+  animation-delay: -480ms;
+}
+
+@keyframes mini-player-equalizer {
+
+  0% {
+    transform: scaleY(0.35);
+  }
+
+  100% {
+    transform: scaleY(1);
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .mini-player-playing span {
+    animation: none;
+    transform: scaleY(0.55);
+  }
+
+}
+
+
+/* =============================================================
+   MINI PLAYER — SYNTHWAVE COVER
+   -------------------------------------------------------------
+   Pequeño visualizador reactivo sobre la portada.
+   Solo aparece mientras Musex está reproduciendo.
+============================================================= */
+
+.mini-player-cover {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Capa de iluminación */
+
+.mini-player-synthwave {
+  position: absolute;
+
+  inset: 0;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  gap: 2px;
+
+  padding:
+    0
+    5px
+    4px;
+
+  box-sizing: border-box;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  background:
+    linear-gradient(
+      to top,
+      rgba(156, 255, 0, 0.18),
+      transparent 55%
+    );
+
+  animation:
+    mini-synthwave-in
+    350ms
+    ease
+    forwards;
+}
+
+
+/* Barras */
+
+.mini-player-synthwave span {
+  display: block;
+
+  width: 2px;
+
+  height: var(--mini-bar-height, 30%);
+
+  min-height: 3px;
+
+  max-height: 70%;
+
+  border-radius: 2px 2px 0 0;
+
+  background: var(--musex-accent);
+
+  box-shadow:
+    0 0 5px rgba(156, 255, 0, 0.65);
+
+  transform-origin: bottom;
+
+  animation:
+    mini-synthwave-bars
+    var(--mini-bar-duration, 600ms)
+    ease-in-out
+    infinite
+    alternate;
+
+  animation-delay:
+    var(--mini-bar-delay, 0ms);
+}
+
+
+/* Variación de cada barra */
+
+.mini-player-synthwave span:nth-child(1) {
+  --mini-bar-height: 28%;
+  --mini-bar-duration: 520ms;
+  --mini-bar-delay: -120ms;
+}
+
+.mini-player-synthwave span:nth-child(2) {
+  --mini-bar-height: 55%;
+  --mini-bar-duration: 670ms;
+  --mini-bar-delay: -280ms;
+}
+
+.mini-player-synthwave span:nth-child(3) {
+  --mini-bar-height: 72%;
+  --mini-bar-duration: 580ms;
+  --mini-bar-delay: -430ms;
+}
+
+.mini-player-synthwave span:nth-child(4) {
+  --mini-bar-height: 48%;
+  --mini-bar-duration: 730ms;
+  --mini-bar-delay: -180ms;
+}
+
+.mini-player-synthwave span:nth-child(5) {
+  --mini-bar-height: 32%;
+  --mini-bar-duration: 610ms;
+  --mini-bar-delay: -350ms;
+}
+
+
+@keyframes mini-synthwave-bars {
+
+  0% {
+    transform: scaleY(0.35);
+    opacity: 0.55;
+  }
+
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+
+}
+
+
+@keyframes mini-synthwave-in {
+
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+
+}
+
+
+/* Pausar toda animación cuando el usuario
+   ha solicitado movimiento reducido */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .mini-player-synthwave,
+  .mini-player-synthwave span {
+    animation: none;
+  }
+
+  .mini-player-synthwave {
+    opacity: 0.75;
+  }
+
+}
 
 /* =============================================================
    FULL PLAYER — RESPONSIVE

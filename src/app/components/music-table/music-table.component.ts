@@ -143,6 +143,15 @@ export class MusicTableComponent {
     this.play.emit(track);
   }
 
+  isTrackPlaying(track: Track): boolean {
+    const state = this.playerService.state();
+
+    return (
+        state.playing &&
+        state.currentTrackId === track.id
+    );
+  }
+
 
   /* =============================================================
      MODAL — METADATA
