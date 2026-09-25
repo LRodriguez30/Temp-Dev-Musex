@@ -1,0 +1,25 @@
+/* =============================================================
+   PAGE ENTER
+============================================================= */
+
+.history-page {
+  width: 100%;
+
+  animation:
+    history-page-enter
+    350ms
+    ease
+    both;
+}
+
+@keyframes history-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -8,7 +8,7 @@
     Un espacio de trabajo musical local construido con Angular, Tauri y Rust.
   </p>
 
-  <img src="./app-example.png" alt="Vista previa de Musex" width="900">
+  <img src="./musex-preview.png" alt="Vista previa de Musex" width="900">
 
 </div>
 

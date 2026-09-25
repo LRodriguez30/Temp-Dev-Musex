@@ -27,6 +27,7 @@ import { Track } from '../../core/models/track.model';
 
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { SearchModalComponent } from '../../components/search-modal/search-modal.component';
+import { ThemeService } from '../../core/services/theme.service';
 
 
 /**
@@ -66,6 +67,9 @@ export class MainLayoutComponent {
   // =============================================================
   // SERVICIOS
   // =============================================================
+
+  private readonly themeService =
+    inject(ThemeService);
 
   readonly playerService =
     inject(PlayerService);

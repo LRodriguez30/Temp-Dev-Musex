@@ -38,6 +38,33 @@
 
 
 /* =============================================================
+   PAGE ENTER
+============================================================= */
+
+.download-page {
+  width: 100%;
+
+  animation:
+    download-page-enter
+    350ms
+    ease
+    both;
+}
+
+@keyframes download-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =============================================================
    MAIN SCROLL AREA
 ============================================================= */
 

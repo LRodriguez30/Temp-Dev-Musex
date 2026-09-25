@@ -112,7 +112,11 @@
 
 .sidebar-link.active {
   color: #ffffff;
-  background: rgba(156, 255, 0, 0.055);
+  background: color-mix(
+  in srgb,
+  var(--musex-accent) 5.5%,
+  transparent
+);
 }
 
 .sidebar-link.active::before {
@@ -126,7 +130,11 @@
   background: var(--musex-accent);
 
   box-shadow:
-    0 0 10px rgba(156, 255, 0, 0.22);
+    0 0 10px color-mix(
+  in srgb,
+  var(--musex-accent) 22%,
+  transparent
+);
 
   animation: musex-sidebar-active-in 220ms ease-out;
 }
@@ -186,7 +194,11 @@
 
 .playlist-label + button:hover {
   color: var(--musex-accent);
-  background: rgba(156, 255, 0, 0.06);
+  background: color-mix(
+    in srgb,
+    var(--musex-accent) 6%,
+    transparent
+  );
   transform: rotate(90deg);
 }
 
@@ -215,7 +227,11 @@
     linear-gradient(
       110deg,
       transparent 0%,
-      rgba(156, 255, 0, 0.035) 45%,
+      color-mix(
+        in srgb,
+        var(--musex-accent) 3.5%,
+        transparent
+      ) 45%,
       transparent 70%
     );
 
@@ -224,7 +240,11 @@
 }
 
 .musex-storage-card:hover {
-  border-color: rgba(156, 255, 0, 0.14);
+  border-color: color-mix(
+    in srgb,
+    var(--musex-accent) 14%,
+    transparent
+  );
   background: #121315;
   box-shadow:
     0 8px 24px rgba(0, 0, 0, 0.18);
@@ -260,7 +280,12 @@
 .musex-storage-card:hover .musex-storage-icon {
   transform: translateY(-1px) scale(1.045);
   box-shadow:
-    0 0 0 4px rgba(156, 255, 0, 0.025);
+    0 0 0 4px
+    color-mix(
+      in srgb,
+      var(--musex-accent) 2.5%,
+      transparent
+    );
 }
 
 
@@ -285,11 +310,20 @@
   position: absolute;
   inset: -3px;
 
-  border: 1px solid rgba(156, 255, 0, 0.18);
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--musex-accent) 18%,
+      transparent
+    );
+
   border-radius: 999px;
 
   animation:
-    musex-storage-loader-ring 1.4s ease-out infinite;
+    musex-storage-loader-ring
+    1.4s
+    ease-out
+    infinite;
 }
 
 @keyframes musex-storage-loader-pulse {
@@ -349,7 +383,12 @@
   background: var(--musex-accent);
 
   box-shadow:
-    0 0 8px rgba(156, 255, 0, 0.28);
+    0 0 8px
+    color-mix(
+      in srgb,
+      var(--musex-accent) 28%,
+      transparent
+    );
 
   animation:
     musex-storage-progress-loading
@@ -490,7 +529,11 @@
   filter:
     drop-shadow(
       0 0 7px
-      rgba(156, 255, 0, 0.42)
+      color-mix(
+        in srgb,
+        var(--musex-accent) 42%,
+        transparent
+      )
     );
 
   transform:
@@ -637,8 +680,19 @@
 
 .mobile-more-close:hover {
   color: #ffffff;
-  border-color: rgba(156, 255, 0, 0.18);
-  background: rgba(156, 255, 0, 0.055);
+
+  border-color: color-mix(
+    in srgb,
+    var(--musex-accent) 18%,
+    transparent
+  );
+
+  background: color-mix(
+    in srgb,
+    var(--musex-accent) 5.5%,
+    transparent
+  );
+
   transform: rotate(90deg);
 }
 
@@ -765,7 +819,11 @@
   background:
     linear-gradient(
       135deg,
-      rgba(156, 255, 0, 0.055),
+      color-mix(
+  in srgb,
+  var(--musex-accent) 5.5%,
+  transparent
+),
       transparent 55%
     );
 
@@ -776,7 +834,12 @@
 }
 
 .mobile-more-item:hover {
-  border-color: rgba(156, 255, 0, 0.18);
+  border-color: color-mix(
+    in srgb,
+    var(--musex-accent) 18%,
+    transparent
+  );
+
   background: #181a1c;
 
   box-shadow:
@@ -864,8 +927,18 @@
 }
 
 .mobile-more-item:hover .mobile-more-item-icon {
-  border-color: rgba(156, 255, 0, 0.18);
-  background: rgba(156, 255, 0, 0.055);
+  border-color: color-mix(
+    in srgb,
+    var(--musex-accent) 18%,
+    transparent
+  );
+
+  background: color-mix(
+    in srgb,
+    var(--musex-accent) 5.5%,
+    transparent
+  );
+
   color: var(--musex-accent);
 
   transform:
@@ -891,11 +964,24 @@
 ============================================================= */
 
 .mobile-more-item.mobile-more-active {
-  border-color: rgba(156, 255, 0, 0.22);
-  background: rgba(156, 255, 0, 0.055);
+  border-color: color-mix(
+    in srgb,
+    var(--musex-accent) 22%,
+    transparent
+  );
+  background: color-mix(
+    in srgb,
+    var(--musex-accent) 5.5%,
+    transparent
+  );
 
   box-shadow:
-    inset 0 0 0 1px rgba(156, 255, 0, 0.025);
+  inset 0 0 0 1px
+  color-mix(
+    in srgb,
+    var(--musex-accent) 2.5%,
+    transparent
+  );
 }
 
 .mobile-more-item.mobile-more-active::before {
@@ -913,7 +999,12 @@
   background: var(--musex-accent);
 
   box-shadow:
-    0 0 10px rgba(156, 255, 0, 0.3);
+    0 0 10px
+    color-mix(
+      in srgb,
+      var(--musex-accent) 30%,
+      transparent
+    );
 
   animation:
     musex-more-active-in
@@ -923,7 +1014,11 @@
 }
 
 .mobile-more-item.mobile-more-active .mobile-more-item-icon {
-  border-color: rgba(156, 255, 0, 0.2);
+  border-color: color-mix(
+    in srgb,
+    var(--musex-accent) 20%,
+    transparent
+  );
   color: var(--musex-accent);
 }
 
