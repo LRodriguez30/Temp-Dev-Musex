@@ -36,13 +36,24 @@ export class PlayerService implements OnDestroy {
 
     constructor()
     {
+        this.loadContinueListening();
+
         window.addEventListener('beforeunload', () => {
+            this.saveContinueListening();
             void invoke('stop_audio');
         });
-        
+
+        window.addEventListener('beforeunload', () => {
+            this.saveContinueListening();
+            void invoke('stop_eq_audio');
+        });
+
         navigator.mediaDevices?.addEventListener('devicechange', () => {
             invoke('reinitialize_audio_device').catch(error => {
-            console.error('No se pudo reinicializar el dispositivo de audio.', error);
+                console.error(
+                    'No se pudo reinicializar el dispositivo de audio.',
+                    error
+                );
             });
         });
     }
@@ -75,6 +86,15 @@ export class PlayerService implements OnDestroy {
     });
 
     /**
+     * Indica si el historial de reproducción está procesando
+     * la canción que acaba de comenzar.
+     *
+     * Home utiliza este estado para mostrar una animación
+     * de carga en "Escuchado recientemente".
+     */
+    readonly historyLoading = signal(false);
+
+    /**
      * Estado público de solo lectura.
      */
     readonly state = this.playerState.asReadonly();
@@ -85,10 +105,49 @@ export class PlayerService implements OnDestroy {
     readonly tracks = this.libraryService.library;
 
     /**
+     * Estado persistente de la última reproducción pendiente.
+     *
+     * Se utiliza exclusivamente para "Continuar escuchando".
+     */
+    private readonly continueListeningStorageKey =
+        'musex_continue_listening';
+
+    /**
+     * Estado reactivo de "Continuar escuchando".
+     *
+     * Mantiene en memoria el mismo estado que se persiste
+     * en localStorage para que Angular pueda reaccionar
+     * inmediatamente cuando cambia la canción o la posición.
+     */
+    private readonly continueListening =
+        signal<{
+            trackId: string;
+            position: number;
+        } | null>(null);
+
+    /**
+     * Indica que existe un guardado de progreso pendiente.
+     *
+     * Este estado permanece activo durante el segundo utilizado
+     * para evitar escrituras continuas en localStorage.
+     */
+    readonly continueListeningSaving = signal(false);
+
+    /**
+     * Estado público de solo lectura de "Continuar escuchando".
+     */
+    readonly continueListeningState =
+        this.continueListening.asReadonly();
+
+    private continueListeningSaveTimer:
+        ReturnType<typeof setTimeout> | null = null;
+
+    /**
      * Temporizador utilizado para consultar periódicamente
      * la posición real del audio en el reproductor de Rust.
      */
-    private positionTimer: ReturnType<typeof setInterval> | null = null;
+    private positionTimer:
+        ReturnType<typeof setInterval> | null = null;
 
     /**
      * Evita procesar varias veces el final de una misma canción.
@@ -133,7 +192,6 @@ export class PlayerService implements OnDestroy {
      * la animación.
      */
     readonly trackTransitionKey = signal(0);
-    
 
     /**
      * Indica si el Full Player está abierto.
@@ -142,7 +200,6 @@ export class PlayerService implements OnDestroy {
      * Bottom Player como el Main Layout necesitan conocerlo.
      */
     readonly fullPlayerOpen = signal(false);
-
 
     /**
      * Indica si existe contenido reproducible real: una canción
@@ -160,15 +217,14 @@ export class PlayerService implements OnDestroy {
      * Abre o cierra el Full Player.
      */
     toggleFullPlayer(): void {
-    this.fullPlayerOpen.update(open => !open);
+        this.fullPlayerOpen.update(open => !open);
     }
-
 
     /**
      * Cierra el Full Player.
      */
     closeFullPlayer(): void {
-    this.fullPlayerOpen.set(false);
+        this.fullPlayerOpen.set(false);
     }
 
     /**
@@ -178,6 +234,17 @@ export class PlayerService implements OnDestroy {
      * se incorpora automáticamente.
      */
     async playTrack(trackId: string): Promise<void> {
+
+        const currentTrackId =
+            this.playerState().currentTrackId;
+
+        if (
+            currentTrackId &&
+            currentTrackId !== trackId
+        ) {
+            this.saveContinueListening();
+        }
+
         const track = this.getTrack(trackId);
 
         if (!track) {
@@ -197,11 +264,22 @@ export class PlayerService implements OnDestroy {
         }
 
         try {
-            /**
-             * Una nueva reproducción invalida cualquier proceso
-             * anterior que estuviera manejando el final de una pista.
-             */
+
             this.handlingTrackEnd = false;
+
+            /**
+             * Home utiliza este estado para mostrar
+             * la carga de "Escuchado recientemente".
+             */
+            this.historyLoading.set(true);
+
+            /**
+             * Permitimos que Angular renderice el estado
+             * de carga antes de iniciar la reproducción.
+             */
+            await new Promise<void>(resolve => {
+                requestAnimationFrame(() => resolve());
+            });
 
             await invoke('play_audio', {
                 path: track.path
@@ -220,10 +298,19 @@ export class PlayerService implements OnDestroy {
             this.startPositionSync();
 
         } catch (error) {
+
             console.error(
                 'Error al reproducir la canción:',
                 error
             );
+
+        } finally {
+
+            /**
+             * El estado siempre se libera aunque la reproducción
+             * falle durante invoke('play_audio').
+             */
+            this.historyLoading.set(false);
         }
     }
 
@@ -236,13 +323,16 @@ export class PlayerService implements OnDestroy {
      * desde el inicio mediante playTrack().
      */
     async togglePlay(): Promise<void> {
+
         const currentState = this.playerState();
 
         try {
+
             /**
              * Si está reproduciendo, simplemente pausamos.
              */
             if (currentState.playing) {
+
                 await invoke('pause_audio');
 
                 this.playerState.update(state => ({
@@ -251,6 +341,8 @@ export class PlayerService implements OnDestroy {
                 }));
 
                 this.stopPositionSync();
+
+                this.saveContinueListening();
 
                 return;
             }
@@ -269,7 +361,7 @@ export class PlayerService implements OnDestroy {
             /**
              * Si la posición llegó prácticamente al final de la pista,
              * significa que la reproducción anterior terminó y Rust
-             * ya no tiene una fuente que pueda ser reanudada.
+             * ya no tiene una fuente que pueda reanudarse.
              *
              * En lugar de llamar resume_audio, volvemos a cargar
              * la canción desde el principio.
@@ -279,6 +371,7 @@ export class PlayerService implements OnDestroy {
                 currentTrack.duration - 0.25;
 
             if (hasFinished) {
+
                 await this.playTrack(
                     currentTrack.id
                 );
@@ -300,6 +393,7 @@ export class PlayerService implements OnDestroy {
             this.startPositionSync();
 
         } catch (error) {
+
             console.error(
                 'Error al cambiar el estado de reproducción:',
                 error
@@ -317,6 +411,7 @@ export class PlayerService implements OnDestroy {
      * - repetición de cola
      */
     nextTrack(): void {
+
         const state = this.playerState();
 
         if (state.shuffle) {
@@ -330,31 +425,43 @@ export class PlayerService implements OnDestroy {
             return;
         }
 
-        const currentTrackId = state.currentTrackId;
+        const currentTrackId =
+            state.currentTrackId;
 
-        const currentIndex = currentTrackId
-            ? queue.indexOf(currentTrackId)
-            : -1;
+        const currentIndex =
+            currentTrackId
+                ? queue.indexOf(currentTrackId)
+                : -1;
 
         let nextIndex: number;
 
         if (currentIndex === -1) {
+
             nextIndex = 0;
+
         } else if (currentIndex < queue.length - 1) {
+
             nextIndex = currentIndex + 1;
+
         } else if (state.repeat === 'queue') {
+
             nextIndex = 0;
+
         } else {
+
             return;
         }
 
-        void this.playTrack(queue[nextIndex]);
+        void this.playTrack(
+            queue[nextIndex]
+        );
     }
 
     /**
      * Avanza dentro del orden aleatorio actual.
      */
     private nextShuffleTrack(): void {
+
         const state = this.playerState();
 
         if (this.shuffleOrder.length === 0) {
@@ -364,7 +471,11 @@ export class PlayerService implements OnDestroy {
         /**
          * Todavía existen canciones dentro del ciclo actual.
          */
-        if (this.shuffleIndex < this.shuffleOrder.length - 1) {
+        if (
+            this.shuffleIndex <
+            this.shuffleOrder.length - 1
+        ) {
+
             this.shuffleIndex++;
 
             void this.playTrack(
@@ -381,7 +492,6 @@ export class PlayerService implements OnDestroy {
          */
         if (state.repeat === 'queue') {
             this.generateNextShuffleCycle();
-            return;
         }
     }
 
@@ -392,31 +502,51 @@ export class PlayerService implements OnDestroy {
      * una sola vez.
      */
     private generateNextShuffleCycle(): void {
-        const queue = this.queueService.getQueue();
-        const currentTrackId = this.playerState().currentTrackId;
+
+        const queue =
+            this.queueService.getQueue();
+
+        const currentTrackId =
+            this.playerState().currentTrackId;
 
         if (queue.length === 0) {
             return;
         }
 
-        const remaining = queue.filter(
-            trackId => trackId !== currentTrackId
-        );
-
-        for (let i = remaining.length - 1; i > 0; i--) {
-            const j = Math.floor(
-                Math.random() * (i + 1)
+        const remaining =
+            queue.filter(
+                trackId => trackId !== currentTrackId
             );
 
-            [remaining[i], remaining[j]] =
-                [remaining[j], remaining[i]];
+        for (
+            let i = remaining.length - 1;
+            i > 0;
+            i--
+        ) {
+
+            const j =
+                Math.floor(
+                    Math.random() * (i + 1)
+                );
+
+            [
+                remaining[i],
+                remaining[j]
+            ] = [
+                remaining[j],
+                remaining[i]
+            ];
         }
 
-        this.shuffleOrder = currentTrackId
-            ? [currentTrackId, ...remaining]
-            : remaining;
+        this.shuffleOrder =
+            currentTrackId
+                ? [currentTrackId, ...remaining]
+                : remaining;
 
-        this.shuffleIndex = currentTrackId ? 0 : -1;
+        this.shuffleIndex =
+            currentTrackId
+                ? 0
+                : -1;
 
         /**
          * Si existe una canción actual, avanzamos
@@ -424,6 +554,7 @@ export class PlayerService implements OnDestroy {
          * del nuevo ciclo.
          */
         if (this.shuffleOrder.length > 1) {
+
             this.shuffleIndex = 1;
 
             void this.playTrack(
@@ -439,6 +570,7 @@ export class PlayerService implements OnDestroy {
      * del orden aleatorio actual.
      */
     previousTrack(): void {
+
         const state = this.playerState();
 
         if (state.shuffle) {
@@ -446,24 +578,32 @@ export class PlayerService implements OnDestroy {
             return;
         }
 
-        const queue = this.queueService.getQueue();
+        const queue =
+            this.queueService.getQueue();
 
         if (queue.length === 0) {
             return;
         }
 
-        const currentTrackId = state.currentTrackId;
+        const currentTrackId =
+            state.currentTrackId;
 
-        const currentIndex = currentTrackId
-            ? queue.indexOf(currentTrackId)
-            : -1;
+        const currentIndex =
+            currentTrackId
+                ? queue.indexOf(currentTrackId)
+                : -1;
 
         if (currentIndex === -1) {
-            void this.playTrack(queue[0]);
+
+            void this.playTrack(
+                queue[0]
+            );
+
             return;
         }
 
         if (currentIndex > 0) {
+
             void this.playTrack(
                 queue[currentIndex - 1]
             );
@@ -472,6 +612,7 @@ export class PlayerService implements OnDestroy {
         }
 
         if (state.repeat === 'queue') {
+
             void this.playTrack(
                 queue[queue.length - 1]
             );
@@ -479,13 +620,16 @@ export class PlayerService implements OnDestroy {
             return;
         }
 
-        void this.playTrack(queue[0]);
+        void this.playTrack(
+            queue[0]
+        );
     }
 
     /**
      * Regresa dentro del orden aleatorio actual.
      */
     private previousShuffleTrack(): void {
+
         if (
             this.shuffleOrder.length === 0 ||
             this.shuffleIndex <= 0
@@ -504,28 +648,41 @@ export class PlayerService implements OnDestroy {
      * Establece una posición concreta dentro de la canción.
      */
     async seek(time: number): Promise<void> {
-        const track = this.getCurrentTrack();
+
+        const track =
+            this.getCurrentTrack();
 
         if (!track) {
             return;
         }
 
-        const normalizedTime = Math.max(
-            0,
-            Math.min(time, track.duration)
-        );
+        const normalizedTime =
+            Math.max(
+                0,
+                Math.min(
+                    time,
+                    track.duration
+                )
+            );
 
         try {
-            await invoke('seek_audio', {
-                seconds: normalizedTime
-            });
+
+            await invoke(
+                'seek_audio',
+                {
+                    seconds: normalizedTime
+                }
+            );
 
             this.playerState.update(state => ({
                 ...state,
                 currentTime: normalizedTime
             }));
 
+            this.saveContinueListening();
+
         } catch (error) {
+
             console.error(
                 'Error al cambiar la posición del audio:',
                 error
@@ -537,6 +694,7 @@ export class PlayerService implements OnDestroy {
      * Avanza o retrocede una cantidad determinada de segundos.
      */
     seekBy(seconds: number): void {
+
         void this.seek(
             this.playerState().currentTime + seconds
         );
@@ -546,19 +704,28 @@ export class PlayerService implements OnDestroy {
      * Establece el volumen del reproductor.
      */
     async setVolume(volume: number): Promise<void> {
-        const normalizedVolume = Math.max(
-            0,
-            Math.min(volume, 100)
-        );
+
+        const normalizedVolume =
+            Math.max(
+                0,
+                Math.min(
+                    volume,
+                    100
+                )
+            );
 
         if (normalizedVolume > 0) {
             this.previousVolume = normalizedVolume;
         }
 
         try {
-            await invoke('set_volume', {
-                volume: normalizedVolume / 100
-            });
+
+            await invoke(
+                'set_volume',
+                {
+                    volume: normalizedVolume / 100
+                }
+            );
 
             this.playerState.update(state => ({
                 ...state,
@@ -567,6 +734,7 @@ export class PlayerService implements OnDestroy {
             }));
 
         } catch (error) {
+
             console.error(
                 'Error al cambiar el volumen:',
                 error
@@ -578,10 +746,15 @@ export class PlayerService implements OnDestroy {
      * Activa o desactiva el silencio.
      */
     async toggleMute(): Promise<void> {
-        const state = this.playerState();
 
-        if (state.muted || state.volume === 0) {
-            // Restaurar el volumen anterior
+        const state =
+            this.playerState();
+
+        if (
+            state.muted ||
+            state.volume === 0
+        ) {
+
             await this.setVolume(
                 this.previousVolume > 0
                     ? this.previousVolume
@@ -591,10 +764,15 @@ export class PlayerService implements OnDestroy {
             return;
         }
 
-        // Guardamos el volumen actual antes de silenciar
-        this.previousVolume = state.volume;
+        /**
+         * Guardamos el volumen actual antes de silenciar.
+         */
+        this.previousVolume =
+            state.volume;
 
-        // Silenciar realmente el reproductor de Rust
+        /**
+         * Silenciar realmente el reproductor de Rust.
+         */
         await this.setVolume(0);
     }
 
@@ -608,9 +786,12 @@ export class PlayerService implements OnDestroy {
      * como primera posición del nuevo recorrido.
      */
     toggleShuffle(): void {
-        const state = this.playerState();
+
+        const state =
+            this.playerState();
 
         if (state.shuffle) {
+
             /**
              * Desactivar shuffle.
              */
@@ -628,9 +809,11 @@ export class PlayerService implements OnDestroy {
         /**
          * Activar shuffle.
          */
-        const queue = this.queueService.getQueue();
+        const queue =
+            this.queueService.getQueue();
 
         if (queue.length <= 1) {
+
             this.playerState.update(currentState => ({
                 ...currentState,
                 shuffle: true
@@ -639,41 +822,56 @@ export class PlayerService implements OnDestroy {
             return;
         }
 
-        const currentTrackId = state.currentTrackId;
+        const currentTrackId =
+            state.currentTrackId;
 
         /**
          * Creamos una copia de la cola para no modificar
          * el orden visible de QueueService.
          */
-        const remaining = queue.filter(
-            trackId => trackId !== currentTrackId
-        );
+        const remaining =
+            queue.filter(
+                trackId => trackId !== currentTrackId
+            );
 
         /**
          * Fisher-Yates:
          * mezcla la cola de manera mucho más apropiada
          * que sort(() => Math.random() - 0.5).
          */
-        for (let i = remaining.length - 1; i > 0; i--) {
-            const j = Math.floor(
-                Math.random() * (i + 1)
-            );
+        for (
+            let i = remaining.length - 1;
+            i > 0;
+            i--
+        ) {
 
-            [remaining[i], remaining[j]] =
-                [remaining[j], remaining[i]];
+            const j =
+                Math.floor(
+                    Math.random() * (i + 1)
+                );
+
+            [
+                remaining[i],
+                remaining[j]
+            ] = [
+                remaining[j],
+                remaining[i]
+            ];
         }
 
         /**
          * La canción actual siempre permanece como
          * primera posición del recorrido.
          */
-        this.shuffleOrder = currentTrackId
-            ? [currentTrackId, ...remaining]
-            : remaining;
+        this.shuffleOrder =
+            currentTrackId
+                ? [currentTrackId, ...remaining]
+                : remaining;
 
-        this.shuffleIndex = currentTrackId
-            ? 0
-            : -1;
+        this.shuffleIndex =
+            currentTrackId
+                ? 0
+                : -1;
 
         this.playerState.update(currentState => ({
             ...currentState,
@@ -695,10 +893,16 @@ export class PlayerService implements OnDestroy {
      * off → track → queue → off
      */
     toggleRepeat(): void {
+
         this.playerState.update(state => {
-            let repeat: 'off' | 'track' | 'queue';
+
+            let repeat:
+                'off' |
+                'track' |
+                'queue';
 
             switch (state.repeat) {
+
                 case 'off':
                     repeat = 'track';
                     break;
@@ -734,17 +938,23 @@ export class PlayerService implements OnDestroy {
      *   cuando se alcanza el final de la cola.
      */
     private handleTrackEnded(): void {
+
         if (this.handlingTrackEnd) {
             return;
         }
 
         this.handlingTrackEnd = true;
 
-        const state = this.playerState();
-        const currentTrackId = state.currentTrackId;
+        const state =
+            this.playerState();
+
+        const currentTrackId =
+            state.currentTrackId;
 
         if (!currentTrackId) {
+
             this.handlingTrackEnd = false;
+
             return;
         }
 
@@ -752,10 +962,13 @@ export class PlayerService implements OnDestroy {
          * Repetición de la canción actual.
          */
         if (state.repeat === 'track') {
-            void this.playTrack(currentTrackId)
-                .finally(() => {
-                    this.handlingTrackEnd = false;
-                });
+
+            void this.playTrack(
+                currentTrackId
+            ).finally(() => {
+
+                this.handlingTrackEnd = false;
+            });
 
             return;
         }
@@ -765,6 +978,7 @@ export class PlayerService implements OnDestroy {
          */
         void this.playNextAfterEnd()
             .finally(() => {
+
                 this.handlingTrackEnd = false;
             });
     }
@@ -774,28 +988,42 @@ export class PlayerService implements OnDestroy {
      * cuando termina la canción actual.
      */
     private async playNextAfterEnd(): Promise<void> {
-        const state = this.playerState();
-        const currentTrackId = state.currentTrackId;
-        const queue = this.queueService.getQueue();
+
+        const state =
+            this.playerState();
+
+        const currentTrackId =
+            state.currentTrackId;
+
+        const queue =
+            this.queueService.getQueue();
 
         if (
             !currentTrackId ||
             queue.length === 0
         ) {
+
             await this.stopPlayback();
+
             return;
         }
 
         const currentIndex =
-            queue.indexOf(currentTrackId);
+            queue.indexOf(
+                currentTrackId
+            );
 
         if (currentIndex === -1) {
+
             await this.stopPlayback();
+
             return;
         }
 
         if (state.shuffle) {
+
             await this.playNextShuffleAfterEnd();
+
             return;
         }
 
@@ -803,6 +1031,7 @@ export class PlayerService implements OnDestroy {
          * Existe una siguiente canción.
          */
         if (currentIndex < queue.length - 1) {
+
             await this.playTrack(
                 queue[currentIndex + 1]
             );
@@ -817,7 +1046,11 @@ export class PlayerService implements OnDestroy {
          * está activo el modo queue.
          */
         if (state.repeat === 'queue') {
-            await this.playTrack(queue[0]);
+
+            await this.playTrack(
+                queue[0]
+            );
+
             return;
         }
 
@@ -832,8 +1065,11 @@ export class PlayerService implements OnDestroy {
      * termina estando activo el modo aleatorio.
      */
     private async playNextShuffleAfterEnd(): Promise<void> {
+
         if (this.shuffleOrder.length === 0) {
+
             await this.stopPlayback();
+
             return;
         }
 
@@ -844,6 +1080,7 @@ export class PlayerService implements OnDestroy {
             this.shuffleIndex <
             this.shuffleOrder.length - 1
         ) {
+
             this.shuffleIndex++;
 
             await this.playTrack(
@@ -859,7 +1096,9 @@ export class PlayerService implements OnDestroy {
         if (
             this.playerState().repeat === 'queue'
         ) {
+
             this.generateNextShuffleCycle();
+
             return;
         }
 
@@ -869,7 +1108,7 @@ export class PlayerService implements OnDestroy {
         await this.stopPlayback();
     }
 
-        /**
+    /**
      * Detiene la reproducción cuando no existen
      * más canciones disponibles.
      *
@@ -886,9 +1125,13 @@ export class PlayerService implements OnDestroy {
      * Este método utiliza el comando stop_audio de Rust.
      */
     private async stopPlayback(): Promise<void> {
+
         try {
+
             await invoke('stop_audio');
+
         } catch (error) {
+
             console.error(
                 'Error al detener el audio:',
                 error
@@ -898,8 +1141,8 @@ export class PlayerService implements OnDestroy {
         this.stopPositionSync();
 
         /**
-         * Reiniciamos también el estado de shuffle: no debe
-         * sobrevivir a una cola que ya terminó.
+         * Reiniciamos también el estado de shuffle:
+         * no debe sobrevivir a una cola que ya terminó.
          */
         this.shuffleOrder = [];
         this.shuffleIndex = -1;
@@ -927,6 +1170,7 @@ export class PlayerService implements OnDestroy {
      * Muestra u oculta el panel lateral del reproductor.
      */
     toggleRightPanel(): void {
+
         this.playerState.update(state => ({
             ...state,
             rightPanel: !state.rightPanel
@@ -937,22 +1181,28 @@ export class PlayerService implements OnDestroy {
      * Inicia la sincronización de la posición del audio.
      */
     private startPositionSync(): void {
+
         this.stopPositionSync();
 
-        this.positionTimer = setInterval(() => {
-            void this.updatePosition();
-        }, 250);
+        this.positionTimer =
+            setInterval(() => {
+                void this.updatePosition();
+            }, 250);
     }
 
     /**
      * Detiene la sincronización periódica de la posición.
      */
     private stopPositionSync(): void {
+
         if (this.positionTimer === null) {
             return;
         }
 
-        clearInterval(this.positionTimer);
+        clearInterval(
+            this.positionTimer
+        );
+
         this.positionTimer = null;
     }
 
@@ -963,7 +1213,9 @@ export class PlayerService implements OnDestroy {
      * prácticamente a su final.
      */
     private async updatePosition(): Promise<void> {
-        const currentState = this.playerState();
+
+        const currentState =
+            this.playerState();
 
         if (
             !currentState.playing ||
@@ -973,6 +1225,7 @@ export class PlayerService implements OnDestroy {
         }
 
         try {
+
             const position =
                 await invoke<number>(
                     'get_audio_position'
@@ -990,13 +1243,17 @@ export class PlayerService implements OnDestroy {
              * coincida exactamente con la duración de la pista.
              */
             const hasEnded =
-                position >= track.duration - 0.25;
+                position >=
+                track.duration - 0.25;
 
             if (hasEnded) {
+
                 this.playerState.update(state => ({
                     ...state,
                     currentTime: track.duration
                 }));
+
+                this.clearContinueListening();
 
                 this.handleTrackEnded();
 
@@ -1011,7 +1268,10 @@ export class PlayerService implements OnDestroy {
                 )
             }));
 
+            this.scheduleContinueListeningSave();
+
         } catch (error) {
+
             console.error(
                 'Error al obtener la posición del audio:',
                 error
@@ -1019,28 +1279,51 @@ export class PlayerService implements OnDestroy {
         }
     }
 
-    async playFromPath(path: string, title = 'Reproduciendo'): Promise<void> {
+    /**
+     * Reproduce un archivo externo que no pertenece
+     * a la biblioteca de Musex.
+     */
+    async playFromPath(
+        path: string,
+        title = 'Reproduciendo'
+    ): Promise<void> {
+
         try {
+
             this.handlingTrackEnd = false;
 
-            await invoke('play_audio', { path });
+            await invoke(
+                'play_audio',
+                { path }
+            );
 
             this.playerState.update(state => ({
                 ...state,
                 playing: true,
-                currentTrackId: null, // no pertenece a la biblioteca
+                currentTrackId: null,
                 currentTime: 0
             }));
 
             this.startPositionSync();
+
         } catch (error) {
-            console.error('Error al reproducir archivo externo:', error);
+
+            console.error(
+                'Error al reproducir archivo externo:',
+                error
+            );
+
             throw error;
         }
     }
 
+    /**
+     * Detiene completamente el audio actual.
+     */
     async stopAudio(): Promise<void> {
+
         try {
+
             await invoke('stop_audio');
 
             this.playerState.update(state => ({
@@ -1048,8 +1331,13 @@ export class PlayerService implements OnDestroy {
                 playing: false,
                 currentTime: 0
             }));
+
         } catch (error) {
-            console.error('No se pudo detener el audio.', error);
+
+            console.error(
+                'No se pudo detener el audio.',
+                error
+            );
         }
     }
 
@@ -1057,14 +1345,27 @@ export class PlayerService implements OnDestroy {
      * Libera los recursos utilizados por el servicio.
      */
     ngOnDestroy(): void {
+
         this.stopAudio();
+
         this.stopPositionSync();
+
+        if (this.continueListeningSaveTimer !== null) {
+            clearTimeout(
+                this.continueListeningSaveTimer
+            );
+
+            this.continueListeningSaveTimer = null;
+        }
     }
 
     /**
      * Devuelve una canción a partir de su identificador.
      */
-    getTrack(trackId: string): Track | undefined {
+    getTrack(
+        trackId: string
+    ): Track | undefined {
+
         return this.tracks().find(
             track => track.id === trackId
         );
@@ -1074,6 +1375,7 @@ export class PlayerService implements OnDestroy {
      * Devuelve la canción actualmente seleccionada.
      */
     getCurrentTrack(): Track | undefined {
+
         const currentTrackId =
             this.playerState().currentTrackId;
 
@@ -1081,7 +1383,9 @@ export class PlayerService implements OnDestroy {
             return undefined;
         }
 
-        return this.getTrack(currentTrackId);
+        return this.getTrack(
+            currentTrackId
+        );
     }
 
     /**
@@ -1089,9 +1393,15 @@ export class PlayerService implements OnDestroy {
      * hacia atrás dentro de la cola actual.
      */
     get canGoPrevious(): boolean {
-        const state = this.playerState();
-        const currentTrackId = state.currentTrackId;
-        const queue = this.queueService.getQueue();
+
+        const state =
+            this.playerState();
+
+        const currentTrackId =
+            state.currentTrackId;
+
+        const queue =
+            this.queueService.getQueue();
 
         if (
             queue.length === 0 ||
@@ -1101,7 +1411,9 @@ export class PlayerService implements OnDestroy {
         }
 
         const currentIndex =
-            queue.indexOf(currentTrackId);
+            queue.indexOf(
+                currentTrackId
+            );
 
         if (currentIndex === -1) {
             return false;
@@ -1118,9 +1430,15 @@ export class PlayerService implements OnDestroy {
      * hacia adelante dentro de la cola actual.
      */
     get canGoNext(): boolean {
-        const state = this.playerState();
-        const currentTrackId = state.currentTrackId;
-        const queue = this.queueService.getQueue();
+
+        const state =
+            this.playerState();
+
+        const currentTrackId =
+            state.currentTrackId;
+
+        const queue =
+            this.queueService.getQueue();
 
         if (
             queue.length === 0 ||
@@ -1130,13 +1448,16 @@ export class PlayerService implements OnDestroy {
         }
 
         const currentIndex =
-            queue.indexOf(currentTrackId);
+            queue.indexOf(
+                currentTrackId
+            );
 
         if (currentIndex === -1) {
             return false;
         }
 
         if (state.shuffle) {
+
             return (
                 this.shuffleIndex <
                     this.shuffleOrder.length - 1 ||
@@ -1145,7 +1466,8 @@ export class PlayerService implements OnDestroy {
         }
 
         return (
-            currentIndex < queue.length - 1 ||
+            currentIndex <
+                queue.length - 1 ||
             state.repeat === 'queue'
         );
     }
@@ -1154,7 +1476,9 @@ export class PlayerService implements OnDestroy {
      * Devuelve todas las canciones disponibles.
      */
     getTracks(): Track[] {
-        return [...this.tracks()];
+        return [
+            ...this.tracks()
+        ];
     }
 
     /**
@@ -1162,10 +1486,261 @@ export class PlayerService implements OnDestroy {
      * del reproductor con QueueService.
      */
     syncQueue(): void {
+
         this.playerState.update(state => ({
             ...state,
-            queue: this.queueService.getQueue()
+            queue:
+                this.queueService.getQueue()
         }));
+    }
+
+    /**
+     * Guarda la posición actual de la canción para poder
+     * continuar posteriormente desde el mismo punto.
+     */
+    private saveContinueListening(): void {
+
+        const state =
+            this.playerState();
+
+        if (!state.currentTrackId) {
+            return;
+        }
+
+        const track =
+            this.getCurrentTrack();
+
+        if (!track) {
+            return;
+        }
+
+        const position =
+            Math.max(
+                0,
+                Math.min(
+                    state.currentTime,
+                    track.duration
+                )
+            );
+
+        /**
+         * Una canción prácticamente terminada ya no necesita
+         * aparecer como "Continuar escuchando".
+         */
+        if (
+            track.duration > 0 &&
+            position >= track.duration - 1
+        ) {
+
+            this.clearContinueListening();
+
+            return;
+        }
+
+        const data = {
+            trackId: state.currentTrackId,
+            position
+        };
+
+        try {
+
+            localStorage.setItem(
+                this.continueListeningStorageKey,
+                JSON.stringify(data)
+            );
+
+            this.continueListening.set(
+                data
+            );
+
+        } catch (error) {
+
+            console.error(
+                'No se pudo guardar el progreso de reproducción:',
+                error
+            );
+        }
+    }
+
+    /**
+     * Programa el guardado del progreso.
+     *
+     * Se utiliza un retraso de un segundo para evitar
+     * escribir continuamente en localStorage mientras
+     * la posición del audio cambia cada 250 ms.
+     *
+     * Mientras el temporizador está activo,
+     * continueListeningSaving permanece en true para
+     * que la interfaz pueda informar al usuario.
+     */
+    private scheduleContinueListeningSave(): void {
+
+        if (
+            this.continueListeningSaveTimer !== null
+        ) {
+            return;
+        }
+
+        this.continueListeningSaving.set(true);
+
+        this.continueListeningSaveTimer =
+            setTimeout(() => {
+
+                this.continueListeningSaveTimer = null;
+
+                try {
+
+                    this.saveContinueListening();
+
+                } finally {
+
+                    this.continueListeningSaving.set(false);
+                }
+
+            }, 1000);
+    }
+
+    /**
+     * Elimina la canción pendiente de continuar.
+     */
+    private clearContinueListening(): void {
+
+        try {
+
+            localStorage.removeItem(
+                this.continueListeningStorageKey
+            );
+
+            this.continueListening.set(null);
+
+            /**
+             * Si existía un guardado pendiente, también
+             * dejamos de indicar que está procesándose.
+             */
+            this.continueListeningSaving.set(false);
+
+        } catch (error) {
+
+            console.error(
+                'No se pudo eliminar el estado de continuación:',
+                error
+            );
+        }
+    }
+
+    /**
+     * Carga desde localStorage el estado inicial
+     * de "Continuar escuchando".
+     */
+    private loadContinueListening(): void {
+
+        try {
+
+            const raw =
+                localStorage.getItem(
+                    this.continueListeningStorageKey
+                );
+
+            if (!raw) {
+
+                this.continueListening.set(null);
+
+                return;
+            }
+
+            const parsed =
+                JSON.parse(raw);
+
+            if (
+                typeof parsed?.trackId !== 'string' ||
+                typeof parsed?.position !== 'number'
+            ) {
+
+                this.clearContinueListening();
+
+                return;
+            }
+
+            this.continueListening.set({
+                trackId: parsed.trackId,
+                position: Math.max(
+                    0,
+                    parsed.position
+                )
+            });
+
+        } catch (error) {
+
+            console.error(
+                'No se pudo cargar el estado de continuación:',
+                error
+            );
+
+            this.continueListening.set(null);
+        }
+    }
+
+    /**
+     * Recupera la última canción pendiente de continuar.
+     *
+     * Se mantiene este método para conservar la API existente
+     * de PlayerService.
+     */
+    getContinueListening(): {
+        trackId: string;
+        position: number;
+    } | null {
+
+        return this.continueListening();
+    }
+
+    /**
+     * Reanuda la última canción guardada desde
+     * la posición en la que fue interrumpida.
+     */
+    async resumeContinueListening(): Promise<void> {
+
+        const saved =
+            this.continueListening();
+
+        if (!saved) {
+            return;
+        }
+
+        const track =
+            this.getTrack(
+                saved.trackId
+            );
+
+        if (
+            !track ||
+            !track.path
+        ) {
+
+            this.clearContinueListening();
+
+            return;
+        }
+
+        const position =
+            Math.max(
+                0,
+                Math.min(
+                    saved.position,
+                    track.duration
+                )
+            );
+
+        await this.playTrack(
+            saved.trackId
+        );
+
+        if (position > 0) {
+
+            await this.seek(
+                position
+            );
+        }
     }
 
     // /**
@@ -1179,15 +1754,15 @@ export class PlayerService implements OnDestroy {
     //     if (length <= 1) {
     //         return 0;
     //     }
-
+    //
     //     let index = currentIndex;
-
+    //
     //     while (index === currentIndex) {
     //         index = Math.floor(
     //             Math.random() * length
     //         );
     //     }
-
+    //
     //     return index;
     // }
 }

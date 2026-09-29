@@ -16,18 +16,24 @@ import { FullPlayerComponent } from '../../components/full-player/full-player.co
 import { ModalComponent } from '../../components/modal/modal.component';
 import { ToastContainerComponent } from '../../components/toast-container/toast-container.component';
 import { QueuePanelComponent } from '../../components/queue-panel/queue-panel.component';
+import { SearchModalComponent } from '../../components/search-modal/search-modal.component';
 
 import { PlayerService } from '../../core/services/player.service';
 import { LibraryService } from '../../core/services/library.service';
 import { PlaylistService } from '../../core/services/playlist.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ModalService } from '../../core/services/modal.service';
+import { ThemeService } from '../../core/services/theme.service';
+
+import {
+  EqualizerService,
+  EqTrack
+} from '../../core/services/equalizer.service';
 
 import { Track } from '../../core/models/track.model';
 
 import { convertFileSrc } from '@tauri-apps/api/core';
-import { SearchModalComponent } from '../../components/search-modal/search-modal.component';
-import { ThemeService } from '../../core/services/theme.service';
+import { openUrl } from '@tauri-apps/plugin-opener';
 
 
 /**
@@ -43,6 +49,21 @@ import { ThemeService } from '../../core/services/theme.service';
  * Los modales globales son controlados mediante ModalService.
  * MainLayout se encarga de representar el contenido específico
  * de cada modal y ejecutar sus acciones.
+ *
+ * El editor de ecualización utiliza EqualizerService como única
+ * fuente de verdad para el estado del EQ y Sense.
+ *
+ * Flujo:
+ *
+ *     Editar canción
+ *          ↓
+ *     Abrir modal EQ inmediatamente
+ *          ↓
+ *     EqualizerService prepara preset
+ *          ↓
+ *     Sense loading dentro del modal
+ *          ↓
+ *     Editor EQ
  */
 @Component({
   selector: 'app-main-layout',
@@ -83,10 +104,25 @@ export class MainLayoutComponent {
   private readonly notificationService =
     inject(NotificationService);
 
+  private readonly equalizerService =
+    inject(EqualizerService);
+
   /**
-   * Servicio global encargado del estado
-   * de los modales.
+   * Estado del ecualizador expuesto al template.
+   *
+   * EqualizerService es la única fuente de verdad para:
+   *
+   * - activeTrack
+   * - isSenseLoading
+   * - senseError
+   * - bands
+   * - isPlaying
+   * - currentTime
+   * - etc.
    */
+  readonly eqService =
+    this.equalizerService;
+
   readonly modalService =
     inject(ModalService);
 
@@ -111,6 +147,20 @@ export class MainLayoutComponent {
 
   private exitTimeoutId:
     ReturnType<typeof setTimeout> | null = null;
+
+
+  // =============================================================
+  // EQUALIZER OPEN REQUEST
+  // =============================================================
+
+  /**
+   * Identificador de la operación actual de apertura del EQ.
+   *
+   * Permite invalidar una operación pendiente si el usuario
+   * cierra el modal antes de que termine la preparación.
+   */
+  private eqEditorOpenRequestId =
+    0;
 
 
   // =============================================================
@@ -140,11 +190,6 @@ export class MainLayoutComponent {
   // PLAYLISTS
   // =============================================================
 
-  /**
-   * Lista reactiva de playlists disponibles.
-   *
-   * En el HTML se consume mediante playlists().
-   */
   readonly playlists =
     this.playlistService.allPlaylists;
 
@@ -153,30 +198,12 @@ export class MainLayoutComponent {
   // METADATA EDITOR
   // =============================================================
 
-  /**
-   * Copia temporal de la canción que se está editando.
-   *
-   * No modificamos directamente la canción original
-   * almacenada en LibraryService.
-   */
   readonly editingTrack =
     signal<Track | null>(null);
 
-
-  /**
-   * Archivo de portada seleccionado.
-   *
-   * Se mantiene temporalmente hasta que el usuario
-   * presiona "Guardar cambios".
-   */
   readonly pendingCoverFile =
     signal<File | null>(null);
 
-
-  /**
-   * URL temporal utilizada para mostrar el preview
-   * de una portada recién seleccionada.
-   */
   readonly pendingCoverPreviewUrl =
     signal<string | null>(null);
 
@@ -237,10 +264,6 @@ export class MainLayoutComponent {
     // MODAL SCROLL
     // -----------------------------------------------------------
 
-    /**
-     * Bloqueamos el scroll de la aplicación mientras
-     * exista un modal global abierto.
-     */
     effect(() => {
 
       const isOpen =
@@ -269,7 +292,16 @@ export class MainLayoutComponent {
         clearTimeout(
           this.exitTimeoutId
         );
+
+        this.exitTimeoutId = null;
       }
+
+
+      /**
+       * Invalida cualquier apertura pendiente.
+       */
+      this.eqEditorOpenRequestId++;
+
 
       this.clearPendingCover();
 
@@ -277,29 +309,64 @@ export class MainLayoutComponent {
     });
   }
 
+
+  // =============================================================
+  // MODAL ANIMATION
+  // =============================================================
+
   onModalAnimationFinished(): void {
 
+    /**
+     * Si el modal volvió a abrirse durante la animación
+     * de salida, no finalizamos el cierre.
+     */
     if (this.modalService.state().open) {
       return;
     }
+
 
     this.editingTrack.set(null);
 
     this.clearPendingCover();
 
+
+    /**
+     * El editor EQ puede mantener reproducción propia.
+     *
+     * Solo detenemos esa reproducción cuando el modal que acaba
+     * de terminar era realmente el editor de ecualización.
+     */
+    if (
+      this.modalService.is('equalizer-editor')
+    ) {
+
+      this.equalizerService
+        .closeEditor()
+        .catch(error => {
+
+          console.error(
+            'No se pudo detener la reproducción de ecualización:',
+            error
+          );
+
+        });
+    }
+
+
     this.modalService.finishClose();
   }
+
 
   // =============================================================
   // CURRENT TRACK
   // =============================================================
 
-  /**
-   * Canción actualmente reproducida.
-   */
   get currentTrack(): Track | null {
 
-    return this.playerService.getCurrentTrack() ?? null;
+    return (
+      this.playerService.getCurrentTrack() ??
+      null
+    );
   }
 
 
@@ -307,12 +374,6 @@ export class MainLayoutComponent {
   // MODAL TRACK
   // =============================================================
 
-  /**
-   * Canción asociada al modal global.
-   *
-   * ModalService solamente guarda el ID.
-   * La información real se obtiene desde LibraryService.
-   */
   get modalTrack(): Track | null {
 
     const trackId =
@@ -324,7 +385,10 @@ export class MainLayoutComponent {
     }
 
 
-    return this.libraryService.getTrack(trackId) ?? null;
+    return (
+      this.libraryService.getTrack(trackId) ??
+      null
+    );
   }
 
 
@@ -332,9 +396,6 @@ export class MainLayoutComponent {
   // OPEN METADATA
   // =============================================================
 
-  /**
-   * Abre el editor de información de una canción.
-   */
   openMetadata(track: Track): void {
 
     this.editingTrack.set({
@@ -358,11 +419,14 @@ export class MainLayoutComponent {
   // CLOSE MODAL
   // =============================================================
 
-  /**
-   * Cierra el modal global y limpia el estado temporal
-   * del editor de metadatos.
-   */
   closeModal(): void {
+
+    /**
+     * Invalida cualquier apertura pendiente del EQ.
+     */
+    this.eqEditorOpenRequestId++;
+
+
     this.modalService.close();
   }
 
@@ -371,19 +435,12 @@ export class MainLayoutComponent {
   // TRACK MENU
   // =============================================================
 
-  /**
-   * Cierra el menú de opciones de una canción.
-   */
   closeTrackMenu(): void {
 
     this.modalService.close();
   }
 
 
-  /**
-   * Abre los detalles de una canción desde el
-   * menú contextual.
-   */
   openTrackDetails(): void {
 
     const trackId =
@@ -422,16 +479,39 @@ export class MainLayoutComponent {
 
 
   // =============================================================
+  // AI STUDIO
+  // =============================================================
+
+  async confirmOpenAiStudio(): Promise<void> {
+
+    this.modalService.close();
+
+
+    try {
+
+      await openUrl(
+        'https://aistudio.google.com/apikey'
+      );
+
+    } catch (error) {
+
+      console.error(
+        'No se pudo abrir Google AI Studio:',
+        error
+      );
+
+
+      this.notificationService.error(
+        'No se pudo abrir Google AI Studio.'
+      );
+    }
+  }
+
+
+  // =============================================================
   // EDITING TRACK
   // =============================================================
 
-  /**
-   * Actualiza un campo del Track temporal.
-   *
-   * Se utiliza en lugar de modificar directamente
-   * editingTrack() para mantener la reactividad
-   * de Signals.
-   */
   updateEditingField(
     field: keyof Track,
     value: string
@@ -457,10 +537,6 @@ export class MainLayoutComponent {
   // ADD TO PLAYLIST
   // =============================================================
 
-  /**
-   * Agrega la canción actualmente seleccionada
-   * a una playlist.
-   */
   addTrackToPlaylist(
     playlistId: string
   ): void {
@@ -508,10 +584,6 @@ export class MainLayoutComponent {
   // COVER — IMAGE
   // =============================================================
 
-  /**
-   * Procesa la imagen seleccionada desde el input
-   * de portada.
-   */
   onCoverImageSelected(
     event: Event
   ): void {
@@ -528,10 +600,6 @@ export class MainLayoutComponent {
       return;
     }
 
-
-    // -----------------------------------------------------------
-    // VALIDAR FORMATO
-    // -----------------------------------------------------------
 
     const validTypes = [
       'image/png',
@@ -553,10 +621,6 @@ export class MainLayoutComponent {
     }
 
 
-    // -----------------------------------------------------------
-    // VALIDAR TAMAÑO
-    // -----------------------------------------------------------
-
     const maxSize =
       10 * 1024 * 1024;
 
@@ -574,16 +638,8 @@ export class MainLayoutComponent {
     }
 
 
-    // -----------------------------------------------------------
-    // LIMPIAR PREVIEW ANTERIOR
-    // -----------------------------------------------------------
-
     this.clearPendingCover();
 
-
-    // -----------------------------------------------------------
-    // CREAR PREVIEW
-    // -----------------------------------------------------------
 
     const previewUrl =
       URL.createObjectURL(file);
@@ -596,10 +652,6 @@ export class MainLayoutComponent {
     );
 
 
-    // -----------------------------------------------------------
-    // ACTUALIZAR PREVIEW DEL EDITOR
-    // -----------------------------------------------------------
-
     const current =
       this.editingTrack();
 
@@ -610,9 +662,13 @@ export class MainLayoutComponent {
 
 
     this.editingTrack.set({
+
       ...current,
+
       coverType: 'image',
+
       image: previewUrl
+
     });
 
 
@@ -624,9 +680,6 @@ export class MainLayoutComponent {
   // COVER — REMOVE
   // =============================================================
 
-  /**
-   * Elimina la portada actual de la copia temporal.
-   */
   removeCover(): void {
 
     const current =
@@ -642,11 +695,17 @@ export class MainLayoutComponent {
 
 
     this.editingTrack.set({
+
       ...current,
+
       coverType: undefined,
+
       coverIcon: undefined,
+
       coverColor: undefined,
+
       image: ''
+
     });
   }
 
@@ -655,9 +714,6 @@ export class MainLayoutComponent {
   // COVER — ICON
   // =============================================================
 
-  /**
-   * Selecciona una portada basada en icono.
-   */
   chooseIconCover(
     icon: string,
     color: string
@@ -676,11 +732,17 @@ export class MainLayoutComponent {
 
 
     this.editingTrack.set({
+
       ...current,
+
       coverType: 'icon',
+
       coverIcon: icon,
+
       coverColor: color,
+
       image: ''
+
     });
   }
 
@@ -689,9 +751,6 @@ export class MainLayoutComponent {
   // COVER — CLEANUP
   // =============================================================
 
-  /**
-   * Libera el Object URL temporal de la portada.
-   */
   clearPendingCover(): void {
 
     const preview =
@@ -718,10 +777,6 @@ export class MainLayoutComponent {
   // SAVE METADATA
   // =============================================================
 
-  /**
-   * Guarda los metadatos modificados y la portada,
-   * si el usuario seleccionó una nueva.
-   */
   async saveMetadata(): Promise<void> {
 
     const editing =
@@ -732,10 +787,6 @@ export class MainLayoutComponent {
       return;
     }
 
-
-    // -----------------------------------------------------------
-    // VALIDAR CANCIÓN ORIGINAL
-    // -----------------------------------------------------------
 
     const original =
       this.libraryService.getTrack(
@@ -874,10 +925,6 @@ export class MainLayoutComponent {
   // COVER ICON PATH
   // =============================================================
 
-  /**
-   * Devuelve la ruta del SVG correspondiente
-   * a un icono de portada.
-   */
   getCoverIconPath(
     icon: string | undefined
   ): string {
@@ -895,9 +942,6 @@ export class MainLayoutComponent {
   // DURATION
   // =============================================================
 
-  /**
-   * Convierte segundos a mm:ss.
-   */
   formatDuration(
     duration: number | undefined | null
   ): string {
@@ -907,6 +951,7 @@ export class MainLayoutComponent {
       duration === null ||
       !Number.isFinite(duration)
     ) {
+
       return '--:--';
     }
 
@@ -928,9 +973,11 @@ export class MainLayoutComponent {
       totalSeconds % 60;
 
 
-    return `${minutes}:${seconds
-      .toString()
-      .padStart(2, '0')}`;
+    return (
+      `${minutes}:${seconds
+        .toString()
+        .padStart(2, '0')}`
+    );
   }
 
 
@@ -938,10 +985,6 @@ export class MainLayoutComponent {
   // TAURI IMAGE
   // =============================================================
 
-  /**
-   * Convierte una ruta local de Tauri
-   * a una URL utilizable por el WebView.
-   */
   getImageSrc(
     path: string | null | undefined
   ): string {
@@ -978,6 +1021,201 @@ export class MainLayoutComponent {
 
     document.body.classList.remove(
       'modal-open'
+    );
+  }
+
+
+  // =============================================================
+  // EQUALIZER — OPEN EDITOR
+  // =============================================================
+  //
+  // IMPORTANTE:
+  //
+  // El modal se abre ANTES de llamar a openEditor().
+  //
+  // Esto permite que Angular renderice inmediatamente el modal
+  // y que el template pueda reaccionar a:
+  //
+  //     eqService.isSenseLoading()
+  //
+  // Mientras EqualizerService genera el preset.
+  //
+  // EqualizerService se encarga de:
+  //
+  // - obtener el preset de Sense
+  // - usar caché si existe
+  // - hacer fallback al preset local
+  // - cargar las bandas en Rust
+  // - iniciar la reproducción
+  //
+  // MainLayout únicamente controla la apertura visual.
+  // =============================================================
+
+  async openEqualizerEditor(
+    track: EqTrack
+  ): Promise<void> {
+
+    /**
+     * Si Sense ya está procesando otro preset,
+     * no iniciamos otra apertura simultánea.
+     */
+    if (
+      this.equalizerService.isSenseLoading()
+    ) {
+      return;
+    }
+
+
+    const requestId =
+      ++this.eqEditorOpenRequestId;
+
+
+    try {
+
+      // ---------------------------------------------------------
+      // ABRIR MODAL INMEDIATAMENTE
+      // ---------------------------------------------------------
+
+      this.modalService.open(
+        'equalizer-editor',
+        {
+          title: 'Ecualizador',
+          trackId: track.id
+        }
+      );
+
+
+      // ---------------------------------------------------------
+      // PREPARAR EDITOR
+      // ---------------------------------------------------------
+
+      await this.equalizerService.openEditor(
+        track
+      );
+
+
+      // ---------------------------------------------------------
+      // COMPROBAR QUE LA PETICIÓN SIGUE SIENDO VÁLIDA
+      // ---------------------------------------------------------
+
+      if (
+        requestId !==
+        this.eqEditorOpenRequestId
+      ) {
+
+        return;
+      }
+
+    } catch (error) {
+
+      console.error(
+        'No se pudo preparar el editor de ecualización:',
+        error
+      );
+
+
+      /**
+       * Si el editor falla y esta sigue siendo
+       * la petición activa, cerramos el modal.
+       */
+      if (
+        requestId ===
+        this.eqEditorOpenRequestId
+      ) {
+
+        this.modalService.close();
+      }
+
+
+      this.notificationService.error(
+        'No se pudo preparar el ecualizador.'
+      );
+    }
+  }
+
+
+  // =============================================================
+  // EQUALIZER — CLOSE
+  // =============================================================
+
+  closeEqualizerEditor(): void {
+
+    /**
+     * Invalida cualquier apertura pendiente.
+     */
+    this.eqEditorOpenRequestId++;
+
+
+    this.modalService.close();
+  }
+
+
+  // =============================================================
+  // EQUALIZER — PLAYBACK
+  // =============================================================
+
+  async toggleEqPlayback(): Promise<void> {
+
+    try {
+
+      await this.equalizerService.togglePlayback();
+
+    } catch (error) {
+
+      console.error(
+        'No se pudo cambiar el estado de reproducción del ecualizador:',
+        error
+      );
+    }
+  }
+
+
+  // =============================================================
+  // EQUALIZER — SEEK
+  // =============================================================
+
+  startEqSeek(): void {
+
+    this.equalizerService.startSeek();
+  }
+
+
+  updateEqSeekPosition(
+    seconds: number
+  ): void {
+
+    this.equalizerService.updateSeekPosition(
+      seconds
+    );
+  }
+
+
+  async finishEqSeek(): Promise<void> {
+
+    try {
+
+      await this.equalizerService.finishSeek();
+
+    } catch (error) {
+
+      console.error(
+        'No se pudo confirmar la posición del ecualizador:',
+        error
+      );
+    }
+  }
+
+
+  // =============================================================
+  // EQUALIZER — TIME
+  // =============================================================
+
+  formatEqTime(
+    seconds: number
+  ): string {
+
+    return this.formatDuration(
+      seconds
     );
   }
 }

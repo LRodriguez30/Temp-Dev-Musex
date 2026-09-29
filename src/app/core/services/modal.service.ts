@@ -15,7 +15,10 @@ export type ModalType =
   | 'new-playlist'
   | 'settings'
   | 'download-settings'
-  | 'search';
+  | 'search'
+  | 'confirm-external'
+  | 'ai-studio-confirmation'
+  | 'equalizer-editor';
 
 /**
  * Estado global del sistema de modales.
@@ -288,6 +291,28 @@ export class ModalService {
 
     this.open('download-settings', {
       title: 'Configuración de descargas'
+    });
+  }
+
+  /**
+   * Abre la confirmación para salir temporalmente
+   * de Musex y abrir Google AI Studio.
+   */
+  openAiStudioConfirmation(): void {
+
+    this.open('ai-studio-confirmation', {
+      title: 'Abrir Google AI Studio',
+      subtitle: 'Acción externa'
+    });
+  }
+
+  /**
+   * Abre el editor de ecualización de una canción habilitada.
+   */
+  openEqualizerEditor(trackId: string): void {
+    this.open('equalizer-editor', {
+      title: 'Editor de ecualización',
+      trackId
     });
   }
 

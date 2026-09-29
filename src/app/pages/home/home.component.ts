@@ -7,7 +7,6 @@ import { HistoryService } from '../../core/services/history.service';
 
 import { SongCardComponent } from '../../components/song-card/song-card.component';
 import { PlaylistCardComponent } from '../../components/playlist-card/playlist-card.component';
-import { RecommendationCardComponent } from '../../components/recommendation-card/recommendation-card.component';
 
 import { Track } from '../../core/models/track.model';
 
@@ -28,7 +27,6 @@ import { Track } from '../../core/models/track.model';
   imports: [
     SongCardComponent,
     PlaylistCardComponent,
-    RecommendationCardComponent
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
@@ -69,6 +67,13 @@ export class HomeComponent {
    * Historial de reproducción.
    */
   readonly history = this.historyService.entries;
+
+  /**
+   * Estado utilizado mientras se guarda el progreso
+   * de la reproducción.
+   */
+  readonly continueListeningSaving =
+    this.playerService.continueListeningSaving;
 
   /**
    * Canción seleccionada para mostrar acciones.
@@ -121,32 +126,97 @@ export class HomeComponent {
     const seen = new Set<string>();
 
     return this.history()
-      .map(entry => this.libraryService.getTrack(entry.trackId))
+      .map(entry =>
+        this.libraryService.getTrack(entry.trackId)
+      )
       .filter((track): track is Track => {
-        if (!track || seen.has(track.id)) return false;
+        if (!track || seen.has(track.id)) {
+          return false;
+        }
+
         seen.add(track.id);
         return true;
       })
       .slice(0, 5);
   }
 
+  /**
+   * Canción disponible para continuar la última reproducción.
+   */
   get continueListeningTrack(): Track | undefined {
-    const history = this.history();
+    const saved =
+      this.playerService.getContinueListening();
 
-    if (history.length < 2) {
+    if (!saved) {
       return undefined;
     }
 
     return this.libraryService.getTrack(
-      history[1].trackId
+      saved.trackId
     );
+  }
+
+  /**
+   * Maneja la acción de la tarjeta "Continuar escuchando".
+   *
+   * Si la canción está reproduciéndose actualmente,
+   * la acción pausa el reproductor.
+   *
+   * En cualquier otro caso se utiliza la posición
+   * guardada para continuar la reproducción.
+   */
+  async toggleContinueListening(
+    action: 'play' | 'pause'
+  ): Promise<void> {
+
+    if (action === 'pause') {
+      await this.playerService.togglePlay();
+      return;
+    }
+
+    await this.playerService.resumeContinueListening();
+  }
+
+  /**
+   * Maneja la acción de una canción del historial reciente.
+   *
+   * Si la canción está reproduciéndose actualmente,
+   * se pausa.
+   *
+   * Si está pausada y continúa siendo la canción actual,
+   * PlayerService se encarga de reanudarla desde su posición actual.
+   *
+   * Si se trata de otra canción, se reproduce normalmente
+   * desde el inicio.
+   */
+  async toggleRecentTrack(
+    track: Track,
+    action: 'play' | 'pause'
+  ): Promise<void> {
+
+    if (action === 'pause') {
+      await this.playerService.togglePlay();
+      return;
+    }
+
+    const state = this.playerService.state();
+
+    if (
+      state.currentTrackId === track.id &&
+      !state.playing
+    ) {
+      await this.playerService.togglePlay();
+      return;
+    }
+
+    await this.playerService.playTrack(track.id);
   }
 
   /**
    * Reproduce una canción seleccionada desde Home.
    */
   playTrack(trackId: string): void {
-    this.playerService.playTrack(trackId);
+    void this.playerService.playTrack(trackId);
   }
 
   /**
@@ -181,18 +251,17 @@ export class HomeComponent {
    * Se utiliza para la acción de reproducción aleatoria
    * disponible en el encabezado de Home.
    */
-  playMix(): void {
+  async playMix(): Promise<void> {
     const tracks = this.tracks();
 
     if (tracks.length === 0) {
       return;
     }
 
-    const randomIndex = Math.floor(
-      Math.random() * tracks.length
-    );
+    const randomIndex =
+      Math.floor(Math.random() * tracks.length);
 
-    this.playerService.playTrack(
+    await this.playerService.playTrack(
       tracks[randomIndex].id
     );
   }

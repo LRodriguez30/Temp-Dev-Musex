@@ -222,8 +222,10 @@ export class LibraryComponent implements OnInit {
         );
 
       case 'recent':
-
-        return tracks.reverse();
+        
+        return tracks.sort((a, b) =>
+          b.addedAt.localeCompare(a.addedAt)
+        );
 
       case 'title':
 
@@ -337,8 +339,50 @@ export class LibraryComponent implements OnInit {
   /**
    * Reproduce una canción seleccionada desde la biblioteca.
    */
-  playTrack(track: Track): void {
-    void this.playerService.playTrack(track.id);
+  async playTrack(
+    event: {
+      track: Track;
+      action: 'play' | 'pause';
+    }
+  ): Promise<void> {
+
+    /* =============================================================
+      PAUSAR
+    ============================================================= */
+
+    if (event.action === 'pause') {
+      await this.playerService.togglePlay();
+      return;
+    }
+
+
+    /* =============================================================
+      REANUDAR
+      -------------------------------------------------------------
+      Si es la misma canción y está pausada, PlayerService
+      conserva la posición actual.
+    ============================================================= */
+
+    const state = this.playerService.state();
+
+    if (
+      state.currentTrackId === event.track.id &&
+      !state.playing
+    ) {
+      await this.playerService.togglePlay();
+      return;
+    }
+
+
+    /* =============================================================
+      REPRODUCIR
+      -------------------------------------------------------------
+      Es otra canción, por lo que se reproduce normalmente.
+    ============================================================= */
+
+    await this.playerService.playTrack(
+      event.track.id
+    );
   }
 
 

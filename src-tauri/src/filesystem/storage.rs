@@ -68,6 +68,10 @@ impl Storage {
         self.base_dir.join("temp")
     }
 
+    pub fn library_metadata_file(&self) -> PathBuf {
+        self.base_dir.join("library.json")
+    }
+
     /// Crea todas las carpetas necesarias para Musex.
     ///
     /// Si las carpetas ya existen, no se considera un error.
@@ -220,6 +224,94 @@ impl Storage {
         fs::copy(source_path, &destination_path)?;
 
         Ok(destination_path)
+    }
+
+    pub fn copy_to_temp(
+        &self,
+        source_path: impl AsRef<Path>,
+    ) -> Result<PathBuf, Box<dyn std::error::Error>> {
+        let source_path = source_path.as_ref();
+
+        if !source_path.is_file() {
+            return Err(format!("El archivo de origen no existe: {}", source_path.display()).into());
+        }
+
+        let file_name = source_path
+            .file_name()
+            .ok_or("No se pudo determinar el nombre del archivo.")?;
+
+        let temp_dir = self.temp_dir();
+        fs::create_dir_all(&temp_dir)?;
+
+        let destination_path = Self::unique_path_in(&temp_dir, file_name);
+        fs::copy(source_path, &destination_path)?;
+
+        Ok(destination_path)
+    }
+
+    pub fn list_temp_files(&self) -> Result<Vec<PathBuf>, Box<dyn std::error::Error>> {
+        let temp_dir = self.temp_dir();
+
+        if !temp_dir.exists() {
+            return Ok(Vec::new());
+        }
+
+        let mut files = Vec::new();
+
+        for entry in fs::read_dir(temp_dir)? {
+            let entry = entry?;
+            let path = entry.path();
+
+            if path.is_file() {
+                files.push(path);
+            }
+        }
+
+        Ok(files)
+    }
+
+    pub fn remove_temp_file(&self, path: impl AsRef<Path>) -> Result<(), Box<dyn std::error::Error>> {
+        let path = path.as_ref();
+        let temp_dir = self.temp_dir();
+
+        if !path.starts_with(&temp_dir) {
+            return Err("La ruta indicada no pertenece a la carpeta temporal.".into());
+        }
+
+        if path.is_file() {
+            fs::remove_file(path)?;
+        }
+
+        Ok(())
+    }
+
+    fn unique_path_in(dir: &Path, file_name: &std::ffi::OsStr) -> PathBuf {
+        let original_path = dir.join(file_name);
+
+        if !original_path.exists() {
+            return original_path;
+        }
+
+        let file_name = Path::new(file_name);
+        let stem = file_name.file_stem().and_then(|v| v.to_str()).unwrap_or("audio");
+        let extension = file_name.extension().and_then(|v| v.to_str());
+
+        let mut counter = 1;
+
+        loop {
+            let candidate_name = match extension {
+                Some(ext) => format!("{} ({}).{}", stem, counter, ext),
+                None => format!("{} ({})", stem, counter),
+            };
+
+            let candidate = dir.join(candidate_name);
+
+            if !candidate.exists() {
+                return candidate;
+            }
+
+            counter += 1;
+        }
     }
 
     /// Mueve una descarga completada a la biblioteca permanente

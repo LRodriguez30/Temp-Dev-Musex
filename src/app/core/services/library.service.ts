@@ -51,6 +51,7 @@ interface RustTrack {
   album: string | null;
   genre: string | null;
   path: string;
+  addedAt: string;
   duration: number | null;
 
   /**
@@ -87,6 +88,9 @@ export class LibraryService {
 
   readonly library =
     this.tracks.asReadonly();
+
+  readonly tempTracks =
+    signal<Track[]>([]);
 
   private readonly queueService =
     inject(QueueService);
@@ -197,6 +201,9 @@ export class LibraryService {
             path:
               track.path,
 
+            addedAt:
+              track.addedAt,
+
             image:
               this.resolveCoverPath(
                 track.coverPath
@@ -241,6 +248,108 @@ export class LibraryService {
 
       throw error;
     }
+  }
+
+  // ===========================================================
+  // SCAN TEMP
+  // ===========================================================
+
+  /**
+   * Escanea el directorio temporal de Musex.
+   *
+   * Los archivos encontrados se mantienen separados de la
+   * biblioteca principal porque Temp representa archivos de
+   * trabajo y no música permanente.
+   */
+  async scanTemp(): Promise<Track[]> {
+
+    try {
+
+      const scannedTracks =
+        await invoke<RustTrack[]>(
+          'scan_temp'
+        );
+
+      const tracks: Track[] =
+        scannedTracks.map(track => {
+
+          const coverOverrides =
+            this.getCoverOverride(track.id);
+
+          return {
+            id: track.id,
+
+            title:
+              track.title,
+
+            artist:
+              track.artist ??
+              'Artista desconocido',
+
+            album:
+              track.album ??
+              'Álbum desconocido',
+
+            genre:
+              track.genre ??
+              undefined,
+
+            duration:
+              track.duration ??
+              0,
+
+            path:
+              track.path,
+
+            addedAt:
+              track.addedAt,
+
+            image:
+              this.resolveCoverPath(
+                track.coverPath
+              ),
+
+            source:
+              null,
+
+            favorite:
+              false,
+
+            coverType:
+              coverOverrides?.coverType ??
+              (track.coverPath
+                ? 'image'
+                : undefined),
+
+            coverIcon:
+              coverOverrides?.coverIcon,
+
+            coverColor:
+              coverOverrides?.coverColor
+          };
+        });
+
+      this.tempTracks.set(tracks);
+
+      return tracks;
+
+    } catch (error) {
+
+      console.error(
+        'Error al escanear los archivos temporales de Musex:',
+        error
+      );
+
+      throw error;
+    }
+  }
+
+  getTempTracks(): Track[] {
+    return [...this.tempTracks()];
+  }
+
+  getTempCount(): number {
+    return this.tempTracks().length;
   }
 
   // ===========================================================
@@ -427,6 +536,8 @@ export class LibraryService {
       throw error;
     }
   }
+
+
 
   // ===========================================================
   // FAVORITOS
@@ -620,7 +731,7 @@ export class LibraryService {
     this.tracks.set([]);
   }
 
-    // ===========================================================
+  // ===========================================================
   // METADATA
   // ===========================================================
 
@@ -668,7 +779,7 @@ export class LibraryService {
         })
     );
   }
-  
+
   // ===========================================================
   // COVER
   // ===========================================================

@@ -45,11 +45,17 @@ export class SongCardComponent {
   playing = false;
 
   /**
-   * Evento emitido cuando el usuario solicita reproducir
-   * la canción.
+   * Evento emitido cuando el usuario solicita cambiar
+   * el estado de reproducción de la canción.
+   *
+   * La tarjeta únicamente informa la intención:
+   * reproducir o pausar.
+   *
+   * El componente padre decide qué acción realizar
+   * según el contexto en el que se encuentre la tarjeta.
    */
   @Output()
-  play = new EventEmitter<void>();
+  play = new EventEmitter<'play' | 'pause'>();
 
   /**
    * Evento emitido cuando el usuario cambia el estado
@@ -122,10 +128,13 @@ export class SongCardComponent {
   }
 
   /**
-   * Solicita la reproducción de la canción.
+   * Emite la acción correspondiente al estado actual
+   * de reproducción.
    */
   playTrack(): void {
-    this.play.emit();
+    this.play.emit(
+      this.playing ? 'pause' : 'play'
+    );
   }
 
   /**

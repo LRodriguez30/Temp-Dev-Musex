@@ -1,9 +1,9 @@
 /*
  * SONG CARD
  *
- * La estructura visual utiliza Tailwind CSS.
- * Este archivo contiene únicamente los estados
- * y comportamientos visuales propios del componente.
+ * Componente visual para representar una canción.
+ * La reproducción activa se indica mediante pequeños
+ * cambios de contraste y el indicador de la portada.
  */
 
 
@@ -49,19 +49,19 @@
    CURRENTLY PLAYING
 ============================================================= */
 
-.card.is-playing {
-  border-color: color-mix(
-    in srgb,
-    var(--musex-accent) 35%,
-    #292b30
-  );
+/*
+ * La canción activa no necesita un borde verde completo.
+ * Se utiliza únicamente un pequeño acento lateral.
+ */
 
-  background: #141615;
+.card.is-playing {
+  border-color: #34373c;
+  background: #141516;
 }
 
 
 /* =============================================================
-   PLAYING — TOP LINE
+   PLAYING — SIDE ACCENT
 ============================================================= */
 
 .card.is-playing::before {
@@ -69,25 +69,17 @@
 
   position: absolute;
 
-  top: 0;
-  left: 12px;
-  right: 12px;
+  top: 10px;
+  bottom: 10px;
+  left: 0;
 
-  height: 1px;
+  width: 2px;
+
+  border-radius: 0 2px 2px 0;
 
   background: var(--musex-accent);
 
-  opacity: 0.75;
-
-  box-shadow:
-    0 0 8px
-      color-mix(
-        in srgb,
-        var(--musex-accent) 45%,
-        transparent
-      );
-
-  animation: playing-line 1.8s ease-in-out infinite;
+  opacity: 0.8;
 
   z-index: 10;
 }
@@ -115,17 +107,9 @@
 .card.is-playing .song-cover {
   border-color: color-mix(
     in srgb,
-    var(--musex-accent) 45%,
+    var(--musex-accent) 30%,
     transparent
   );
-
-  box-shadow:
-    0 0 0 1px
-      color-mix(
-        in srgb,
-        var(--musex-accent) 8%,
-        transparent
-      );
 }
 
 
@@ -134,7 +118,7 @@
 ============================================================= */
 
 .card.is-playing .song-title {
-  color: #f4f4f5;
+  color: var(--musex-accent);
 }
 
 
@@ -143,11 +127,16 @@
 ============================================================= */
 
 .card.is-playing .song-info p {
-  color: color-mix(
-    in srgb,
-    var(--musex-accent) 65%,
-    #a1a1aa
-  );
+  color: #a1a1aa;
+}
+
+
+/* =============================================================
+   PLAYING — DURATION
+============================================================= */
+
+.card.is-playing > span {
+  color: #71717a;
 }
 
 
@@ -275,24 +264,11 @@
 }
 
 
-@keyframes playing-line {
-  0%,
-  100% {
-    opacity: 0.45;
-  }
-
-  50% {
-    opacity: 0.9;
-  }
-}
-
-
 /* =============================================================
    REDUCED MOTION
 ============================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-  .card.is-playing::before,
   .song-playing-indicator i {
     animation: none;
   }

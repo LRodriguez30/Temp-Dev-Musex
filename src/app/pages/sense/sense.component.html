@@ -1,0 +1,1594 @@
+<!-- =========================================================
+     MUSEX — SENSE
+========================================================= -->
+
+<section
+  class="sense-page view h-full overflow-y-auto scroll-area"
+>
+
+  <div
+    class="content-pad mx-auto max-w-[1060px] px-7 pb-12 pt-8"
+  >
+
+    <!-- =======================================================
+         HEADER
+    ======================================================== -->
+
+    <header class="sense-header">
+
+      <div class="sense-header-main">
+
+        <div
+          class="sense-mark"
+          aria-hidden="true"
+        >
+
+          <svg
+            viewBox="0 0 24 24"
+            class="h-5 w-5 shrink-0"
+            fill="none"
+            stroke="var(--musex-accent)"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+
+            <path d="M4 12h2"></path>
+
+            <path
+              d="M7 9.5a3.5 3.5 0 0 0 0 5"
+            ></path>
+
+            <path
+              d="M10 7a7 7 0 0 0 0 10"
+            ></path>
+
+            <circle
+              cx="13"
+              cy="12"
+              r="1.5"
+              fill="var(--musex-accent)"
+              stroke="none"
+            ></circle>
+
+            <path
+              d="M16 7a7 7 0 0 1 0 10"
+            ></path>
+
+            <path
+              d="M19 9.5a3.5 3.5 0 0 1 0 5"
+            ></path>
+
+            <path d="M22 12h-2"></path>
+
+          </svg>
+
+        </div>
+
+
+        <div>
+
+          <div class="flex items-center gap-2">
+
+            <span class="sense-eyebrow">
+              MUSEX / SENSE
+            </span>
+
+            <span
+              class="status-dot"
+              [class.status-dot-active]="
+                senseEnabled() &&
+                connectionStatus() === 'connected'
+              "
+              [class.status-dot-error]="
+                connectionStatus() === 'error'
+              "
+            ></span>
+
+          </div>
+
+
+          <h1
+            class="mt-1 text-2xl font-semibold tracking-tight text-white"
+          >
+            Sistema Inteligente
+          </h1>
+
+
+          <p
+            class="mt-1 max-w-[560px] text-sm leading-relaxed text-[#62656b]"
+          >
+            Configura Sense para descubrir música, obtener recomendaciones
+            y recibir asistencia personalizada dentro de Musex.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="sense-header-state">
+
+        <span class="state-label">
+          ESTADO
+        </span>
+
+        <span class="state-value">
+          {{ senseEnabled() ? 'ACTIVO' : 'INACTIVO' }}
+        </span>
+
+      </div>
+
+    </header>
+
+
+    <!-- =======================================================
+         ACTIVAR SENSE
+    ======================================================== -->
+
+    <section class="mt-8">
+
+      <div class="sense-control">
+
+        <div class="sense-control-top">
+
+          <div
+            class="flex min-w-0 items-center gap-3"
+          >
+
+            <div
+              class="control-icon"
+              aria-hidden="true"
+            >
+
+              <svg
+                viewBox="0 0 24 24"
+                class="h-5 w-5 shrink-0"
+                fill="none"
+                stroke="var(--musex-accent)"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+
+                <path d="M4 12h2"></path>
+
+                <path
+                  d="M7 9.5a3.5 3.5 0 0 0 0 5"
+                ></path>
+
+                <path
+                  d="M10 7a7 7 0 0 0 0 10"
+                ></path>
+
+                <circle
+                  cx="13"
+                  cy="12"
+                  r="1.5"
+                  fill="var(--musex-accent)"
+                  stroke="none"
+                ></circle>
+
+                <path
+                  d="M16 7a7 7 0 0 1 0 10"
+                ></path>
+
+                <path
+                  d="M19 9.5a3.5 3.5 0 0 1 0 5"
+                ></path>
+
+                <path d="M22 12h-2"></path>
+
+              </svg>
+
+            </div>
+
+
+            <div class="min-w-0">
+
+              <div
+                class="flex flex-wrap items-center gap-2"
+              >
+
+                <h2
+                  class="text-base font-medium text-white"
+                >
+                  Musex Sense
+                </h2>
+
+                <span class="sense-badge">
+                  {{
+                    senseEnabled()
+                      ? 'ACTIVO'
+                      : 'DESACTIVADO'
+                  }}
+                </span>
+
+              </div>
+
+
+              <p
+                class="mt-1 text-xs leading-relaxed text-[#5f6268]"
+              >
+                Activa o desactiva las funciones inteligentes de Musex.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="sense-switch"
+            [class.sense-switch-active]="senseEnabled()"
+            [attr.aria-pressed]="senseEnabled()"
+            [attr.aria-label]="
+              senseEnabled()
+                ? 'Desactivar Musex Sense'
+                : 'Activar Musex Sense'
+            "
+            (click)="toggleSense()"
+          >
+
+            <span
+              class="sense-switch-thumb"
+              [class.sense-switch-thumb-active]="senseEnabled()"
+            ></span>
+
+          </button>
+
+        </div>
+
+
+        <div class="sense-control-footer">
+
+          <span>
+            SENSE CORE
+          </span>
+
+          <span>
+            {{
+              senseEnabled()
+                ? 'HABILITADO'
+                : 'DESHABILITADO'
+            }}
+          </span>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         PROVEEDOR
+    ======================================================== -->
+
+    <section class="mt-9">
+
+      <div class="section-heading">
+
+        <div>
+
+          <span class="section-index">
+            01 / PROVEEDOR
+          </span>
+
+          <h2
+            class="mt-1 text-base font-medium text-white"
+          >
+            Conexión
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div class="provider-panel">
+
+        <!-- ===================================================
+             PROVIDER
+        ==================================================== -->
+
+        <div class="provider-row">
+
+          <div class="flex items-center gap-3">
+
+            <div class="provider-logo">
+              <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/Google_Gemini_icon_2025.svg/960px-Google_Gemini_icon_2025.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail" alt="Google Gemini">
+            </div>
+
+
+            <div>
+
+              <div
+                class="text-sm font-medium text-white"
+              >
+                Google Gemini
+              </div>
+
+              <p
+                class="mt-1 text-xs text-[#56595f]"
+              >
+                Inteligencia Artificial en la Nube
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="provider-meta">
+
+            <span
+              class="provider-indicator"
+            ></span>
+
+            <span>
+              GEMINI
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="panel-divider"></div>
+
+
+        <!-- ===================================================
+             CONNECTION
+        ==================================================== -->
+
+        <div class="connection-area">
+
+          <div class="connection-heading">
+
+            <div>
+
+              <div class="connection-label">
+                CLAVE DE API
+              </div>
+
+              <p
+                class="mt-1 text-xs leading-relaxed text-[#5c5f65]"
+              >
+                Conecta tu propia cuenta de Google Gemini directamente
+                desde Musex.
+              </p>
+
+            </div>
+
+
+            <button
+              type="button"
+              class="tutorial-button"
+              [attr.aria-expanded]="tutorialOpen()"
+              (click)="toggleTutorial()"
+            >
+
+              {{
+                tutorialOpen()
+                  ? 'Ocultar guía'
+                  : '¿Cómo obtener una clave?'
+              }}
+
+            </button>
+
+          </div>
+
+
+          <!-- =================================================
+               GUÍA DE CONFIGURACIÓN
+          ================================================== -->
+
+          @if (tutorialOpen()) {
+
+            <div class="tutorial-panel">
+
+              <div class="tutorial-header">
+
+                <span>
+                  GUÍA DE CONFIGURACIÓN
+                </span>
+
+                <span>
+                  04 PASOS
+                </span>
+
+              </div>
+
+
+              <ol class="tutorial-list">
+
+                @for (
+                  step of tutorialSteps;
+                  track step.title;
+                  let i = $index
+                ) {
+
+                  <li
+                    class="tutorial-step"
+                    [style.animation-delay]="
+                      i * 55 + 'ms'
+                    "
+                  >
+
+                    <span class="tutorial-number">
+
+                      {{
+                        (i + 1)
+                          .toString()
+                          .padStart(2, '0')
+                      }}
+
+                    </span>
+
+
+                    <div class="min-w-0">
+
+                      <h3
+                        class="text-xs font-medium text-white"
+                      >
+                        {{ step.title }}
+                      </h3>
+
+
+                      <p
+                        class="mt-1 text-xs leading-relaxed text-[#5c5f65]"
+                      >
+                        {{ step.description }}
+                      </p>
+
+
+                      @if (i === 0) {
+
+                        <button
+                          type="button"
+                          class="ai-studio-button"
+                          (click)="openAiStudioConfirmation()"
+                        >
+
+                          <span>
+                            Abrir Google AI Studio
+                          </span>
+
+
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="13"
+                            height="13"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.7"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
+
+                            <path
+                              d="M14 3h7v7"
+                            ></path>
+
+                            <path
+                              d="M10 14 21 3"
+                            ></path>
+
+                            <path
+                              d="M21 14v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h6"
+                            ></path>
+
+                          </svg>
+
+                        </button>
+
+                      }
+
+                    </div>
+
+                  </li>
+
+                }
+
+              </ol>
+
+            </div>
+
+          }
+
+
+          <!-- =================================================
+               API KEY STATE
+          ================================================== -->
+
+          @if (hasApiKey()) {
+
+            <div class="api-key-configured">
+
+              <div class="api-key-configured-icon">
+
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+
+                  <path
+                    d="M20 6 9 17l-5-5"
+                  ></path>
+
+                </svg>
+
+              </div>
+
+
+              <div class="min-w-0">
+
+                <div
+                  class="flex flex-wrap items-center gap-2"
+                >
+
+                  <span
+                    class="text-xs font-medium text-white"
+                  >
+                    API Key configurada
+                  </span>
+
+                  <span class="capability-active">
+                    GUARDADA
+                  </span>
+
+                </div>
+
+
+                <p
+                  class="mt-1 text-[10px] leading-relaxed text-[#5c5f65]"
+                >
+                  Hay una clave guardada. Si dejas el campo vacío,
+                  Musex comprobará esta clave.
+                </p>
+
+              </div>
+
+            </div>
+
+          } @else {
+
+            <div class="api-key-not-configured">
+
+              <div>
+
+                <span
+                  class="text-xs font-medium text-white"
+                >
+                  No hay una API Key configurada
+                </span>
+
+                <p
+                  class="mt-1 text-[10px] leading-relaxed text-[#5c5f65]"
+                >
+                  Introduce una clave de Gemini para conectar
+                  Musex Sense.
+                </p>
+
+              </div>
+
+            </div>
+
+          }
+
+
+          <!-- =================================================
+               API KEY INPUT
+          ================================================== -->
+
+          <div class="api-key-row">
+
+            <div class="api-key-field">
+
+              <span class="api-key-prefix">
+                GEMINI
+              </span>
+
+
+              <input
+                class="api-key-input"
+                [type]="
+                  showApiKey()
+                    ? 'text'
+                    : 'password'
+                "
+                [value]="apiKeyInput()"
+                [placeholder]="
+                  hasApiKey()
+                    ? 'Pega una nueva clave para reemplazarla'
+                    : 'Pega aquí tu clave de API'
+                "
+                autocomplete="off"
+                spellcheck="false"
+                aria-label="Clave de API de Gemini"
+                (input)="onApiKeyInput($event)"
+              />
+
+
+              <button
+                type="button"
+                class="api-key-visibility"
+                [attr.aria-label]="
+                  showApiKey()
+                    ? 'Ocultar clave de API'
+                    : 'Mostrar clave de API'
+                "
+                (click)="toggleApiKeyVisibility()"
+              >
+
+                @if (showApiKey()) {
+
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+
+                    <path d="M3 3l18 18"></path>
+
+                    <path
+                      d="M10.6 10.6a2 2 0 0 0 2.8 2.8"
+                    ></path>
+
+                    <path
+                      d="M9.9 4.2A10.8 10.8 0 0 1 12 4c5 0 8.8 4 10 8-0.4 1.4-1.1 2.6-2.1 3.7"
+                    ></path>
+
+                    <path
+                      d="M6.6 6.6C4.8 7.8 3.6 9.7 2 12c1.2 3.1 5 8 10 8 1 0 2-.2 2.9-.5"
+                    ></path>
+
+                  </svg>
+
+                } @else {
+
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+
+                    <path
+                      d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"
+                    ></path>
+
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="3"
+                    ></circle>
+
+                  </svg>
+
+                }
+
+              </button>
+
+            </div>
+
+
+            <!-- ===============================================
+                 TEST CONNECTION
+            ================================================ -->
+
+            <button
+              type="button"
+              class="test-button"
+              [disabled]="
+                testingConnection() ||
+                (
+                  !apiKeyInput().trim() &&
+                  !hasApiKey()
+                )
+              "
+              (click)="testConnection()"
+            >
+
+              @if (testingConnection()) {
+
+                <span class="button-loader"></span>
+
+                <span>
+                  Probando...
+                </span>
+
+              } @else if (
+                hasApiKey() &&
+                !apiKeyInput().trim()
+              ) {
+
+                <span>
+                  Comprobar clave guardada
+                </span>
+
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+
+                  <path d="M5 12h14"></path>
+
+                  <path
+                    d="m13 6 6 6-6 6"
+                  ></path>
+
+                </svg>
+
+              } @else if (
+                hasApiKey() &&
+                apiKeyInput().trim()
+              ) {
+
+                <span>
+                  Reemplazar y probar
+                </span>
+
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+
+                  <path d="M5 12h14"></path>
+
+                  <path
+                    d="m13 6 6 6-6 6"
+                  ></path>
+
+                </svg>
+
+              } @else {
+
+                <span>
+                  Guardar y probar
+                </span>
+
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+
+                  <path d="M5 12h14"></path>
+
+                  <path
+                    d="m13 6 6 6-6 6"
+                  ></path>
+
+                </svg>
+
+              }
+
+            </button>
+
+          </div>
+
+
+          <!-- =================================================
+               API KEY BEHAVIOR
+          ================================================== -->
+
+          @if (
+            hasApiKey() &&
+            !apiKeyInput().trim()
+          ) {
+
+            <p class="api-key-note">
+
+              Hay una API Key guardada. Si no introduces nada
+              nuevo, Musex utilizará la clave almacenada para
+              comprobar la conexión.
+
+            </p>
+
+          } @else if (
+            hasApiKey() &&
+            apiKeyInput().trim()
+          ) {
+
+            <p class="api-key-note">
+
+              La nueva clave reemplazará la clave guardada al
+              presionar "Reemplazar y probar".
+
+            </p>
+
+          } @else {
+
+            <p class="api-key-note">
+
+              Aún no hay una API Key guardada. Introduce una clave
+              para probar la conexión con Gemini.
+
+            </p>
+
+          }
+
+
+          <!-- =================================================
+               REMOVE API KEY
+          ================================================== -->
+
+          @if (hasApiKey()) {
+
+            <button
+              type="button"
+              class="tutorial-button mt-3"
+              (click)="removeApiKey()"
+            >
+              Quitar API Key guardada
+            </button>
+
+          }
+
+
+          <!-- =================================================
+               CONNECTION STATUS
+          ================================================== -->
+
+          @if (
+            connectionStatus() === 'connected'
+          ) {
+
+            <div
+              class="connection-status connection-status-success"
+            >
+
+              <span
+                class="connection-status-dot"
+              ></span>
+
+              <span>
+                Conexión establecida correctamente con Gemini.
+              </span>
+
+              <span
+                class="connection-status-code"
+              >
+                200 OK
+              </span>
+
+            </div>
+
+          }
+
+
+          @if (
+            connectionStatus() === 'error'
+          ) {
+
+            <div
+              class="connection-status connection-status-error"
+            >
+
+              <span
+                class="connection-status-dot"
+              ></span>
+
+              <span>
+                No se pudo establecer la conexión.
+                Verifica tu clave de API.
+              </span>
+
+              <span
+                class="connection-status-code"
+              >
+                ERROR
+              </span>
+
+            </div>
+
+          }
+
+
+          <p class="api-key-note">
+
+            La clave se guarda en el almacén de credenciales de tu
+            sistema operativo y se utiliza únicamente para conectar
+            Musex directamente con Gemini.
+
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         CAPACIDADES
+    ======================================================== -->
+
+    <section class="mt-9">
+
+      <div class="section-heading">
+
+        <div>
+
+          <span class="section-index">
+            02 / CAPACIDADES
+          </span>
+
+          <h2
+            class="mt-1 text-base font-medium text-white"
+          >
+            Qué puede hacer Sense
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="capabilities-panel"
+        [class.capabilities-disabled]="!senseEnabled()"
+      >
+
+        <!-- ===================================================
+             RECOMENDACIONES
+        ==================================================== -->
+
+        <div class="capability-row">
+
+          <span class="capability-index">
+            01
+          </span>
+
+
+          <div class="capability-content">
+
+            <div
+              class="flex flex-wrap items-center gap-2"
+            >
+
+              <h3
+                class="text-sm font-medium text-white"
+              >
+                Recomendaciones
+              </h3>
+
+              @if (recommendationsEnabled()) {
+
+                <span class="capability-active">
+                  ACTIVO
+                </span>
+
+              }
+
+            </div>
+
+
+            <p
+              class="mt-1.5 text-xs leading-relaxed text-[#5c5f65]"
+            >
+              Genera recomendaciones musicales a partir de tus hábitos
+              de escucha, favoritos y biblioteca.
+            </p>
+
+
+            <div class="capability-data">
+
+              <span>
+                DATOS:
+              </span>
+
+              HISTORIAL
+
+              <span>·</span>
+
+              FAVORITOS
+
+              <span>·</span>
+
+              BIBLIOTECA
+
+            </div>
+
+
+            <button
+              type="button"
+              class="tutorial-button mt-3"
+              (click)="
+                togglePromptEditor(
+                  'recommendations'
+                )
+              "
+            >
+              {{
+                isEditingPrompt('recommendations')
+                  ? 'Ocultar prompt'
+                  : 'Editar prompt'
+              }}
+            </button>
+
+
+            @if (
+              isEditingPrompt('recommendations')
+            ) {
+
+              <div
+                class="tutorial-panel mt-3"
+              >
+
+                <textarea
+                  class="api-key-input"
+                  style="
+                    height: 120px;
+                    padding: 10px;
+                    width: 100%;
+                    resize: vertical;
+                  "
+                  [value]="draftPrompt()"
+                  (input)="onPromptInput($event)"
+                ></textarea>
+
+
+                <div class="mt-3 flex gap-2">
+
+                  <button
+                    type="button"
+                    class="test-button"
+                    [disabled]="savingPrompt()"
+                    (click)="
+                      savePrompt(
+                        'recommendations'
+                      )
+                    "
+                  >
+                    Guardar
+                  </button>
+
+
+                  <button
+                    type="button"
+                    class="tutorial-button"
+                    (click)="
+                      resetPrompt(
+                        'recommendations'
+                      )
+                    "
+                  >
+                    Restaurar por defecto
+                  </button>
+
+                </div>
+
+              </div>
+
+            }
+
+          </div>
+
+
+          <button
+            type="button"
+            class="capability-switch"
+            [class.capability-switch-active]="
+              recommendationsEnabled()
+            "
+            [attr.aria-pressed]="
+              recommendationsEnabled()
+            "
+            [disabled]="!senseEnabled()"
+            aria-label="Activar o desactivar recomendaciones"
+            (click)="toggleRecommendations()"
+          >
+
+            <span
+              class="capability-switch-thumb"
+              [class.capability-switch-thumb-active]="
+                recommendationsEnabled()
+              "
+            ></span>
+
+          </button>
+
+        </div>
+
+
+        <div class="capability-divider"></div>
+
+
+        <!-- ===================================================
+             ECUALIZADOR
+        ==================================================== -->
+
+        <div class="capability-row">
+
+          <span class="capability-index">
+            02
+          </span>
+
+
+          <div class="capability-content">
+
+            <div
+              class="flex flex-wrap items-center gap-2"
+            >
+
+              <h3
+                class="text-sm font-medium text-white"
+              >
+                Asistente de ecualización
+              </h3>
+
+
+              @if (eqEnabled()) {
+
+                <span class="capability-active">
+                  ACTIVO
+                </span>
+
+              }
+
+            </div>
+
+
+            <p
+              class="mt-1.5 text-xs leading-relaxed text-[#5c5f65]"
+            >
+              Sugiere ajustes del ecualizador según la música que
+              estás reproduciendo.
+            </p>
+
+
+            <div class="capability-data">
+
+              <span>
+                DATOS:
+              </span>
+
+              ECUALIZADOR
+
+              <span>·</span>
+
+              PISTA ACTUAL
+
+              <span>·</span>
+
+              GÉNERO
+
+            </div>
+
+
+            <button
+              type="button"
+              class="tutorial-button mt-3"
+              (click)="
+                togglePromptEditor(
+                  'eq_assistant'
+                )
+              "
+            >
+              {{
+                isEditingPrompt('eq_assistant')
+                  ? 'Ocultar prompt'
+                  : 'Editar prompt'
+              }}
+            </button>
+
+
+            @if (
+              isEditingPrompt('eq_assistant')
+            ) {
+
+              <div
+                class="tutorial-panel mt-3"
+              >
+
+                <textarea
+                  class="api-key-input"
+                  style="
+                    height: 120px;
+                    padding: 10px;
+                    width: 100%;
+                    resize: vertical;
+                  "
+                  [value]="draftPrompt()"
+                  (input)="onPromptInput($event)"
+                ></textarea>
+
+
+                <div class="mt-3 flex gap-2">
+
+                  <button
+                    type="button"
+                    class="test-button"
+                    [disabled]="savingPrompt()"
+                    (click)="
+                      savePrompt(
+                        'eq_assistant'
+                      )
+                    "
+                  >
+                    Guardar
+                  </button>
+
+
+                  <button
+                    type="button"
+                    class="tutorial-button"
+                    (click)="
+                      resetPrompt(
+                        'eq_assistant'
+                      )
+                    "
+                  >
+                    Restaurar por defecto
+                  </button>
+
+                </div>
+
+              </div>
+
+            }
+
+          </div>
+
+
+          <button
+            type="button"
+            class="capability-switch"
+            [class.capability-switch-active]="
+              eqEnabled()
+            "
+            [attr.aria-pressed]="
+              eqEnabled()
+            "
+            [disabled]="!senseEnabled()"
+            aria-label="Activar o desactivar asistente de ecualización"
+            (click)="toggleEq()"
+          >
+
+            <span
+              class="capability-switch-thumb"
+              [class.capability-switch-thumb-active]="
+                eqEnabled()
+              "
+            ></span>
+
+          </button>
+
+        </div>
+
+
+        <div class="capability-divider"></div>
+
+
+        <!-- ===================================================
+             ANÁLISIS DE BIBLIOTECA
+        ==================================================== -->
+
+        <div class="capability-row">
+
+          <span class="capability-index">
+            03
+          </span>
+
+
+          <div class="capability-content">
+
+            <div
+              class="flex flex-wrap items-center gap-2"
+            >
+
+              <h3
+                class="text-sm font-medium text-white"
+              >
+
+                Análisis de biblioteca
+
+              </h3>
+
+
+              @if (
+                libraryAnalysisEnabled()
+              ) {
+
+                <span class="capability-active">
+                  ACTIVO
+                </span>
+
+              }
+
+            </div>
+
+
+            <p
+              class="mt-1.5 text-xs leading-relaxed text-[#5c5f65]"
+            >
+              Analiza los metadatos de tu biblioteca para comprender
+              mejor tu colección musical.
+            </p>
+
+
+            <div class="capability-data">
+
+              <span>
+                DATOS:
+              </span>
+
+              ARTISTAS
+
+              <span>·</span>
+
+              ÁLBUMES
+
+              <span>·</span>
+
+              GÉNEROS
+
+              <span>·</span>
+
+              METADATOS
+
+            </div>
+
+
+            <button
+              type="button"
+              class="tutorial-button mt-3"
+              (click)="
+                togglePromptEditor(
+                  'library_analysis'
+                )
+              "
+            >
+
+              {{
+                isEditingPrompt('library_analysis')
+                  ? 'Ocultar prompt'
+                  : 'Editar prompt'
+              }}
+
+            </button>
+
+
+            @if (
+              isEditingPrompt(
+                'library_analysis'
+              )
+            ) {
+
+              <div
+                class="tutorial-panel mt-3"
+              >
+
+                <textarea
+                  class="api-key-input"
+                  style="
+                    height: 120px;
+                    padding: 10px;
+                    width: 100%;
+                    resize: vertical;
+                  "
+                  [value]="draftPrompt()"
+                  (input)="onPromptInput($event)"
+                ></textarea>
+
+
+                <div class="mt-3 flex gap-2">
+
+                  <button
+                    type="button"
+                    class="test-button"
+                    [disabled]="savingPrompt()"
+                    (click)="
+                      savePrompt(
+                        'library_analysis'
+                      )
+                    "
+                  >
+                    Guardar
+                  </button>
+
+
+                  <button
+                    type="button"
+                    class="tutorial-button"
+                    (click)="
+                      resetPrompt(
+                        'library_analysis'
+                      )
+                    "
+                  >
+                    Restaurar por defecto
+                  </button>
+
+                </div>
+
+              </div>
+
+            }
+
+          </div>
+
+
+          <button
+            type="button"
+            class="capability-switch"
+            [class.capability-switch-active]="
+              libraryAnalysisEnabled()
+            "
+            [attr.aria-pressed]="
+              libraryAnalysisEnabled()
+            "
+            [disabled]="!senseEnabled()"
+            aria-label="Activar o desactivar análisis de biblioteca"
+            (click)="toggleLibraryAnalysis()"
+          >
+
+            <span
+              class="capability-switch-thumb"
+              [class.capability-switch-thumb-active]="
+                libraryAnalysisEnabled()
+              "
+            ></span>
+
+          </button>
+
+        </div>
+
+      </div>
+
+
+      @if (!senseEnabled()) {
+
+        <p class="capabilities-disabled-note">
+          Activa Sense para configurar sus capacidades.
+        </p>
+
+      }
+
+    </section>
+
+
+    <!-- =======================================================
+         INFORMACIÓN
+    ======================================================== -->
+
+    <section class="mt-8">
+
+      <div class="sense-info">
+
+        <div
+          class="sense-info-icon"
+          aria-hidden="true"
+        >
+
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+
+            <circle
+              cx="12"
+              cy="12"
+              r="9"
+            ></circle>
+
+            <path
+              d="M12 11v5"
+            ></path>
+
+            <path
+              d="M12 8h.01"
+            ></path>
+
+          </svg>
+
+        </div>
+
+
+        <div class="min-w-0">
+
+          <div
+            class="flex flex-wrap items-center gap-2"
+          >
+
+            <span class="info-tag">
+              CONEXIÓN DIRECTA
+            </span>
+
+            <span
+              class="text-[10px] text-[#45484e]"
+            >
+              SIN SERVIDOR DE MUSEX
+            </span>
+
+          </div>
+
+
+          <p
+            class="mt-2 text-xs leading-relaxed text-[#56595f]"
+          >
+
+            Sense se conecta directamente desde Musex con el proveedor
+            configurado. Musex no necesita almacenar tus conversaciones
+            ni procesar las solicitudes mediante un servidor propio.
+
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         FOOTER
+    ======================================================== -->
+
+    <footer class="sense-footer">
+
+      <span>
+        MUSEX SENSE
+      </span>
+
+      <span>
+        CONFIGURACIÓN LOCAL
+      </span>
+
+    </footer>
+
+  </div>
+
+</section>

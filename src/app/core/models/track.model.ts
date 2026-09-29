@@ -41,6 +41,14 @@ export interface Track {
   path: string;
 
   /**
+   * Fecha en que Musex agregó la canción a su biblioteca.
+   *
+   * Se almacena como una fecha ISO/RFC3339 y es
+   * independiente de los metadatos internos del audio.
+   */
+  addedAt: string;
+
+  /**
    * Imagen utilizada por la interfaz.
    *
    * Los archivos reales podrán utilizar posteriormente

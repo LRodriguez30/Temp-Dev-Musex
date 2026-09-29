@@ -468,59 +468,70 @@
 
 
       <!-- ======================================================
-           MUSEX AI
+          MUSEX SENSE
       ======================================================= -->
 
-      <a
-        routerLink="/ai"
-        routerLinkActive="active"
-        class="
-          sidebar-link
-          flex
-          h-11
-          w-full
-          items-center
-          gap-4
-          rounded-lg
-          px-3.5
-          text-[15px]
-          text-zinc-200
-          transition-ui
+      <a 
+        routerLink="/sense" 
+        routerLinkActive="active" 
+        class=" 
+          sidebar-link 
+          flex 
+          h-11 
+          w-full 
+          items-center 
+          gap-4 
+          rounded-lg 
+          px-3.5 
+          text-[15px] 
+          text-zinc-200 
+          transition-ui 
+      
+          max-[820px]:justify-center 
+          max-[820px]:gap-0 
+          max-[820px]:px-0 
+        " 
+        title="Musex Sense" 
+      > 
 
-          max-[820px]:justify-center
-          max-[820px]:gap-0
-          max-[820px]:px-0
-        "
-        title="Musex AI"
-      >
+        <svg 
+          viewBox="0 0 24 24" 
+          class="h-5 w-5 shrink-0" 
+          fill="none" 
+          stroke="var(--musex-accent)" 
+          stroke-width="1.8" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" 
+          aria-hidden="true" 
+        > 
 
-        <svg
-          viewBox="0 0 24 24"
-          class="h-5 w-5 shrink-0"
-          fill="none"
-          aria-hidden="true"
-        >
+          <!-- Señal / percepción -->
 
-          <path
-            d="
-              M12 2
-              L14.1 9.9
-              L22 12
-              L14.1 14.1
-              L12 22
-              L9.9 14.1
-              L2 12
-              L9.9 9.9
-              Z
-            "
-            fill="var(--musex-accent)"
-          ></path>
+          <path d="M4 12h2"></path>
 
-        </svg>
+          <path d="M7 9.5a3.5 3.5 0 0 0 0 5"></path>
 
-        <span class="sidebar-label max-[820px]:hidden">
-          Musex AI
-        </span>
+          <path d="M10 7a7 7 0 0 0 0 10"></path>
+
+          <circle 
+            cx="13" 
+            cy="12" 
+            r="1.5" 
+            fill="var(--musex-accent)" 
+            stroke="none" 
+          ></circle>
+
+          <path d="M16 7a7 7 0 0 1 0 10"></path>
+
+          <path d="M19 9.5a3.5 3.5 0 0 1 0 5"></path>
+
+          <path d="M22 12h-2"></path>
+
+        </svg> 
+
+        <span class="sidebar-label max-[820px]:hidden"> 
+          Musex Sense 
+        </span> 
 
       </a>
 
@@ -1919,11 +1930,11 @@
 
 
       <!-- ======================================================
-           MUSEX AI
+          MUSEX SENSE
       ======================================================= -->
 
       <a
-        routerLink="/ai"
+        routerLink="/sense"
         routerLinkActive="mobile-more-active"
         (click)="mobileMenuService.close()"
         class="
@@ -1970,30 +1981,41 @@
           <svg
             viewBox="0 0 24 24"
             class="h-5 w-5"
-            fill="var(--musex-accent)"
+            fill="none"
+            stroke="var(--musex-accent)"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
             aria-hidden="true"
           >
 
-            <path
-              d="
-                M12 2
-                L14.1 9.9
-                L22 12
-                L14.1 14.1
-                L12 22
-                L9.9 14.1
-                L2 12
-                L9.9 9.9
-                Z
-              "
-            ></path>
+            <!-- Señal / percepción -->
+            <path d="M4 12h2"></path>
+
+            <path d="M7 9.5a3.5 3.5 0 0 0 0 5"></path>
+
+            <path d="M10 7a7 7 0 0 0 0 10"></path>
+
+            <circle
+              cx="13"
+              cy="12"
+              r="1.5"
+              fill="var(--musex-accent)"
+              stroke="none"
+            ></circle>
+
+            <path d="M16 7a7 7 0 0 1 0 10"></path>
+
+            <path d="M19 9.5a3.5 3.5 0 0 1 0 5"></path>
+
+            <path d="M22 12h-2"></path>
 
           </svg>
 
         </span>
 
         <span class="text-xs font-medium text-white">
-          Musex AI
+          Musex Sense
         </span>
 
       </a>

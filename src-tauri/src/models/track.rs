@@ -46,6 +46,13 @@ pub struct Track {
     /// Duración de la canción en segundos.
     pub duration: Option<u64>,
 
+    /// Momento en que la canción fue incorporada
+    /// a la biblioteca de Musex.
+    ///
+    /// Se almacena como fecha ISO 8601.
+    #[serde(rename = "addedAt")]
+    pub added_at: String,
+
     /// Ruta física de la portada personalizada.
     ///
     /// La portada se almacena dentro de:
@@ -74,6 +81,7 @@ impl Track {
             genre: None,
             path,
             duration: None,
+            added_at: chrono::Utc::now().to_rfc3339(),
             cover_path: None,
         }
     }
@@ -109,6 +117,7 @@ impl Track {
             genre: metadata.genre,
             path: path.to_string_lossy().into_owned(),
             duration: metadata.duration,
+            added_at: chrono::Utc::now().to_rfc3339(),
             cover_path: None,
         })
     }

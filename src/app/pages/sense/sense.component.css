@@ -1,0 +1,1153 @@
+/* ============================================================
+   MUSEX — SENSE
+   ============================================================ */
+
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+
+/* ============================================================
+   PAGE
+   ============================================================ */
+
+.sense-page {
+  width: 100%;
+  animation:
+    sense-page-enter
+    350ms
+    ease
+    both;
+}
+
+@keyframes sense-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.sense-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.sense-header-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sense-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: 1px solid var(--musex-accent);
+  border-radius: 10px;
+  color: var(--musex-accent);
+  background:
+    linear-gradient(
+      135deg,
+      var(--musex-accent-soft),
+      transparent
+    );
+}
+
+.sense-eyebrow,
+.section-index {
+  font-family:
+    "Courier New",
+    Courier,
+    monospace;
+
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: #5f6269;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #3f4146;
+
+  transition:
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.status-dot-active {
+  background: var(--musex-accent);
+
+  box-shadow:
+    0 0 0 3px var(--musex-accent-soft);
+}
+
+.status-dot-error {
+  background: #f87171;
+}
+
+
+/* ============================================================
+   HEADER STATE
+   ============================================================ */
+
+.sense-header-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 5px;
+
+  font-family:
+    "Courier New",
+    Courier,
+    monospace;
+
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+
+.state-label {
+  color: #4f5258;
+}
+
+.state-value {
+  color: #777a80;
+}
+
+
+/* ============================================================
+   MAIN CONTROL
+   ============================================================ */
+
+.sense-control {
+  overflow: hidden;
+  border: 1px solid #292b30;
+  border-radius: 12px;
+  background: #151719;
+
+  transition:
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.sense-control:hover {
+  border-color: #35383e;
+}
+
+.sense-control-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 21px 20px;
+}
+
+.control-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+
+  border-radius: 10px;
+
+  color: var(--musex-accent);
+  background: var(--musex-accent-soft);
+}
+
+.sense-badge {
+  padding: 4px 8px;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
+  color: var(--musex-accent);
+  background: var(--musex-accent-soft);
+}
+
+
+/* ============================================================
+   SENSE SWITCH
+   ============================================================ */
+
+.sense-switch,
+.capability-switch {
+  position: relative;
+
+  width: 44px;
+  height: 24px;
+
+  flex-shrink: 0;
+  padding: 0;
+
+  border: 0;
+  border-radius: 999px;
+
+  background: #34363b;
+
+  cursor: pointer;
+
+  transition:
+    background 180ms ease,
+    opacity 180ms ease;
+}
+
+.sense-switch:hover {
+  background: #41444a;
+}
+
+.sense-switch-active {
+  background: var(--musex-accent);
+}
+
+.sense-switch-active:hover {
+  background: var(--musex-accent);
+}
+
+.sense-switch-thumb,
+.capability-switch-thumb {
+  position: absolute;
+
+  top: 4px;
+  left: 4px;
+
+  width: 16px;
+  height: 16px;
+
+  border-radius: 50%;
+
+  background: #f5f5f5;
+
+  transition:
+    transform 180ms ease;
+}
+
+.sense-switch-thumb-active,
+.capability-switch-thumb-active {
+  transform: translateX(20px);
+}
+
+.sense-switch:focus-visible,
+.capability-switch:focus-visible,
+.api-key-visibility:focus-visible,
+.test-button:focus-visible,
+.tutorial-button:focus-visible,
+.ai-studio-button:focus-visible {
+  outline: 1px solid var(--musex-accent);
+  outline-offset: 3px;
+}
+
+
+/* ============================================================
+   CONTROL FOOTER
+   ============================================================ */
+
+.sense-control-footer {
+  display: flex;
+  justify-content: space-between;
+
+  padding: 9px 20px;
+
+  border-top: 1px solid #292b30;
+
+  font-family:
+    "Courier New",
+    Courier,
+    monospace;
+
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+
+  color: #45484e;
+}
+
+
+/* ============================================================
+   SECTION
+   ============================================================ */
+
+.section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  margin-bottom: 16px;
+}
+
+
+/* ============================================================
+   PROVIDER PANEL
+   ============================================================ */
+
+.provider-panel {
+  overflow: hidden;
+
+  border: 1px solid #292b30;
+  border-radius: 12px;
+
+  background: #151719;
+}
+
+.provider-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+  padding: 18px 20px;
+}
+
+.provider-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+
+  border: 1px solid #303237;
+  border-radius: 9px;
+
+  background: #111214;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  color: white;
+}
+
+.provider-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  font-family:
+    "Courier New",
+    Courier,
+    monospace;
+
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+
+  color: #55585e;
+}
+
+.provider-indicator {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #55585e;
+}
+
+.panel-divider,
+.capability-divider {
+  height: 1px;
+  background: #292b30;
+}
+
+
+/* ============================================================
+   CONNECTION
+   ============================================================ */
+
+.connection-area {
+  padding: 21px 20px;
+}
+
+.connection-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.connection-label {
+  font-family:
+    "Courier New",
+    Courier,
+    monospace;
+
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+
+  color: #777a80;
+}
+
+.tutorial-button {
+  flex-shrink: 0;
+
+  border: 0;
+  padding: 0;
+
+  background: transparent;
+  color: var(--musex-accent);
+
+  font-size: 12px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  transition:
+    opacity 160ms ease;
+}
+
+.tutorial-button:hover {
+  opacity: 0.72;
+}
+
+
+/* ============================================================
+   TUTORIAL
+   ============================================================ */
+
+.tutorial-panel {
+  margin-top: 16px;
+  margin-bottom: 12px;
+
+  padding: 17px;
+
+  border: 1px solid #292b30;
+  border-radius: 10px;
+
+  background: #111214;
+
+  animation:
+    tutorial-panel-enter
+    250ms
+    ease
+    both;
+}
+
+@keyframes tutorial-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tutorial-header {
+  display: flex;
+  justify-content: space-between;
+
+  margin-bottom: 16px;
+
+  font-family:
+    "Courier New",
+    Courier,
+    monospace;
+
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+
+  color: #4e5157;
+}
+
+.tutorial-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 16px;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.tutorial-step {
+  display: flex;
+  gap: 13px;
+
+  opacity: 0;
+
+  animation:
+    tutorial-step-enter
+    320ms
+    ease
+    both;
+}
+
+@keyframes tutorial-step-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.tutorial-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 29px;
+  height: 29px;
+  flex-shrink: 0;
+
+  border: 1px solid #303238;
+  border-radius: 7px;
+
+  font-family:
+    "Courier New",
+    Courier,
+    monospace;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  color: var(--musex-accent);
+  background: var(--musex-accent-soft);
+}
+
+.ai-studio-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-top: 17px;
+  padding: 9px 13px;
+
+  border-radius: 7px;
+
+  background: white;
+  color: black;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.ai-studio-button:hover {
+  background: #e4e4e4;
+  transform: translateY(-1px);
+}
+
+.api-key-configured,
+.api-key-not-configured {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 11px 12px;
+  border: 1px solid #292b30;
+  border-radius: 8px;
+  background: #111214;
+}
+
+.api-key-configured-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border: 1px solid var(--musex-accent);
+  border-radius: 6px;
+  color: var(--musex-accent);
+  background: var(--musex-accent-soft);
+}
+
+.api-key-configured-icon svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.api-key-not-configured {
+  color: #5c5f65;
+}
+
+/* ============================================================
+   API KEY
+   ============================================================ */
+
+.api-key-row {
+  display: flex;
+  gap: 9px;
+
+  margin-top: 17px;
+}
+
+.api-key-field {
+  position: relative;
+
+  min-width: 0;
+  flex: 1;
+
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+
+  border: 1px solid #303236;
+  border-radius: 8px;
+
+  background: #111214;
+
+  transition:
+    border-color 160ms ease;
+}
+
+.api-key-field:focus-within {
+  border-color: var(--musex-accent);
+}
+
+.api-key-prefix {
+  display: flex;
+  align-items: center;
+
+  height: 100%;
+  padding: 0 11px;
+
+  border-right: 1px solid #292b30;
+
+  font-family:
+    "Courier New",
+    Courier,
+    monospace;
+
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+
+  color: #4d5056;
+}
+
+.api-key-input {
+  min-width: 0;
+
+  width: 100%;
+  height: 100%;
+
+  border: 0;
+  outline: 0;
+
+  padding: 0 40px 0 12px;
+
+  background: transparent;
+  color: white;
+
+  font-size: 13px;
+}
+
+.api-key-input::placeholder {
+  color: #4b4e54;
+}
+
+.api-key-visibility {
+  position: absolute;
+
+  right: 5px;
+  top: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 30px;
+  height: 30px;
+
+  transform: translateY(-50%);
+
+  border: 0;
+  border-radius: 6px;
+
+  background: transparent;
+  color: #5a5d63;
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background 160ms ease;
+}
+
+.api-key-visibility:hover {
+  color: white;
+  background: #1a1c1f;
+}
+
+.api-key-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.api-key-field {
+  flex: 1 1 auto;
+}
+
+
+
+/* ============================================================
+   TEST BUTTON
+   ============================================================ */
+
+.test-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  height: 42px;
+
+  flex-shrink: 0;
+
+  padding: 0 16px;
+
+  border: 0;
+  border-radius: 8px;
+
+  background: white;
+  color: #08090a;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 160ms ease,
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.test-button:hover:not(:disabled) {
+  background: #e4e4e4;
+  transform: translateY(-1px);
+}
+
+.test-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.button-loader {
+  width: 12px;
+  height: 12px;
+
+  border: 1.5px solid #8a8a8a;
+  border-top-color: #111214;
+  border-radius: 50%;
+
+  animation:
+    button-loader-spin
+    700ms
+    linear
+    infinite;
+}
+
+@keyframes button-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ============================================================
+   CONNECTION STATUS
+   ============================================================ */
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  margin-top: 14px;
+  padding: 10px 11px;
+
+  border-radius: 7px;
+
+  font-size: 11px;
+}
+
+.connection-status-success {
+  color: var(--musex-accent);
+  background: var(--musex-accent-soft);
+}
+
+.connection-status-error {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.06);
+}
+
+.connection-status-dot {
+  width: 6px;
+  height: 6px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: currentColor;
+}
+
+.connection-status-code {
+  margin-left: auto;
+
+  font-family:
+    "Courier New",
+    Courier,
+    monospace;
+
+  font-size: 9px;
+  letter-spacing: 0.08em;
+
+  opacity: 0.65;
+}
+
+.api-key-note {
+  margin-top: 12px;
+
+  font-size: 11px;
+  line-height: 1.6;
+
+  color: #55585e;
+}
+
+
+/* ============================================================
+   CAPABILITIES
+   ============================================================ */
+
+.capabilities-panel {
+  overflow: hidden;
+
+  border: 1px solid #292b30;
+  border-radius: 12px;
+
+  background: #151719;
+
+  transition:
+    opacity 180ms ease;
+}
+
+.capabilities-disabled {
+  opacity: 0.58;
+}
+
+.capability-row {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 15px;
+
+  padding: 21px 20px;
+}
+
+.capability-index {
+  width: 27px;
+  flex-shrink: 0;
+
+  padding-top: 2px;
+
+  font-family:
+    "Courier New",
+    Courier,
+    monospace;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  color: #45484e;
+}
+
+.capability-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.capability-active {
+  padding: 3px 6px;
+
+  border-radius: 4px;
+
+  font-family:
+    "Courier New",
+    Courier,
+    monospace;
+
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+
+  color: var(--musex-accent);
+  background: var(--musex-accent-soft);
+}
+
+.capability-data {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+
+  gap: 6px;
+
+  margin-top: 10px;
+
+  font-family:
+    "Courier New",
+    Courier,
+    monospace;
+
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+
+  color: #494c52;
+}
+
+.capability-data span {
+  color: #34363b;
+}
+
+.capability-switch {
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.capability-switch:hover:not(:disabled) {
+  background: #41444a;
+}
+
+.capability-switch-active {
+  background: var(--musex-accent);
+}
+
+.capability-switch-active:hover:not(:disabled) {
+  background: var(--musex-accent);
+}
+
+.capability-switch:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.capabilities-disabled-note {
+  margin-top: 9px;
+
+  font-family:
+    "Courier New",
+    Courier,
+    monospace;
+
+  font-size: 9px;
+  letter-spacing: 0.08em;
+
+  color: #4d5056;
+}
+
+
+/* ============================================================
+   INFO
+   ============================================================ */
+
+.sense-info {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 12px;
+
+  padding: 15px;
+
+  border: 1px solid #292b30;
+  border-radius: 9px;
+
+  background: #111214;
+}
+
+.sense-info-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+
+  border: 1px solid #292b30;
+  border-radius: 6px;
+
+  color: #5b5e64;
+}
+
+.info-tag {
+  padding: 3px 6px;
+
+  border: 1px solid #292b30;
+  border-radius: 4px;
+
+  font-family:
+    "Courier New",
+    Courier,
+    monospace;
+
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+
+  color: #505359;
+}
+
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+.sense-footer {
+  display: flex;
+  justify-content: space-between;
+
+  margin-top: 19px;
+
+  font-family:
+    "Courier New",
+    Courier,
+    monospace;
+
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+
+  color: #36383d;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 700px) {
+
+  .sense-header {
+    align-items: flex-start;
+  }
+
+  .sense-header-state {
+    display: none;
+  }
+
+  .connection-heading {
+    flex-direction: column;
+    gap: 11px;
+  }
+
+  .api-key-row {
+    flex-direction: column;
+  }
+
+  .test-button {
+    width: 100%;
+  }
+
+}
+
+
+@media (max-width: 520px) {
+
+  .content-pad {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .sense-header-main {
+    align-items: flex-start;
+  }
+
+  .sense-mark {
+    width: 39px;
+    height: 39px;
+  }
+
+  .provider-row,
+  .sense-control-top,
+  .capability-row,
+  .connection-area {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .provider-meta {
+    display: none;
+  }
+
+  .capability-index {
+    display: none;
+  }
+
+  .capability-data {
+    display: none;
+  }
+
+}
+
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .sense-page,
+  .tutorial-panel,
+  .tutorial-step {
+    animation: none;
+  }
+
+  .sense-switch-thumb,
+  .capability-switch-thumb,
+  .test-button,
+  .ai-studio-button {
+    transition: none;
+  }
+
+}

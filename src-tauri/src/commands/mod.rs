@@ -12,3 +12,5 @@ pub mod audio;
 pub mod downloads;
 pub mod filesystem;
 pub mod library;
+pub mod equalizer;
+pub mod sense;

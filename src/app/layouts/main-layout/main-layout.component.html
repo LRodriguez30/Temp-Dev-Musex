@@ -46,8 +46,6 @@
 
 <!-- ============================================================
      TOP BAR
-     ------------------------------------------------------------
-     Permanece completamente independiente del Bottom Player.
 ============================================================= -->
 
 <app-top-bar></app-top-bar>
@@ -55,36 +53,6 @@
 
 <!-- ============================================================
      CONTENT LAYER
-     ------------------------------------------------------------
-     Contenedor padre de todos los elementos que forman el
-     espacio principal de trabajo de Musex.
-
-     Contiene:
-
-       - Sidebar
-       - Main Workspace
-       - Now Playing
-
-     IMPORTANTE:
-     -------------------------------------------------------------
-     Este contenedor es el encargado de respetar el espacio
-     ocupado por el Bottom Player.
-
-     Cuando el Bottom Player está visible:
-
-       bottom = 88px
-
-     Cuando está oculto (o saliendo):
-
-       bottom = 0
-
-     De esta forma los tres elementos se comportan como una
-     única zona de contenido.
-
-     `bottomPlayerExiting()` se resta a propósito de la
-     condición: en cuanto el player empieza a salir, el
-     contenido ya debe empezar a bajar al mismo tiempo, no
-     esperar a que termine la animación de salida.
 ============================================================= -->
 
 <div
@@ -108,18 +76,6 @@
 
   <!-- ==========================================================
        SIDEBAR
-       ----------------------------------------------------------
-       Desktop:
-         257px
-
-       Tablet:
-         78px
-
-       Mobile:
-         oculto
-
-       El propio Sidebar contiene también la navegación inferior
-       para dispositivos móviles.
   =========================================================== -->
 
   <app-sidebar></app-sidebar>
@@ -127,25 +83,6 @@
 
   <!-- ==========================================================
        MAIN WORKSPACE
-       ----------------------------------------------------------
-       Este es el área real donde viven las vistas del Router.
-
-       Desktop:
-         left = 257px
-
-       Tablet:
-         left = 78px
-
-       Mobile:
-         left = 0
-
-       Right:
-         363px cuando Now Playing está abierto.
-         0px cuando está cerrado.
-
-       El Main pertenece al Content Layer y por lo tanto
-       respeta automáticamente el espacio inferior reservado
-       por el Bottom Player.
   =========================================================== -->
 
   <main
@@ -183,11 +120,6 @@
 
     <!-- ========================================================
          MAIN CONTENT
-         --------------------------------------------------------
-         Aquí vive el RouterOutlet.
-
-         Las vistas internas controlan su propio scroll.
-         El layout principal permanece fijo.
     ========================================================= -->
 
     <div
@@ -206,21 +138,8 @@
     </div>
 
 
-        <!-- ========================================================
+    <!-- ========================================================
          SHOW NOW PLAYING
-         --------------------------------------------------------
-         Cuando el panel derecho está cerrado aparece un pequeño
-         botón para volver a abrirlo.
-
-         Solo tiene sentido si hay algo que mostrar: sin canción
-         actual ni cola cargada, reabrir el panel no serviría
-         de nada.
-
-         Desktop / Tablet:
-           visible cuando corresponde.
-
-         Mobile:
-           oculto.
     ========================================================= -->
 
     @if (
@@ -228,14 +147,14 @@
       playerService.hasPlayableContent()
     ) {
 
-      <button 
-        type="button" 
+      <button
+        type="button"
         class="show-now-playing"
-        aria-label="Mostrar reproductor" 
-        title="Mostrar reproductor" 
-        (click)=" 
-          playerService.toggleRightPanel() 
-        " 
+        aria-label="Mostrar reproductor"
+        title="Mostrar reproductor"
+        (click)="
+          playerService.toggleRightPanel()
+        "
       >
 
         <svg
@@ -261,19 +180,6 @@
 
   <!-- ==========================================================
        RIGHT PANEL — NOW PLAYING
-       ----------------------------------------------------------
-       Panel lateral derecho.
-
-       Desktop:
-         363px
-
-       Mobile:
-         se oculta mediante sus propios estilos.
-
-       Ya no necesita ser "fixed" al viewport: al ser
-       "position: absolute" dentro de Content Layer, hereda
-       automáticamente el movimiento causado por el Bottom
-       Player.
   =========================================================== -->
 
   <app-now-playing></app-now-playing>
@@ -283,33 +189,6 @@
 
 <!-- ============================================================
      BOTTOM PLAYER — GLOBAL
-     ------------------------------------------------------------
-     Barra global de reproducción.
-
-     IMPORTANTE:
-     -------------------------------------------------------------
-     El Bottom Player está fuera del Content Layer.
-
-     Esto permite que:
-
-       - atraviese todo el ancho inferior;
-       - quede por encima del Sidebar;
-       - no dependa del Router;
-       - tenga su propia posición fixed;
-       - el Content Layer sea quien respete su espacio.
-
-     VISIBILIDAD:
-     -------------------------------------------------------------
-     Solo se monta cuando hay contenido reproducible
-     (bottomPlayerMounted). Se le agrega `.is-exiting` mientras
-     ejecuta su animación de salida, definida en su propio CSS,
-     y MainLayoutComponent retrasa el desmontaje real hasta que
-     esa animación termina.
-
-     Altura:
-
-       Desktop → 88px
-       Mobile  → responsive
 ============================================================= -->
 
 @if (bottomPlayerMounted()) {
@@ -320,18 +199,9 @@
 
 }
 
+
 <!-- ============================================================
      FULL PLAYER — GLOBAL OVERLAY
-     ------------------------------------------------------------
-     Deliberadamente fuera de:
-
-       - Content Layer
-       - Main
-       - Sidebar
-       - Bottom Player
-       - Now Playing
-
-     Así puede cubrir absolutamente toda la aplicación.
 ============================================================= -->
 
 @if (
@@ -355,15 +225,25 @@
   [bare]="
     modalService.is('search') ||
     modalService.is('track-details') ||
-    modalService.is('add-to-playlist')
+    modalService.is('add-to-playlist') ||
+    modalService.is('equalizer-editor')
   "
   (closed)="closeModal()"
   (animationFinished)="onModalAnimationFinished()"
 >
 
+
+  <!-- =========================================================
+       SEARCH
+  ========================================================== -->
+
   @if (modalService.is('search')) {
+
     <app-search-modal />
+
   }
+
+
   <!-- =========================================================
        TRACK MENU
   ========================================================== -->
@@ -389,13 +269,18 @@
             stroke-linecap="round"
             stroke-linejoin="round"
           >
+
             <path d="M12 20h9"></path>
+
             <path
               d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"
             ></path>
+
           </svg>
 
-          <span>Editar información</span>
+          <span>
+            Editar información
+          </span>
 
         </button>
 
@@ -415,24 +300,40 @@
             stroke-linecap="round"
             stroke-linejoin="round"
           >
+
             <path d="M9 18V5l12-2v13"></path>
-            <circle cx="6" cy="18" r="3"></circle>
-            <circle cx="18" cy="16" r="3"></circle>
+
+            <circle
+              cx="6"
+              cy="18"
+              r="3"
+            ></circle>
+
+            <circle
+              cx="18"
+              cy="16"
+              r="3"
+            ></circle>
+
             <line
               x1="21"
               y1="8"
               x2="21"
               y2="2"
             ></line>
+
             <line
               x1="18"
               y1="5"
               x2="24"
               y2="5"
             ></line>
+
           </svg>
 
-          <span>Añadir a playlist</span>
+          <span>
+            Añadir a playlist
+          </span>
 
         </button>
 
@@ -724,8 +625,14 @@
             >
 
               <path d="M3 6h18" />
-              <path d="M8 6V4h8v2" />
-              <path d="M19 6l-1 14H6L5 6" />
+
+              <path
+                d="M8 6V4h8v2"
+              />
+
+              <path
+                d="M19 6l-1 14H6L5 6"
+              />
 
             </svg>
 
@@ -1012,6 +919,980 @@
       </div>
 
     </section>
+
+  }
+
+
+  <!-- =========================================================
+       GOOGLE AI STUDIO CONFIRMATION
+  ========================================================== -->
+
+  @if (modalService.is('ai-studio-confirmation')) {
+
+    <section
+      class="w-full max-w-[430px] overflow-hidden rounded-xl border border-[#292b30] bg-[#151719] shadow-2xl"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="ai-studio-confirmation-title"
+      (click)="$event.stopPropagation()"
+    >
+
+
+      <!-- =====================================================
+           MODAL HEADER
+      ====================================================== -->
+
+      <header
+        class="border-b border-[#292b30] px-5 py-4"
+      >
+
+        <div class="flex items-center gap-3">
+
+          <div
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--musex-accent-soft)] text-[var(--musex-accent)]"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="h-4 w-4"
+              aria-hidden="true"
+            >
+
+              <path d="M12 9v4" />
+
+              <path d="M12 17h.01" />
+
+              <path
+                d="M10.3 3.8 2.5 17.2A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.8L13.7 3.8a2 2 0 0 0-3.4 0Z"
+              />
+
+            </svg>
+
+          </div>
+
+
+          <div>
+
+            <span
+              class="font-mono text-[8px] font-semibold tracking-[0.13em] text-[#55585e]"
+            >
+              ACCIÓN EXTERNA
+            </span>
+
+            <h2
+              id="ai-studio-confirmation-title"
+              class="mt-1 text-sm font-medium text-white"
+            >
+              Abrir Google AI Studio
+            </h2>
+
+          </div>
+
+        </div>
+
+      </header>
+
+
+      <!-- =====================================================
+           CONTENT
+      ====================================================== -->
+
+      <div class="px-5 py-5">
+
+        <p
+          class="text-[11px] leading-relaxed text-[#777a80]"
+        >
+
+          Vas a salir temporalmente de Musex y abrir
+          <span class="text-white">
+            Google AI Studio
+          </span>
+          en tu navegador.
+
+        </p>
+
+
+        <p
+          class="mt-3 text-[10px] leading-relaxed text-[#55585e]"
+        >
+
+          Allí podrás crear o administrar tu clave de API
+          de Gemini. Musex no enviará ninguna información
+          hasta que configures y utilices una clave.
+
+        </p>
+
+      </div>
+
+
+      <!-- =====================================================
+           ACTIONS
+      ====================================================== -->
+
+      <footer
+        class="flex justify-end gap-2 border-t border-[#292b30] px-5 py-4"
+      >
+
+        <button
+          type="button"
+          class="rounded-lg border border-[#303236] px-4 py-2 text-[10px] font-medium text-[#777a80] transition hover:border-[#41444a] hover:text-white"
+          (click)="closeModal()"
+        >
+
+          Cancelar
+
+        </button>
+
+
+        <button
+          type="button"
+          class="rounded-lg bg-white px-4 py-2 text-[10px] font-semibold text-[#08090a] transition hover:bg-[#e4e4e4]"
+          (click)="confirmOpenAiStudio()"
+        >
+
+          Continuar
+
+        </button>
+
+      </footer>
+
+    </section>
+
+  }
+
+
+  <!-- =========================================================
+       EQUALIZER EDITOR
+  ========================================================== -->
+
+  @if (modalService.is('equalizer-editor')) {
+
+
+    <!-- =========================================================
+        SENSE LOADING
+    ========================================================== -->
+
+    @if (eqService.isSenseLoading()) {
+
+      <section
+        class="eq-editor-modal eq-sense-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-busy="true"
+        aria-label="Preparando ecualización"
+        (click)="$event.stopPropagation()"
+      >
+
+        <!-- =======================================================
+            LOADING HEADER
+        ======================================================== -->
+
+        <header class="eq-editor-header eq-sense-header">
+
+          <div class="eq-editor-track">
+
+            <div class="eq-editor-cover eq-sense-cover">
+
+              @if (
+                eqService.activeTrack();
+                as loadingTrack
+              ) {
+
+                @if (
+                  loadingTrack.coverType === 'image' &&
+                  loadingTrack.image
+                ) {
+
+                  <img
+                    [src]="loadingTrack.image"
+                    [alt]="loadingTrack.title"
+                    style="
+                      width:100%;
+                      height:100%;
+                      object-fit:cover;
+                    "
+                  />
+
+                } @else {
+
+                  <svg
+                    viewBox="3 6 20 12"
+                    class="h-full w-full shrink-0"
+                    fill="none"
+                    stroke="var(--musex-accent)"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M4 12h2"></path>
+
+                    <path
+                      d="M7 9.5a3.5 3.5 0 0 0 0 5"
+                    ></path>
+
+                    <path
+                      d="M10 7a7 7 0 0 0 0 10"
+                    ></path>
+
+                    <circle
+                      cx="13"
+                      cy="12"
+                      r="1.5"
+                      fill="var(--musex-accent)"
+                      stroke="none"
+                    ></circle>
+
+                    <path
+                      d="M16 7a7 7 0 0 1 0 10"
+                    ></path>
+
+                    <path
+                      d="M19 9.5a3.5 3.5 0 0 1 0 5"
+                    ></path>
+
+                    <path d="M22 12h-2"></path>
+                  </svg>
+
+                }
+
+              } @else {
+
+                <!-- SVG ARBITRARIO — REEMPLAZAR -->
+                <svg
+                  viewBox="0 0 100 100"
+                  class="eq-sense-placeholder-icon"
+                  aria-hidden="true"
+                >
+                  <!-- Tu SVG aquí -->
+                </svg>
+
+              }
+
+            </div>
+
+
+            <div>
+
+              <span class="eq-editor-kicker">
+                MUSEX SENSE
+              </span>
+
+              @if (
+                eqService.activeTrack();
+                as loadingTrack
+              ) {
+
+                <h2>
+                  {{ loadingTrack.title }}
+                </h2>
+
+                <p>
+                  {{ loadingTrack.artist }}
+                </p>
+
+              } @else {
+
+                <h2>
+                  Preparando...
+                </h2>
+
+                <p>
+                  Analizando canción
+                </p>
+
+              }
+
+            </div>
+
+          </div>
+
+
+          <div class="eq-editor-controls">
+
+            <button
+              type="button"
+              class="eq-editor-close"
+              (click)="closeModal()"
+              aria-label="Cancelar"
+              title="Cancelar"
+            >
+              ×
+            </button>
+
+          </div>
+
+        </header>
+
+
+        <!-- =======================================================
+            SENSE VISUALIZER
+        ======================================================== -->
+
+        <div class="eq-sense-loading">
+
+          <div class="eq-sense-visual">
+
+            <!-- Radar / frecuencia -->
+
+            <div class="eq-sense-orbit eq-sense-orbit-outer"></div>
+
+            <div class="eq-sense-orbit eq-sense-orbit-middle"></div>
+
+            <div class="eq-sense-orbit eq-sense-orbit-inner"></div>
+
+
+            <!-- Barras de frecuencia -->
+
+            <div class="eq-sense-spectrum">
+
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+
+            </div>
+
+
+            <!-- Núcleo -->
+
+            <div class="eq-sense-core">
+
+              <div class="eq-sense-core-ring"></div>
+
+              <div class="eq-sense-core-dot"></div>
+
+            </div>
+
+
+            <!-- SVG arbitrario -->
+
+            <div class="eq-sense-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <!-- SVG que quieras colocar -->
+              </svg>
+
+            </div>
+
+          </div>
+
+
+          <!-- =====================================================
+              TEXT
+          ====================================================== -->
+
+          <div class="eq-sense-copy">
+
+            <span class="eq-sense-loading-kicker">
+              SENSE ENGINE
+            </span>
+
+            <h2>
+              Construyendo tu ecualización
+            </h2>
+
+            @if (
+              eqService.activeTrack();
+              as loadingTrack
+            ) {
+
+              <p>
+                Analizando
+                <strong>
+                  {{ loadingTrack.title }}
+                </strong>
+                para encontrar una configuración adecuada.
+              </p>
+
+            } @else {
+
+              <p>
+                Analizando las características de la canción.
+              </p>
+
+            }
+
+          </div>
+
+
+          <!-- =====================================================
+              PROCESS INDICATOR
+          ====================================================== -->
+
+          <div class="eq-sense-process">
+
+            <div class="eq-sense-process-line">
+
+              <span></span>
+
+            </div>
+
+
+            <div class="eq-sense-process-label">
+
+              <span>
+                ANALIZANDO AUDIO
+              </span>
+
+              <span class="eq-sense-process-dots">
+                <i></i>
+                <i></i>
+                <i></i>
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <span class="eq-sense-loading-hint">
+            Sense está preparando las bandas paramétricas
+          </span>
+
+        </div>
+
+      </section>
+
+    } @else {
+
+
+      <!-- =====================================================
+           EDITOR REAL
+      ====================================================== -->
+
+      @if (
+        eqService.activeTrack();
+        as track
+      ) {
+
+        <section
+          class="eq-editor-modal"
+          role="dialog"
+          aria-modal="true"
+          [attr.aria-label]="
+            'Editor de ecualización de ' +
+            track.title
+          "
+          (click)="$event.stopPropagation()"
+        >
+
+          <!-- =================================================
+               HEADER
+          ================================================== -->
+
+          <header class="eq-editor-header">
+
+            <div class="eq-editor-track">
+
+              <div class="eq-editor-cover">
+
+                @if (
+                  track.coverType === 'image' &&
+                  track.image
+                ) {
+
+                  <img
+                    [src]="track.image"
+                    [alt]="track.title"
+                    style="
+                      width:100%;
+                      height:100%;
+                      object-fit:cover;
+                    "
+                  />
+
+                } @else {
+
+                  <svg
+                    class="music-table-default-disc"
+                    viewBox="0 0 100 100"
+                    role="img"
+                    [attr.aria-label]="
+                      'Disco Musex para ' +
+                      track.title
+                    "
+                  >
+
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="47"
+                      fill="none"
+                      stroke="var(--musex-accent)"
+                      stroke-width="3"
+                      stroke-opacity="0.65"
+                    />
+
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="43"
+                      fill="var(--musex-accent)"
+                    />
+
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="13"
+                      fill="#0d0e10"
+                    />
+
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="4"
+                      fill="var(--musex-accent)"
+                    />
+
+                  </svg>
+
+                }
+
+              </div>
+
+
+              <div>
+
+                <span class="eq-editor-kicker">
+                  EDITOR EN TIEMPO REAL
+                </span>
+
+                <h2>
+                  {{ track.title }}
+                </h2>
+
+                <p>
+                  {{ track.artist }}
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="eq-editor-controls">
+
+              <button
+                type="button"
+                class="eq-editor-play"
+                [attr.aria-label]="
+                  eqService.isPlaying()
+                    ? 'Pausar reproducción'
+                    : 'Reproducir canción'
+                "
+                [attr.title]="
+                  eqService.isPlaying()
+                    ? 'Pausar'
+                    : 'Reproducir'
+                "
+                (click)="toggleEqPlayback()"
+              >
+
+                @if (eqService.isPlaying()) {
+
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+
+                    <rect
+                      x="6"
+                      y="5"
+                      width="4"
+                      height="14"
+                      rx="1"
+                    />
+
+                    <rect
+                      x="14"
+                      y="5"
+                      width="4"
+                      height="14"
+                      rx="1"
+                    />
+
+                  </svg>
+
+                } @else {
+
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+
+                    <path
+                      d="M8 5.5v13l10-6.5L8 5.5Z"
+                    />
+
+                  </svg>
+
+                }
+
+              </button>
+
+
+              <button
+                type="button"
+                class="eq-editor-close"
+                (click)="closeModal()"
+                aria-label="Cerrar editor"
+              >
+                ×
+              </button>
+
+            </div>
+
+          </header>
+
+
+          <!-- =================================================
+               NOTICE
+          ================================================== -->
+
+          <div class="eq-editor-notice">
+
+            <span class="eq-notice-dot"></span>
+
+            <span>
+              Reproduciendo sobre una copia independiente —
+              el archivo original no se modifica.
+            </span>
+
+          </div>
+
+
+          <!-- =================================================
+               SEEK
+          ================================================== -->
+
+          <div class="eq-seek">
+
+            <span class="eq-seek-time">
+              {{ formatEqTime(eqService.currentTime()) }}
+            </span>
+
+
+            <input
+              class="eq-seek-slider"
+              type="range"
+              min="0"
+              [max]="track.duration || 0"
+              step="0.01"
+              [value]="eqService.currentTime()"
+              [style.--eq-progress.%]="
+                track.duration
+                  ? (eqService.currentTime() / track.duration) * 100
+                  : 0
+              "
+              aria-label="Progreso del ecualizador"
+
+              (pointerdown)="
+                startEqSeek()
+              "
+
+              (input)="
+                updateEqSeekPosition(
+                  +$any($event.target).value
+                )
+              "
+
+              (change)="
+                finishEqSeek()
+              "
+
+              (pointerup)="
+                finishEqSeek()
+              "
+
+              (pointercancel)="
+                finishEqSeek()
+              "
+            />
+
+
+            <span class="eq-seek-time">
+
+              {{ formatEqTime(
+                track.duration || 0
+              ) }}
+
+            </span>
+
+          </div>
+
+
+          <!-- =================================================
+               BANDS
+          ================================================== -->
+
+          <div class="eq-bands-section">
+
+            <div class="eq-bands-header">
+
+              <div>
+
+                <span class="eq-section-kicker">
+                  FILTROS
+                </span>
+
+                <h3>
+                  Bandas paramétricas
+                </h3>
+
+              </div>
+
+
+              <div class="eq-bands-actions">
+
+                <button
+                  type="button"
+                  class="eq-editor-secondary"
+                  (click)="
+                    eqService.resetBands()
+                  "
+                  [disabled]="
+                    !eqService.hasBands()
+                  "
+                >
+                  Limpiar todo
+                </button>
+
+
+                <button
+                  type="button"
+                  class="eq-editor-primary"
+                  (click)="
+                    eqService.addBand()
+                  "
+                >
+                  + Banda
+                </button>
+
+              </div>
+
+            </div>
+
+
+            @if (eqService.hasBands()) {
+
+              <div class="eq-bands-list">
+
+                @for (
+                  band of eqService.bands();
+                  track band.id
+                ) {
+
+                  <div class="eq-band-row">
+
+                    <div class="eq-band-type">
+
+                      <label>
+                        Tipo
+                      </label>
+
+                      <select
+                        [value]="band.filterType"
+                        (change)="
+                          eqService.onFilterTypeChange(
+                            band.id,
+                            $any($event.target).value
+                          )
+                        "
+                      >
+
+                        <option value="peaking">
+                          Campana
+                        </option>
+
+                        <option value="lowshelf">
+                          Graves
+                        </option>
+
+                        <option value="highshelf">
+                          Agudos
+                        </option>
+
+                      </select>
+
+                    </div>
+
+
+                    <div class="eq-band-field">
+
+                      <label>
+                        Frecuencia
+                      </label>
+
+                      <div class="eq-field-with-unit">
+
+                        <input
+                          type="number"
+                          min="20"
+                          max="20000"
+                          [value]="band.frequency"
+                          (input)="
+                            eqService.onFrequencyInput(
+                              band.id,
+                              $any($event.target).value
+                            )
+                          "
+                        />
+
+                        <span>
+                          Hz
+                        </span>
+
+                      </div>
+
+                    </div>
+
+
+                    <div class="eq-band-field">
+
+                      <label>
+                        Q
+                      </label>
+
+                      <input
+                        type="number"
+                        min="0.1"
+                        max="20"
+                        step="0.1"
+                        [value]="band.q"
+                        (input)="
+                          eqService.onQInput(
+                            band.id,
+                            $any($event.target).value
+                          )
+                        "
+                      />
+
+                    </div>
+
+
+                    <div class="eq-band-gain">
+
+                      <div class="eq-gain-header">
+
+                        <label>
+                          Ganancia
+                        </label>
+
+
+                        <input
+                          class="eq-gain-input"
+                          type="number"
+                          min="-24"
+                          max="24"
+                          step="0.1"
+                          [value]="band.gainDb"
+                          (input)="
+                            eqService.onGainInput(
+                              band.id,
+                              $any($event.target).value
+                            )
+                          "
+                        />
+
+                      </div>
+
+
+                      <input
+                        class="eq-band-slider"
+                        type="range"
+                        min="-12"
+                        max="12"
+                        step="0.1"
+                        [value]="band.gainDb"
+                        (input)="
+                          eqService.onGainInput(
+                            band.id,
+                            $any($event.target).value
+                          )
+                        "
+                      />
+
+                    </div>
+
+
+                    <button
+                      type="button"
+                      class="eq-band-remove"
+                      (click)="
+                        eqService.removeBand(
+                          band.id
+                        )
+                      "
+                      aria-label="Eliminar banda"
+                    >
+                      ×
+                    </button>
+
+                  </div>
+
+                }
+
+              </div>
+
+
+            } @else {
+
+              <div class="eq-bands-empty">
+
+                <div class="eq-bands-empty-icon">
+                  EQ
+                </div>
+
+                <div>
+
+                  <strong>
+                    Sin bandas configuradas
+                  </strong>
+
+                  <p>
+                    Agrega una banda para comenzar
+                    a modificar la respuesta de frecuencia.
+                  </p>
+
+                </div>
+
+              </div>
+
+            }
+
+          </div>
+
+        </section>
+
+      }
+
+    }
 
   }
 

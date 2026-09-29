@@ -5,16 +5,22 @@
 // Expone las operaciones de la biblioteca musical para que
 // puedan ser utilizadas desde la interfaz mediante Tauri.
 //
-// La ruta de la biblioteca se obtiene desde Storage para que
-// Angular no tenga que conocer la ubicación física de Musex.
+// La ruta de la biblioteca y Temp se obtiene desde Storage
+// para que Angular no tenga que conocer la ubicación física
+// de Musex.
 // =============================================================
 
 use std::path::PathBuf;
 
+use chrono::Utc;
 use tauri::State;
 
 use crate::filesystem::storage::Storage;
-use crate::library::scanner::LibraryScanner;
+use crate::library::persistence::LibraryPersistence;
+use crate::library::scanner::{
+    LibraryScanner,
+    TempScanner,
+};
 use crate::models::track::Track;
 
 // =============================================================
@@ -22,18 +28,72 @@ use crate::models::track::Track;
 // =============================================================
 
 /// Escanea la carpeta de música de Musex y devuelve las pistas
-/// encontradas junto con sus metadatos y portadas.
+/// encontradas junto con sus metadatos, portadas y metadata
+/// propia de Musex.
 #[tauri::command]
 pub fn scan_library(
     storage: State<'_, Storage>,
 ) -> Result<Vec<Track>, String> {
     let scanner = LibraryScanner::new();
 
-    scanner
+    let mut tracks = scanner
         .scan(
             storage.music_dir(),
             storage.covers_dir(),
         )
+        .map_err(|error| error.to_string())?;
+
+    let metadata_path =
+        storage.library_metadata_file();
+
+    let mut persistence =
+        LibraryPersistence::load(&metadata_path)
+            .map_err(|error| error.to_string())?;
+
+    for track in &mut tracks {
+        if let Some(added_at) =
+            persistence.get_added_at(&track.id)
+        {
+            track.added_at =
+                added_at.to_string();
+        } else {
+            let added_at =
+                Utc::now().to_rfc3339();
+
+            track.added_at =
+                added_at.clone();
+
+            persistence.set_added_at(
+                track.id.clone(),
+                added_at,
+            );
+        }
+    }
+
+    persistence
+        .save(&metadata_path)
+        .map_err(|error| error.to_string())?;
+
+    Ok(tracks)
+}
+
+// =============================================================
+// ESCANEAR TEMP
+// =============================================================
+
+/// Escanea el directorio temporal de Musex y devuelve los
+/// archivos de audio disponibles para trabajar.
+///
+/// Temp no forma parte de la biblioteca permanente y por eso
+/// no utiliza `LibraryPersistence` ni busca portadas.
+#[tauri::command]
+pub fn scan_temp(
+    storage: State<'_, Storage>,
+) -> Result<Vec<Track>, String> {
+    let scanner = TempScanner::new();
+
+    scanner
+        .scan(storage.temp_dir())
         .map_err(|error| error.to_string())
 }
 

@@ -216,18 +216,12 @@ export class PlaylistDetailComponent {
 
       case 'recent':
 
-        /*
-         * Track actualmente no posee una propiedad
-         * temporal como addedAt.
-         *
-         * Por eso esta opción interpreta "Más recientes"
-         * como las canciones añadidas más recientemente
-         * según su posición en la playlist.
-         *
-         * El último elemento pasa al principio.
-         */
-
-        return [...originalTracks].reverse();
+        return [...originalTracks].sort(
+          (a, b) =>
+            b.addedAt.localeCompare(
+              a.addedAt
+            )
+        );
 
 
       case 'original':
@@ -933,17 +927,58 @@ export class PlaylistDetailComponent {
   // PLAY TRACK
   // =========================================================
 
-  playTrack(
-    track: Track
-  ): void {
+  async playTrack(
+    event: {
+      track: Track;
+      action: 'play' | 'pause';
+    }
+  ): Promise<void> {
 
     if (this.isReordering) {
       return;
     }
 
 
-    this.playerService.playTrack(
-      track.id
+    /* =======================================================
+       PAUSAR
+    ======================================================== */
+
+    if (event.action === 'pause') {
+
+      await this.playerService.togglePlay();
+
+      return;
+    }
+
+
+    /* =======================================================
+       REANUDAR
+       -------------------------------------------------------
+       Si es la misma canción y está pausada, PlayerService
+       conserva currentTime y continúa desde esa posición.
+    ======================================================== */
+
+    const state =
+      this.playerService.state();
+
+
+    if (
+      state.currentTrackId === event.track.id &&
+      !state.playing
+    ) {
+
+      await this.playerService.togglePlay();
+
+      return;
+    }
+
+
+    /* =======================================================
+       REPRODUCIR OTRA CANCIÓN
+    ======================================================== */
+
+    await this.playerService.playTrack(
+      event.track.id
     );
 
   }

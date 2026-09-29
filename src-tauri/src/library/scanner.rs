@@ -1,23 +1,18 @@
 // =============================================================
-// MUSEX - LIBRARY SCANNER
+// MUSEX - LIBRARY & TEMP SCANNER
 // =============================================================
 //
-// Responsable de recorrer directorios y detectar archivos de
-// audio que puedan formar parte de la biblioteca de Musex.
+// Responsable de recorrer los directorios de música y temporal
+// de Musex, detectar archivos de audio y convertirlos en `Track`.
 //
-// El scanner no reproduce archivos ni administra descargas.
-// Su función es localizar canciones y convertirlas en `Track`.
+// LibraryScanner:
+// - Escanea la biblioteca permanente.
+// - Recupera portadas personalizadas.
 //
-// También se encarga de localizar las portadas personalizadas
-// almacenadas dentro de la carpeta `covers` de Musex.
-//
-// Posteriormente podrá utilizarse para:
-//
-// - Escanear la carpeta de música de Musex.
-// - Detectar nuevos archivos.
-// - Reconstruir la biblioteca al iniciar la aplicación.
-// - Actualizar la biblioteca cuando se agreguen canciones.
-// - Recuperar las portadas físicas asociadas a cada pista.
+// TempScanner:
+// - Escanea el directorio temporal.
+// - Detecta archivos disponibles para trabajar.
+// - No busca portadas.
 // =============================================================
 
 use std::collections::hash_map::DefaultHasher;
@@ -31,7 +26,8 @@ use crate::models::track::Track;
 // LIBRARY SCANNER
 // =============================================================
 
-/// Escáner encargado de localizar archivos de audio.
+/// Escáner encargado de localizar archivos de audio
+/// pertenecientes a la biblioteca permanente.
 #[derive(Debug, Default)]
 pub struct LibraryScanner;
 
@@ -43,14 +39,8 @@ impl LibraryScanner {
 
     /// Escanea un directorio buscando archivos de audio.
     ///
-    /// Los archivos encontrados se convierten automáticamente
-    /// en objetos `Track`.
-    ///
-    /// `covers_directory` corresponde a la carpeta física donde
-    /// Musex almacena las portadas personalizadas.
-    ///
-    /// Los directorios internos también son recorridos para
-    /// permitir que la biblioteca tenga subcarpetas.
+    /// También busca las portadas personalizadas asociadas
+    /// a cada pista.
     pub fn scan(
         &self,
         directory: impl AsRef<Path>,
@@ -60,7 +50,7 @@ impl LibraryScanner {
         let covers_directory = covers_directory.as_ref();
 
         // ---------------------------------------------------------
-        // VALIDAR DIRECTORIO DE MÚSICA
+        // VALIDAR DIRECTORIO
         // ---------------------------------------------------------
 
         if !directory.exists() {
@@ -94,8 +84,6 @@ impl LibraryScanner {
         Ok(tracks)
     }
 
-    /// Recorre recursivamente un directorio y agrega las pistas
-    /// encontradas al resultado.
     fn scan_directory(
         &self,
         directory: &Path,
@@ -131,13 +119,6 @@ impl LibraryScanner {
             // -----------------------------------------------------
             // ID ESTABLE
             // -----------------------------------------------------
-            //
-            // El ID ya no depende del orden en que `read_dir`
-            // encuentre los archivos.
-            //
-            // Esto es importante porque las portadas se guardan
-            // utilizando este ID como nombre de archivo.
-            // -----------------------------------------------------
 
             let id = create_track_id(&path);
 
@@ -145,12 +126,6 @@ impl LibraryScanner {
                 Ok(mut track) => {
                     // -------------------------------------------------
                     // BUSCAR PORTADA
-                    // -------------------------------------------------
-                    //
-                    // Si existe una portada previamente guardada para
-                    // esta canción, se incorpora al Track.
-                    //
-                    // Si no existe, `cover_path` permanece en `None`.
                     // -------------------------------------------------
 
                     track.cover_path = find_cover(
@@ -162,10 +137,123 @@ impl LibraryScanner {
                 }
 
                 Err(error) => {
-                    // Un archivo defectuoso no debe impedir que
-                    // el resto de la biblioteca sea escaneada.
                     eprintln!(
                         "No se pudo leer '{}': {}",
+                        path.display(),
+                        error
+                    );
+                }
+            }
+        }
+
+        Ok(())
+    }
+}
+
+// =============================================================
+// TEMP SCANNER
+// =============================================================
+
+/// Escáner encargado de localizar archivos de audio temporales.
+///
+/// A diferencia de `LibraryScanner`, no busca portadas ni
+/// modifica ningún dato de la biblioteca.
+#[derive(Debug, Default)]
+pub struct TempScanner;
+
+impl TempScanner {
+    /// Crea un nuevo scanner.
+    pub fn new() -> Self {
+        Self
+    }
+
+    /// Escanea el directorio temporal buscando archivos de audio.
+    ///
+    /// Los subdirectorios también son recorridos.
+    pub fn scan(
+        &self,
+        directory: impl AsRef<Path>,
+    ) -> Result<Vec<Track>, Box<dyn std::error::Error>> {
+        let directory = directory.as_ref();
+
+        // ---------------------------------------------------------
+        // VALIDAR DIRECTORIO TEMP
+        // ---------------------------------------------------------
+
+        if !directory.exists() {
+            return Err(format!(
+                "El directorio temporal no existe: {}",
+                directory.display()
+            )
+            .into());
+        }
+
+        if !directory.is_dir() {
+            return Err(format!(
+                "La ruta temporal no corresponde a un directorio: {}",
+                directory.display()
+            )
+            .into());
+        }
+
+        // ---------------------------------------------------------
+        // ESCANEAR
+        // ---------------------------------------------------------
+
+        let mut tracks = Vec::new();
+
+        self.scan_directory(
+            directory,
+            &mut tracks,
+        )?;
+
+        Ok(tracks)
+    }
+
+    fn scan_directory(
+        &self,
+        directory: &Path,
+        tracks: &mut Vec<Track>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        for entry in fs::read_dir(directory)? {
+            let entry = entry?;
+            let path = entry.path();
+
+            // -----------------------------------------------------
+            // SUBDIRECTORIO
+            // -----------------------------------------------------
+
+            if path.is_dir() {
+                self.scan_directory(
+                    &path,
+                    tracks,
+                )?;
+
+                continue;
+            }
+
+            // -----------------------------------------------------
+            // ARCHIVO DE AUDIO
+            // -----------------------------------------------------
+
+            if !is_audio_file(&path) {
+                continue;
+            }
+
+            // -----------------------------------------------------
+            // ID ESTABLE
+            // -----------------------------------------------------
+
+            let id = create_temp_track_id(&path);
+
+            match Track::from_file(id, &path) {
+                Ok(track) => {
+                    tracks.push(track);
+                }
+
+                Err(error) => {
+                    eprintln!(
+                        "No se pudo leer el archivo temporal '{}': {}",
                         path.display(),
                         error
                     );
@@ -204,24 +292,12 @@ fn is_audio_file(path: &Path) -> bool {
 }
 
 // =============================================================
-// ID ESTABLE
+// ID DE BIBLIOTECA
 // =============================================================
 
-/// Genera un identificador estable para una pista.
+/// Genera un identificador estable para una pista de biblioteca.
 ///
-/// El identificador se obtiene mediante un hash de la ruta
-/// física del archivo.
-///
-/// A diferencia del antiguo `scan-0001`, este ID no depende
-/// del orden en que el sistema operativo encuentre los archivos.
-///
-/// Esto permite utilizar el ID para asociar una portada física:
-///
-///     covers/<id>.jpg
-///
-///     covers/<id>.png
-///
-///     covers/<id>.webp
+/// El ID se obtiene mediante un hash de la ruta física.
 fn create_track_id(path: &Path) -> String {
     let mut hasher = DefaultHasher::new();
 
@@ -233,25 +309,30 @@ fn create_track_id(path: &Path) -> String {
 }
 
 // =============================================================
+// ID TEMPORAL
+// =============================================================
+
+/// Genera un identificador estable para un archivo temporal.
+///
+/// Se utiliza un prefijo diferente al de la biblioteca para
+/// distinguir claramente ambos tipos de pistas.
+fn create_temp_track_id(path: &Path) -> String {
+    let mut hasher = DefaultHasher::new();
+
+    path.to_string_lossy().hash(&mut hasher);
+
+    let hash = hasher.finish();
+
+    format!("temp-{:016x}", hash)
+}
+
+// =============================================================
 // BUSCAR PORTADA
 // =============================================================
 
 /// Busca una portada personalizada asociada a una pista.
 ///
-/// Musex admite actualmente:
-///
-/// - PNG
-/// - JPG
-/// - JPEG
-/// - WebP
-///
 /// El nombre de la portada debe coincidir con el ID de la pista.
-///
-/// Ejemplo:
-///
-///     track-4f8a2d....jpg
-///
-/// Si no existe ninguna portada compatible, devuelve `None`.
 fn find_cover(
     covers_directory: &Path,
     track_id: &str,
@@ -264,11 +345,9 @@ fn find_cover(
     ];
 
     for extension in extensions {
-        let cover_path = covers_directory.join(format!(
-            "{}.{}",
-            track_id,
-            extension
-        ));
+        let cover_path = covers_directory.join(
+            format!("{}.{}", track_id, extension)
+        );
 
         if cover_path.is_file() {
             return Some(
@@ -281,19 +360,3 @@ fn find_cover(
 
     None
 }
-
-// =============================================================
-// PREPARACIÓN PARA TAURI
-// =============================================================
-//
-// Este scanner puede ejecutarse desde comandos Tauri para:
-//
-// - Escanear la biblioteca.
-// - Devolver las pistas a Angular.
-// - Detectar nuevos archivos.
-// - Actualizar la biblioteca.
-// - Recuperar las portadas físicas.
-//
-// Los `Track` se serializan mediante Serde para cruzar la
-// frontera Rust -> Tauri -> Angular.
-// =============================================================

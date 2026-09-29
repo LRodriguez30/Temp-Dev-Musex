@@ -1,15 +1,6 @@
-/* =============================================================
-   PAGE ENTER
-============================================================= */
-
 .explore-page {
   width: 100%;
-
-  animation:
-    explore-page-enter
-    350ms
-    ease
-    both;
+  animation: explore-page-enter 350ms ease both;
 }
 
 @keyframes explore-page-enter {
@@ -21,5 +12,535 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+
+/* ============================================================
+   SENSE GATE
+============================================================ */
+
+.sense-gate {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #23252a;
+  border-radius: 20px;
+  background:
+    radial-gradient(
+      circle at 30% 0%,
+      rgba(156, 255, 0, 0.055),
+      transparent 60%
+    ),
+    #121316;
+  animation: sense-gate-enter 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes sense-gate-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sense-gate-glow {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  width: 320px;
+  height: 200px;
+  transform: translateX(-50%);
+  background:
+    radial-gradient(
+      circle,
+      rgba(156, 255, 0, 0.12),
+      transparent 70%
+    );
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+.sense-gate-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 64px 32px;
+  text-align: center;
+}
+
+.sense-gate-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  border: 1px solid rgba(156, 255, 0, 0.22);
+  color: var(--musex-accent);
+  background: rgba(156, 255, 0, 0.06);
+  animation: sense-gate-icon-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes sense-gate-icon-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(156, 255, 0, 0.12);
+  }
+
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(156, 255, 0, 0);
+  }
+}
+
+.sense-gate-eyebrow {
+  margin-top: 20px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: #6d707a;
+}
+
+.sense-gate-title {
+  margin-top: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+}
+
+.sense-gate-description {
+  margin-top: 10px;
+  max-width: 380px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #75787f;
+}
+
+.sense-gate-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: white;
+  color: black;
+  font-size: 12px;
+  font-weight: 600;
+  transition:
+    transform 160ms ease,
+    background 160ms ease;
+}
+
+.sense-gate-cta:hover {
+  background: #e4e4e4;
+  transform: translateY(-1px);
+}
+
+
+/* ============================================================
+   SENSE STATUS
+============================================================ */
+
+.sense-status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--musex-accent);
+  box-shadow: 0 0 8px rgba(156, 255, 0, 0.35);
+}
+
+
+/* ============================================================
+   RECOMMENDATIONS
+============================================================ */
+
+.refresh-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid #292b30;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 500;
+  color: #9a9da3;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    color 150ms ease,
+    background 150ms ease;
+}
+
+.refresh-button:hover {
+  border-color: #3a3d43;
+  color: white;
+  background: #151719;
+}
+
+.recommend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 720px) {
+  .recommend-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.recommend-card {
+  min-height: 145px;
+  border: 1px solid #292b30;
+  border-radius: 14px;
+  background: #151719;
+  padding: 16px;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+  animation: recommend-card-enter 280ms ease both;
+}
+
+.recommend-card:hover {
+  border-color: #363940;
+  background: #181a1d;
+  transform: translateY(-1px);
+}
+
+@keyframes recommend-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.recommend-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.recommend-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 29px;
+  height: 29px;
+  border: 1px solid #292b30;
+  border-radius: 8px;
+  color: var(--musex-accent);
+  background: #0d0e10;
+}
+
+.recommend-label {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  color: #4f5258;
+}
+
+.recommend-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 720px) {
+  .recommend-skeleton-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.recommend-skeleton {
+  height: 145px;
+  border-radius: 14px;
+  border: 1px solid #22242a;
+  background:
+    linear-gradient(
+      90deg,
+      #151719 0%,
+      #1b1d21 50%,
+      #151719 100%
+    );
+  background-size: 200% 100%;
+  animation: recommend-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes recommend-skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.recommend-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px dashed #292b30;
+  border-radius: 14px;
+  padding: 28px;
+  text-align: center;
+}
+
+.recommend-error-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin-bottom: 10px;
+  border: 1px solid #292b30;
+  border-radius: 8px;
+  color: #666970;
+  background: #111214;
+}
+
+
+/* ============================================================
+   DISCOVER — GENRES
+============================================================ */
+
+.genre-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (min-width: 720px) {
+  .genre-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.genre-card {
+  position: relative;
+  display: flex;
+  min-height: 122px;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 14px;
+  border: 1px solid #292b30;
+  border-radius: 13px;
+  background: #151719;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.genre-card:hover {
+  border-color: #3a3d43;
+  background: #181a1d;
+  transform: translateY(-1px);
+}
+
+.genre-card::after {
+  position: absolute;
+  right: -24px;
+  bottom: -35px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(156, 255, 0, 0.035);
+  filter: blur(20px);
+  content: "";
+  pointer-events: none;
+}
+
+.genre-number {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 9px;
+  color: #4e5157;
+}
+
+.genre-content {
+  position: relative;
+  z-index: 1;
+}
+
+.genre-content p {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e4e4e7;
+}
+
+.genre-content span {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: #62656c;
+}
+
+.genre-arrow {
+  position: absolute;
+  right: 13px;
+  bottom: 13px;
+  width: 14px;
+  height: 14px;
+  color: #45484e;
+  transition:
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.genre-card:hover .genre-arrow {
+  color: var(--musex-accent);
+  transform: translateX(2px);
+}
+
+
+/* ============================================================
+   DISCOVER — MOODS
+============================================================ */
+
+.mood-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (min-width: 720px) {
+  .mood-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.mood-card {
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  gap: 11px;
+  padding: 13px;
+  border: 1px solid #292b30;
+  border-radius: 12px;
+  background: #111214;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.mood-card:hover {
+  border-color: #3a3d43;
+  background: #151719;
+  transform: translateY(-1px);
+}
+
+.mood-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 1px solid #292b30;
+  border-radius: 8px;
+  color: #777a81;
+  background: #0d0e10;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.mood-card:hover .mood-icon {
+  color: var(--musex-accent);
+  border-color: rgba(156, 255, 0, 0.2);
+}
+
+.mood-card p {
+  font-size: 12px;
+  font-weight: 600;
+  color: #d4d4d8;
+}
+
+.mood-card span {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  color: #5e6167;
+}
+
+
+/* ============================================================
+   DISCLAIMER
+============================================================ */
+
+.sense-disclaimer {
+  border: 1px solid #292b30;
+  border-radius: 12px;
+  background: #111214;
+  padding: 13px 14px;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media (max-width: 620px) {
+  .content-pad {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .recommend-grid,
+  .recommend-skeleton-grid,
+  .genre-grid,
+  .mood-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sense-gate-content {
+    padding: 48px 22px;
+  }
+
+  .recommend-card {
+    min-height: 135px;
+  }
+}
+
+
+/* ============================================================
+   REDUCED MOTION
+============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .explore-page,
+  .sense-gate,
+  .sense-gate-icon,
+  .recommend-card,
+  .recommend-skeleton {
+    animation: none;
+  }
+
+  .genre-card,
+  .mood-card,
+  .recommend-card,
+  .refresh-button {
+    transition: none;
   }
 }

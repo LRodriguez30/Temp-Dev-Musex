@@ -18,17 +18,19 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = ["protocol-asset"] }
+tauri = { version = "2.12.0", features = ["protocol-asset"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 rodio = "0.22.2"
 cpal = "0.18.2"
 lofty = "0.25.1"
-reqwest = { version = "0.13.4", features = ["blocking", "rustls"] }
+reqwest = { version = "0.13.4", features = ["blocking", "rustls", "json"] }
 tauri-plugin-dialog = "2.7.3"
 chrono = "0.4.45"
-tauri-plugin-opener = "2.5.5"
-tauri-plugin-shell = "2"
+tauri-plugin-opener = "2.6.0"
+tauri-plugin-shell = "2.3.6"
+keyring = "4.2.0"
+biquad = "0.6.0"
 
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration

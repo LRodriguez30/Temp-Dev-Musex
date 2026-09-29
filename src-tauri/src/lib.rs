@@ -20,6 +20,9 @@ mod filesystem;
 mod library;
 mod models;
 
+mod equalizer;
+mod sense;
+
 use tauri::Manager;
 use std::thread;
 use std::time::Duration;
@@ -32,6 +35,8 @@ use downloads::manager::DownloadManager;
 use filesystem::storage::Storage;
 
 use downloads::history::DownloadHistory;
+
+use sense::store::SenseStore;
 
 // =============================================================
 // COMANDO DE PRUEBA
@@ -81,6 +86,8 @@ pub fn run() {
         );
 
     let download_history = DownloadHistory::new(&base_dir);
+
+    let sense_store = SenseStore::new(base_dir.clone());
 
     // =========================================================
     // INICIALIZACIÓN DEL DOWNLOAD MANAGER
@@ -174,6 +181,7 @@ pub fn run() {
         .manage(audio_player)
         .manage(download_manager)
         .manage(download_history)
+        .manage(sense_store)
 
         .setup(|app| {
             let app_handle = app.handle().clone();
@@ -298,10 +306,45 @@ pub fn run() {
 
 
                 // =============================================
+                // EQUALIZER
+                // =============================================
+
+                commands::equalizer::enable_track_for_eq,
+                commands::equalizer::list_eq_tracks,
+                commands::equalizer::disable_track_for_eq,
+
+                commands::equalizer::play_eq_audio,
+                commands::equalizer::pause_eq_audio,
+                commands::equalizer::resume_eq_audio,
+                commands::equalizer::stop_eq_audio,
+                commands::equalizer::get_eq_audio_position,
+                commands::equalizer::seek_eq_audio,
+
+                commands::equalizer::set_eq_band,
+                commands::equalizer::remove_eq_band,
+                commands::equalizer::reset_eq,
+
+                // =============================================
+                // SENSE
+                // =============================================
+
+                commands::sense::get_sense_settings,
+                commands::sense::set_sense_enabled,
+                commands::sense::set_sense_capability,
+                commands::sense::set_sense_prompt,
+                commands::sense::reset_sense_prompt,
+                commands::sense::save_sense_api_key,
+                commands::sense::remove_sense_api_key,
+                commands::sense::test_sense_connection,
+                commands::sense::get_sense_recommendations,
+                commands::sense::recommend_eq_preset,
+
+                // =============================================
                 // LIBRARY
                 // =============================================
 
                 commands::library::scan_library,
+                commands::library::scan_temp,
                 commands::library::import_tracks,
             ]
         )
