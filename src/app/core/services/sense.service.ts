@@ -18,7 +18,8 @@
 
 import {
   Injectable,
-  signal
+  signal,
+  computed
 } from '@angular/core';
 
 import { invoke } from '@tauri-apps/api/core';
@@ -199,8 +200,30 @@ export class SenseService {
     );
 
 
+  /**
+   * Estado completo de Sense.
+   *
+   * Todos los componentes que necesiten información de Sense
+   * utilizan este signal como fuente única de verdad.
+   */
   readonly settings =
     this.settingsState.asReadonly();
+
+
+  /**
+   * Estado global de activación de Sense.
+   *
+   * Este computed NO mantiene un estado independiente.
+   * Siempre refleja `settingsState().enabled`.
+   *
+   * Por lo tanto, si Sense se activa desde cualquier componente,
+   * todos los demás componentes que consuman `enabled()` se
+   * actualizan automáticamente.
+   */
+  readonly enabled =
+    computed(() =>
+      this.settingsState().enabled
+    );
 
 
   private loaded =
@@ -230,12 +253,16 @@ export class SenseService {
     }
 
 
-    if (!this.loadingPromise) {
+    if (this.loadingPromise) {
 
-      this.loadingPromise =
-        this.refresh();
+      await this.loadingPromise;
+
+      return;
     }
 
+
+    this.loadingPromise =
+      this.refresh();
 
     await this.loadingPromise;
   }

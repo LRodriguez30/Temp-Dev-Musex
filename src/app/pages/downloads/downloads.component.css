@@ -1,13 +1,9 @@
 /* =============================================================
    DOWNLOADS VIEW
-   -------------------------------------------------------------
-   Estilos generales de la vista de descargas de Musex.
-   La interfaz mantiene una estética oscura, limpia y técnica,
-   utilizando el verde Musex como color de interacción.
 ============================================================= */
 
 :host {
-  --musex-green: var(--musex-accent, var(--musex-accent));
+  --musex-green: var(--musex-accent, #9cff00);
 
   --downloads-bg: #0d0e10;
   --downloads-panel: #131517;
@@ -38,7 +34,7 @@
 
 
 /* =============================================================
-   PAGE ENTER
+   PAGE
 ============================================================= */
 
 .download-page {
@@ -52,6 +48,7 @@
 }
 
 @keyframes download-page-enter {
+
   from {
     opacity: 0;
     transform: translateY(7px);
@@ -61,11 +58,12 @@
     opacity: 1;
     transform: translateY(0);
   }
+
 }
 
 
 /* =============================================================
-   MAIN SCROLL AREA
+   SCROLL AREA
 ============================================================= */
 
 .view {
@@ -97,7 +95,7 @@
 
 
 /* =============================================================
-   PAGE CONTENT
+   CONTENT
 ============================================================= */
 
 .content-pad {
@@ -106,7 +104,7 @@
 
 
 /* =============================================================
-   PAGE HEADER
+   HEADER
 ============================================================= */
 
 .content-pad > div:first-child {
@@ -124,7 +122,7 @@
 
 
 /* =============================================================
-   SETTINGS BUTTON
+   SETTINGS
 ============================================================= */
 
 .icon-btn {
@@ -189,12 +187,6 @@
     box-shadow 180ms ease;
 }
 
-
-/*
- * Small Musex accent line.
- * Keeps the section visually connected to the rest of the app.
- */
-
 .content-pad > section:first-of-type::before {
   content: "";
 
@@ -229,9 +221,13 @@
    DOWNLOAD ICON
 ============================================================= */
 
-.content-pad > section:first-of-type .musex-accent-panel {
+.content-pad > section:first-of-type
+  .musex-accent-panel {
+
   border: 1px solid rgba(156, 255, 0, 0.08);
-  box-shadow: inset 0 0 18px rgba(156, 255, 0, 0.025);
+
+  box-shadow:
+    inset 0 0 18px rgba(156, 255, 0, 0.025);
 }
 
 
@@ -304,8 +300,16 @@
   outline: none;
 
   box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--musex-accent) 12%, transparent),
-    0 5px 18px color-mix(in srgb, var(--musex-accent) 12%, transparent);
+    0 0 0 3px color-mix(
+      in srgb,
+      var(--musex-accent) 12%,
+      transparent
+    ),
+    0 5px 18px color-mix(
+      in srgb,
+      var(--musex-accent) 12%,
+      transparent
+    );
 }
 
 
@@ -314,10 +318,14 @@
 ============================================================= */
 
 .content-pad form > div[class*="text-[var(--musex-accent)]"] {
-  animation: downloadStatusIn 180ms ease-out;
+  animation:
+    download-status-in
+    180ms
+    ease-out;
 }
 
-@keyframes downloadStatusIn {
+@keyframes download-status-in {
+
   from {
     opacity: 0;
     transform: translateY(-3px);
@@ -327,11 +335,12 @@
     opacity: 1;
     transform: translateY(0);
   }
+
 }
 
 
 /* =============================================================
-   SOURCE PRESETS
+   PRESETS
 ============================================================= */
 
 .content-pad form button[type="button"] {
@@ -361,7 +370,7 @@
 
 
 /* =============================================================
-   DROP ZONE WRAPPER
+   DROP ZONE
 ============================================================= */
 
 .content-pad > div.mt-5 {
@@ -370,12 +379,11 @@
 
 
 /* =============================================================
-   DOWNLOAD SECTIONS
+   SECTIONS
 ============================================================= */
 
 .content-pad section h2 {
   color: var(--text-primary);
-
   line-height: 1.2;
 }
 
@@ -385,7 +393,7 @@
 
 
 /* =============================================================
-   DOWNLOAD COUNTERS
+   COUNTERS
 ============================================================= */
 
 .content-pad section span.rounded-full {
@@ -399,32 +407,290 @@
 
 
 /* =============================================================
-   CLEAR DOWNLOADS BUTTON
+   CLEAR ERRORS
 ============================================================= */
 
-.content-pad section button:not([type="submit"]) {
+.downloads-clear-errors {
+  border-color: var(--downloads-border);
+
+  background: #111214;
+}
+
+.downloads-clear-errors:hover:not(:disabled) {
+  background: #17191b;
+  border-color: var(--downloads-border-hover);
+}
+
+
+/* =============================================================
+   DOWNLOAD ENTRY
+============================================================= */
+
+.download-entry {
+  display: block;
+
+  border-radius: 12px;
+
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.download-entry-error {
+  border: 1px solid rgba(239, 68, 68, 0.12);
+
+  background:
+    rgba(239, 68, 68, 0.015);
+
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.02);
+}
+
+
+/* =============================================================
+   ERROR PANEL
+============================================================= */
+
+.download-error-panel {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-top: 6px;
+
+  padding:
+    11px
+    12px
+    11px
+    14px;
+
+  border:
+    1px solid
+    rgba(239, 68, 68, 0.16);
+
+  border-radius: 9px;
+
+  background:
+    rgba(239, 68, 68, 0.035);
+}
+
+
+.download-error-message {
+  display: flex;
+
+  align-items: flex-start;
+
+  min-width: 0;
+
+  gap: 10px;
+}
+
+
+.download-error-icon {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 27px;
+  height: 27px;
+
+  flex-shrink: 0;
+
+  border:
+    1px solid
+    rgba(239, 68, 68, 0.16);
+
+  border-radius: 7px;
+
+  color: rgba(248, 113, 113, 0.85);
+
+  background:
+    rgba(239, 68, 68, 0.06);
+}
+
+.download-error-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+
+.download-error-label {
+  margin: 0;
+
+  color: rgba(248, 113, 113, 0.9);
+
+  font-family:
+    "Courier New",
+    "Lucida Console",
+    monospace;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 0.08em;
+
+  line-height: 1.3;
+
+  text-transform: uppercase;
+}
+
+
+.download-error-text {
+  margin: 4px 0 0;
+
+  overflow: hidden;
+
+  color: rgba(255, 255, 255, 0.42);
+
+  font-size: 11px;
+
+  line-height: 1.45;
+
+  text-overflow: ellipsis;
+}
+
+
+.download-error-actions {
+  display: flex;
+
+  align-items: center;
+
+  flex-shrink: 0;
+
+  gap: 7px;
+}
+
+
+/* =============================================================
+   ERROR ACTIONS
+============================================================= */
+
+.download-error-retry,
+.download-error-remove {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  height: 32px;
+
+  padding:
+    0
+    11px;
+
+  border-radius: 7px;
+
+  font-family:
+    "Courier New",
+    "Lucida Console",
+    monospace;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 0.09em;
+
+  line-height: 1;
+
+  text-transform: uppercase;
+
+  cursor: pointer;
+
   transition:
     color 160ms ease,
     border-color 160ms ease,
     background-color 160ms ease,
-    transform 160ms ease;
+    transform 160ms ease,
+    opacity 160ms ease;
 }
 
-.content-pad section button:not([type="submit"]):hover:not(:disabled) {
-  background: #17191b;
+
+.download-error-retry {
+  border:
+    1px solid
+    rgba(156, 255, 0, 0.32);
+
+  color: var(--musex-green);
+
+  background:
+    rgba(156, 255, 0, 0.045);
 }
 
-.content-pad section button:not([type="submit"]):active:not(:disabled) {
+.download-error-retry:hover:not(:disabled) {
+  border-color:
+    rgba(156, 255, 0, 0.55);
+
+  background:
+    rgba(156, 255, 0, 0.08);
+}
+
+.download-error-retry:active:not(:disabled) {
   transform: translateY(1px);
 }
 
-.content-pad section button:not([type="submit"]):focus-visible {
-  outline: none;
 
-  border-color: rgba(156, 255, 0, 0.4);
+.download-error-remove {
+  border:
+    1px solid
+    var(--downloads-border);
 
-  box-shadow:
-    0 0 0 3px rgba(156, 255, 0, 0.06);
+  color:
+    rgba(255, 255, 255, 0.42);
+
+  background:
+    #111214;
+}
+
+.download-error-remove:hover {
+  border-color:
+    rgba(239, 68, 68, 0.32);
+
+  color:
+    rgba(248, 113, 113, 0.9);
+
+  background:
+    rgba(239, 68, 68, 0.04);
+}
+
+.download-error-remove:active {
+  transform: translateY(1px);
+}
+
+
+.download-error-retry:disabled {
+  opacity: 0.5;
+
+  cursor: wait;
+}
+
+
+.download-error-retry svg,
+.download-error-remove svg {
+  width: 12px;
+  height: 12px;
+}
+
+
+.download-action-spinner {
+  animation:
+    download-spinner
+    850ms
+    linear
+    infinite;
+}
+
+@keyframes download-spinner {
+
+  to {
+    transform: rotate(360deg);
+  }
+
 }
 
 
@@ -446,11 +712,6 @@
   border-color: #25282c;
 }
 
-
-/*
- * Subtle technical grid used only in empty states.
- * It keeps large empty areas from feeling completely flat.
- */
 
 .content-pad section .bg-\[\#111214\]::before {
   content: "";
@@ -476,27 +737,25 @@
 
   background-size: 28px 28px;
 
-  mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    black 30%,
-    black 70%,
-    transparent
-  );
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent,
+      black 30%,
+      black 70%,
+      transparent
+    );
 
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    black 30%,
-    black 70%,
-    transparent
-  );
+  -webkit-mask-image:
+    linear-gradient(
+      to bottom,
+      transparent,
+      black 30%,
+      black 70%,
+      transparent
+    );
 }
 
-
-/*
- * Keep the empty-state content above the decorative grid.
- */
 
 .content-pad section .bg-\[\#111214\] > * {
   position: relative;
@@ -505,17 +764,23 @@
 
 
 /* =============================================================
-   EMPTY STATE ICONS
+   EMPTY ICONS
 ============================================================= */
 
-.content-pad section .bg-\[\#111214\] .bg-\[\#17191b\] {
+.content-pad section
+  .bg-\[\#111214\]
+  .bg-\[\#17191b\] {
+
   transition:
     border-color 180ms ease,
     color 180ms ease,
     transform 180ms ease;
 }
 
-.content-pad section .bg-\[\#111214\]:hover .bg-\[\#17191b\] {
+.content-pad section
+  .bg-\[\#111214\]:hover
+  .bg-\[\#17191b\] {
+
   border-color: #34373c;
 
   color: #70747b;
@@ -525,7 +790,7 @@
 
 
 /* =============================================================
-   DOWNLOAD ITEM CONTAINERS
+   DOWNLOAD ITEM COMPONENTS
 ============================================================= */
 
 .content-pad app-download-item,
@@ -542,11 +807,6 @@
 .content-pad > section:nth-of-type(3) {
   position: relative;
 }
-
-
-/*
- * Very subtle separator before the download history.
- */
 
 .content-pad > section:nth-of-type(3)::before {
   content: "";
@@ -588,6 +848,15 @@
     border-radius: 12px;
   }
 
+  .download-error-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .download-error-actions {
+    justify-content: flex-end;
+  }
+
 }
 
 
@@ -609,6 +878,15 @@
 
   .content-pad > section:first-of-type {
     padding: 16px;
+  }
+
+  .download-error-actions {
+    width: 100%;
+  }
+
+  .download-error-retry,
+  .download-error-remove {
+    flex: 1;
   }
 
 }
@@ -638,16 +916,25 @@
 
 @media (prefers-reduced-motion: reduce) {
 
+  .download-page,
   .icon-btn,
   .content-pad form button,
   .content-pad form button[type="button"],
   .content-pad section button,
   .content-pad input,
-  .content-pad section .bg-\[\#111214\] .bg-\[\#17191b\] {
+  .content-pad section .bg-\[\#111214\] .bg-\[\#17191b\],
+  .download-error-retry,
+  .download-error-remove {
+
+    animation: none;
     transition: none;
   }
 
   .content-pad form > div[class*="text-[var(--musex-accent)]"] {
+    animation: none;
+  }
+
+  .download-action-spinner {
     animation: none;
   }
 

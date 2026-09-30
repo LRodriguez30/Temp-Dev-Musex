@@ -128,10 +128,60 @@
           type="button"
           class="library-error-button"
           (click)="scanLibrary()"
-          [disabled]="scanning"
+          [disabled]="scanning()"
         >
-          Reintentar
+          {{ scanning() ? 'Actualizando...' : 'Reintentar' }}
         </button>
+
+      </div>
+
+    }
+
+
+    <!-- =====================================================
+         ERROR DE IMPORTACIÓN
+    ====================================================== -->
+
+    @if (importError) {
+
+      <div class="library-error">
+
+        <div class="library-error-icon">
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="9"
+            ></circle>
+
+            <path d="M12 8v4"></path>
+
+            <path d="M12 16h.01"></path>
+
+          </svg>
+
+        </div>
+
+        <div class="library-error-content">
+
+          <strong>
+            No se pudieron importar los archivos
+          </strong>
+
+          <span>
+            {{ importError }}
+          </span>
+
+        </div>
 
       </div>
 
@@ -234,6 +284,7 @@
                   12 2.5Z
                 "
               ></path>
+
             </svg>
 
           </span>
@@ -405,27 +456,118 @@
         </div>
 
 
-        <!-- SORT -->
+        <!-- =================================================
+             LIBRARY TOOLS
+        ================================================== -->
 
-        <div class="library-sort">
+        <div class="library-tools">
 
-          <span class="library-sort-label">
-            ORDENAR
-          </span>
+          <!-- PLAY ALL -->
 
-          <div class="library-sort-control">
+          <button
+            type="button"
+            class="library-play-all-button"
+            [disabled]="scanning() || tracks.length === 0"
+            (click)="playAll()"
+            aria-label="Reproducir todas las canciones"
+            title="Reproducir todas las canciones"
+          >
 
-            <button
-              type="button"
-              class="library-sort-button"
-              [class.is-open]="sortMenuOpen"
-              [attr.aria-expanded]="sortMenuOpen"
-              aria-haspopup="listbox"
-              aria-label="Ordenar biblioteca"
-              (click)="sortMenuOpen = !sortMenuOpen"
+            <svg
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
             >
+              <path d="M8 5.5v13l10-6.5-10-6.5Z"></path>
+            </svg>
 
-              <span class="library-sort-icon">
+            <span>
+              Reproducir todo
+            </span>
+
+          </button>
+
+
+          <!-- REFRESH -->
+
+          <button
+            type="button"
+            class="library-refresh-button"
+            [class.is-refreshing]="scanning()"
+            [disabled]="scanning()"
+            (click)="scanLibrary()"
+            aria-label="Actualizar biblioteca"
+            title="Actualizar biblioteca"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M20 11a8.1 8.1 0 0 0-14.8-4.5L4 8"
+              ></path>
+
+              <path d="M4 4v4h4"></path>
+
+              <path
+                d="M4 13a8.1 8.1 0 0 0 14.8 4.5L20 16"
+              ></path>
+
+              <path d="M20 20v-4h-4"></path>
+
+            </svg>
+
+          </button>
+
+
+          <!-- SEARCH -->
+
+          <div class="library-search">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle
+                cx="11"
+                cy="11"
+                r="7"
+              ></circle>
+
+              <path d="m20 20-4-4"></path>
+
+            </svg>
+
+
+            <input
+              type="search"
+              [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event)"
+              placeholder="Buscar en tu biblioteca..."
+              aria-label="Buscar en tu biblioteca"
+            />
+
+
+            @if (searchQuery()) {
+
+              <button
+                type="button"
+                class="library-search-clear"
+                aria-label="Limpiar búsqueda"
+                (click)="searchQuery.set('')"
+              >
+
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
@@ -435,128 +577,201 @@
                   stroke-linejoin="round"
                   aria-hidden="true"
                 >
-                  <path d="M8 6h13"></path>
-                  <path d="M8 12h10"></path>
-                  <path d="M8 18h7"></path>
-
-                  <path d="M3 6h.01"></path>
-                  <path d="M3 12h.01"></path>
-                  <path d="M3 18h.01"></path>
+                  <path d="M6 6l12 12"></path>
+                  <path d="M18 6 6 18"></path>
                 </svg>
-              </span>
 
-              <span class="library-sort-value">
-                @if (sortBy === 'title') {
-                  Título
-                } @else if (sortBy === 'artist') {
-                  Artista
-                } @else {
-                  Más recientes
-                }
-              </span>
-
-              <span
-                class="library-sort-chevron"
-                [class.is-open]="sortMenuOpen"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </span>
-
-            </button>
-
-
-            @if (sortMenuOpen) {
-
-              <div
-                class="library-sort-menu"
-                role="listbox"
-                aria-label="Opciones de orden"
-              >
-
-                <button
-                  type="button"
-                  class="library-sort-option"
-                  [class.is-selected]="sortBy === 'title'"
-                  (click)="sortBy = 'title'; sortMenuOpen = false"
-                >
-                  <span>Título</span>
-
-                  @if (sortBy === 'title') {
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  }
-                </button>
-
-
-                <button
-                  type="button"
-                  class="library-sort-option"
-                  [class.is-selected]="sortBy === 'artist'"
-                  (click)="sortBy = 'artist'; sortMenuOpen = false"
-                >
-                  <span>Artista</span>
-
-                  @if (sortBy === 'artist') {
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  }
-                </button>
-
-
-                <button
-                  type="button"
-                  class="library-sort-option"
-                  [class.is-selected]="sortBy === 'recent'"
-                  (click)="sortBy = 'recent'; sortMenuOpen = false"
-                >
-                  <span>Más recientes</span>
-
-                  @if (sortBy === 'recent') {
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  }
-                </button>
-
-              </div>
+              </button>
 
             }
+
+          </div>
+
+
+          <!-- SORT -->
+
+          <div class="library-sort">
+
+            <span class="library-sort-label">
+              ORDENAR
+            </span>
+
+            <div class="library-sort-control">
+
+              <button
+                type="button"
+                class="library-sort-button"
+                [class.is-open]="sortMenuOpen"
+                [attr.aria-expanded]="sortMenuOpen"
+                aria-haspopup="listbox"
+                aria-label="Ordenar biblioteca"
+                (click)="sortMenuOpen = !sortMenuOpen"
+              >
+
+                <span class="library-sort-icon">
+
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M8 6h13"></path>
+                    <path d="M8 12h10"></path>
+                    <path d="M8 18h7"></path>
+
+                    <path d="M3 6h.01"></path>
+                    <path d="M3 12h.01"></path>
+                    <path d="M3 18h.01"></path>
+                  </svg>
+
+                </span>
+
+                <span class="library-sort-value">
+
+                  @if (sortBy === 'title') {
+                    Título
+                  } @else if (sortBy === 'artist') {
+                    Artista
+                  } @else {
+                    Más recientes
+                  }
+
+                </span>
+
+                <span
+                  class="library-sort-chevron"
+                  [class.is-open]="sortMenuOpen"
+                >
+
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+
+                </span>
+
+              </button>
+
+
+              @if (sortMenuOpen) {
+
+                <div
+                  class="library-sort-menu"
+                  role="listbox"
+                  aria-label="Opciones de orden"
+                >
+
+                  <!-- TITLE -->
+
+                  <button
+                    type="button"
+                    class="library-sort-option"
+                    [class.is-selected]="sortBy === 'title'"
+                    (click)="sortBy = 'title'; sortMenuOpen = false"
+                  >
+
+                    <span>
+                      Título
+                    </span>
+
+                    @if (sortBy === 'title') {
+
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+
+                    }
+
+                  </button>
+
+
+                  <!-- ARTIST -->
+
+                  <button
+                    type="button"
+                    class="library-sort-option"
+                    [class.is-selected]="sortBy === 'artist'"
+                    (click)="sortBy = 'artist'; sortMenuOpen = false"
+                  >
+
+                    <span>
+                      Artista
+                    </span>
+
+                    @if (sortBy === 'artist') {
+
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+
+                    }
+
+                  </button>
+
+
+                  <!-- RECENT -->
+
+                  <button
+                    type="button"
+                    class="library-sort-option"
+                    [class.is-selected]="sortBy === 'recent'"
+                    (click)="sortBy = 'recent'; sortMenuOpen = false"
+                  >
+
+                    <span>
+                      Más recientes
+                    </span>
+
+                    @if (sortBy === 'recent') {
+
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+
+                    }
+
+                  </button>
+
+                </div>
+
+              }
+
+            </div>
 
           </div>
 
@@ -571,18 +786,121 @@
 
       <div class="library-table">
 
-        @if (tracks.length > 0) {
+        <!-- =================================================
+             LOADING
+        ================================================== -->
+
+        @if (scanning()) {
+
+          <div class="library-loading">
+
+            <div class="library-loading-spinner"></div>
+
+            <div class="library-loading-content">
+
+              <span class="library-loading-title">
+                Actualizando biblioteca
+              </span>
+
+              <span class="library-loading-subtitle">
+                Escaneando tus canciones locales...
+              </span>
+
+            </div>
+
+          </div>
+
+
+        } @else if (tracks.length > 0) {
+
+          <!-- =================================================
+               MUSIC TABLE
+          ================================================== -->
 
           <app-music-table
             [tracks]="tracks"
             (play)="playTrack($event)"
             (more)="openMore($event)"
             (addToPlaylist)="openAddToPlaylist($event)"
+            (addSelectedToPlaylist)="openAddSelectedToPlaylist($event)"
           ></app-music-table>
+
+
+        } @else if (searchQuery().trim()) {
+
+          <!-- =================================================
+               NO SEARCH RESULTS
+          ================================================== -->
+
+          <div class="library-empty">
+
+            <div class="library-empty-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle
+                  cx="11"
+                  cy="11"
+                  r="7"
+                ></circle>
+
+                <path d="m20 20-4-4"></path>
+
+              </svg>
+
+            </div>
+
+            <div class="library-empty-code">
+              SIN RESULTADOS
+            </div>
+
+            <h3>
+              No encontramos esa canción
+            </h3>
+
+            <p>
+              No hay canciones que coincidan con
+              "{{ searchQuery() }}".
+            </p>
+
+            <button
+              type="button"
+              class="library-empty-button"
+              (click)="searchQuery.set('')"
+            >
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M6 6l12 12"></path>
+                <path d="M18 6 6 18"></path>
+              </svg>
+
+              Limpiar búsqueda
+
+            </button>
+
+          </div>
+
 
         } @else {
 
-          <!-- EMPTY LIBRARY -->
+          <!-- =================================================
+               EMPTY LIBRARY
+          ================================================== -->
 
           <div class="library-empty">
 

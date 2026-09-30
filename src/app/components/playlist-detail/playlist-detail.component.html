@@ -506,6 +506,7 @@
             @if (isReordering) {
 
               <!-- REINICIAR ORDEN -->
+
               <button
                 type="button"
                 class="playlist-reorder-reset"
@@ -513,10 +514,12 @@
                 (click)="resetReorder()"
                 title="Restaurar orden original"
               >
+
                 <svg
                   viewBox="0 0 24 24"
                   aria-hidden="true"
                 >
+
                   <path
                     d="M3 12a9 9 0 1 0 3-6.7"
                     fill="none"
@@ -524,6 +527,7 @@
                     stroke-width="2"
                     stroke-linecap="round"
                   />
+
                   <path
                     d="M3 5v5h5"
                     fill="none"
@@ -532,10 +536,15 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                   />
+
                 </svg>
 
-                <span>Reiniciar</span>
+                <span>
+                  Reiniciar
+                </span>
+
               </button>
+
 
               <!-- GUARDAR -->
 
@@ -615,7 +624,94 @@
             } @else {
 
               <!-- =================================================
-                  ORDENAR
+                   SEARCH
+              ================================================== -->
+
+              <div
+                class="playlist-search"
+              >
+
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+
+                  <circle
+                    cx="11"
+                    cy="11"
+                    r="7"
+                  ></circle>
+
+                  <path
+                    d="m20 20-4-4"
+                  ></path>
+
+                </svg>
+
+
+                <input
+                  type="search"
+                  [value]="searchQuery()"
+                  (input)="
+                    searchQuery.set(
+                      $any($event.target).value
+                    )
+                  "
+                  placeholder="Buscar en playlist..."
+                  aria-label="Buscar canciones en la playlist"
+                  autocomplete="off"
+                />
+
+
+                @if (searchQuery()) {
+
+                  <button
+                    type="button"
+                    class="playlist-search-clear"
+                    aria-label="Limpiar búsqueda"
+                    title="Limpiar búsqueda"
+                    (click)="searchQuery.set('')"
+                  >
+
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      aria-hidden="true"
+                    >
+
+                      <line
+                        x1="6"
+                        y1="6"
+                        x2="18"
+                        y2="18"
+                      ></line>
+
+                      <line
+                        x1="18"
+                        y1="6"
+                        x2="6"
+                        y2="18"
+                      ></line>
+
+                    </svg>
+
+                  </button>
+
+                }
+
+              </div>
+
+
+              <!-- =================================================
+                   ORDENAR
               ================================================== -->
 
               <div class="playlist-sort">
@@ -740,7 +836,9 @@
                             aria-hidden="true"
                           >
 
-                            <polyline points="20 6 9 17 4 12"></polyline>
+                            <polyline
+                              points="20 6 9 17 4 12"
+                            ></polyline>
 
                           </svg>
 
@@ -781,7 +879,9 @@
                             aria-hidden="true"
                           >
 
-                            <polyline points="20 6 9 17 4 12"></polyline>
+                            <polyline
+                              points="20 6 9 17 4 12"
+                            ></polyline>
 
                           </svg>
 
@@ -822,7 +922,9 @@
                             aria-hidden="true"
                           >
 
-                            <polyline points="20 6 9 17 4 12"></polyline>
+                            <polyline
+                              points="20 6 9 17 4 12"
+                            ></polyline>
 
                           </svg>
 
@@ -863,7 +965,9 @@
                             aria-hidden="true"
                           >
 
-                            <polyline points="20 6 9 17 4 12"></polyline>
+                            <polyline
+                              points="20 6 9 17 4 12"
+                            ></polyline>
 
                           </svg>
 
@@ -1302,21 +1406,82 @@
                    REUSABLE MUSIC TABLE
               ================================================== -->
 
-              <app-music-table
-                [tracks]="tracks()"
+              @if (filteredTracks().length > 0) {
 
-                (play)="
-                  playTrack($event)
-                "
+                <app-music-table
+                  [tracks]="filteredTracks()"
 
-                (more)="
-                  openMore($event)
-                "
+                  (play)="
+                    playTrack($event)
+                  "
 
-                (addToPlaylist)="
-                  openAddToPlaylist($event)
-                "
-              ></app-music-table>
+                  (more)="
+                    openMore($event)
+                  "
+
+                  (addToPlaylist)="
+                    openAddToPlaylist($event)
+                  "
+                ></app-music-table>
+
+              } @else {
+
+                <!-- =================================================
+                     NO SEARCH RESULTS
+                ================================================== -->
+
+                <div
+                  class="playlist-empty"
+                >
+
+                  <div
+                    class="playlist-empty-icon"
+                  >
+
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.7"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+
+                      <circle
+                        cx="11"
+                        cy="11"
+                        r="7"
+                      ></circle>
+
+                      <path
+                        d="m20 20-4-4"
+                      ></path>
+
+                    </svg>
+
+                  </div>
+
+
+                  <div
+                    class="playlist-empty-content"
+                  >
+
+                    <h3>
+                      No se encontraron canciones
+                    </h3>
+
+                    <p>
+                      No hay canciones en esta playlist
+                      que coincidan con
+                      "{{ searchQuery() }}".
+                    </p>
+
+                  </div>
+
+                </div>
+
+              }
 
             }
 
@@ -1326,7 +1491,9 @@
                  EMPTY
             ================================================== -->
 
-            <div class="playlist-empty">
+            <div
+              class="playlist-empty"
+            >
 
               <div
                 class="playlist-empty-icon"

@@ -1,61 +1,61 @@
-<!-- ============================================================
-     MUSEX — MAIN LAYOUT
-     ------------------------------------------------------------
-     Estructura principal persistente de la aplicación.
-
-     Distribución:
-
-     DESKTOP
-     ├── Top Bar
-     ├── Content Layer
-     │   ├── Sidebar       → 257px
-     │   ├── Main          → espacio restante
-     │   └── Now Playing   → 363px cuando está abierto
-     └── Bottom Player     → barra global inferior
-
-     TABLET
-     ├── Top Bar
-     ├── Content Layer
-     │   ├── Sidebar       → 78px
-     │   ├── Main
-     │   └── Now Playing
-     └── Bottom Player
-
-     MOBILE
-     ├── Top Bar
-     ├── Content Layer
-     │   └── Main
-     ├── Bottom Player
-     └── Bottom Navigation → manejada por Sidebar
-
-     Full Player:
-     -------------------------------------------------------------
-     Se renderiza fuera de Content Layer y Bottom Player
-     para funcionar como overlay global.
-
-     IMPORTANTE — CASCADA DE MOVIMIENTO:
-     -------------------------------------------------------------
-     Sidebar, Main y Now Playing son "position: absolute" dentro
-     de Content Layer (que es "position: fixed").
-
-     Esto significa que NINGUNO de los tres necesita saber nada
-     sobre el Bottom Player: cuando Content Layer anima su
-     `bottom`, los tres se mueven juntos automáticamente.
-============================================================= -->
-
-
-<!-- ============================================================
-     TOP BAR
-============================================================= -->
-
-<app-top-bar></app-top-bar>
+<!-- ============================================================ 
+     MUSEX — MAIN LAYOUT 
+     ------------------------------------------------------------ 
+     Estructura principal persistente de la aplicación. 
+ 
+     Distribución: 
+ 
+     DESKTOP 
+     ├── Top Bar 
+     ├── Content Layer 
+     │   ├── Sidebar       → 257px 
+     │   ├── Main          → espacio restante 
+     │   └── Now Playing   → 363px cuando está abierto 
+     └── Bottom Player     → barra global inferior 
+ 
+     TABLET 
+     ├── Top Bar 
+     ├── Content Layer 
+     │   ├── Sidebar       → 78px 
+     │   ├── Main 
+     │   └── Now Playing 
+     └── Bottom Player 
+ 
+     MOBILE 
+     ├── Top Bar 
+     ├── Content Layer 
+     │   └── Main 
+     ├── Bottom Player 
+     └── Bottom Navigation → manejada por Sidebar 
+ 
+     Full Player: 
+     ------------------------------------------------------------- 
+     Se renderiza fuera de Content Layer y Bottom Player 
+     para funcionar como overlay global. 
+ 
+     IMPORTANTE — CASCADA DE MOVIMIENTO: 
+     ------------------------------------------------------------- 
+     Sidebar, Main y Now Playing son "position: absolute" dentro 
+     de Content Layer (que es "position: fixed"). 
+ 
+     Esto significa que NINGUNO de los tres necesita saber nada 
+     sobre el Bottom Player: cuando Content Layer anima su 
+     `bottom`, los tres se mueven juntos automáticamente. 
+============================================================= --> 
 
 
-<!-- ============================================================
-     CONTENT LAYER
-============================================================= -->
+<!-- ============================================================ 
+     TOP BAR 
+============================================================= --> 
 
-<div
+<app-top-bar></app-top-bar> 
+
+
+<!-- ============================================================ 
+     CONTENT LAYER 
+============================================================= --> 
+
+<div 
   class="
     content-layer
 
@@ -71,21 +71,21 @@
     bottomPlayerMounted() &&
     !bottomPlayerExiting()
   "
->
+> 
 
 
-  <!-- ==========================================================
-       SIDEBAR
-  =========================================================== -->
+  <!-- ========================================================== 
+       SIDEBAR 
+  =========================================================== --> 
 
-  <app-sidebar></app-sidebar>
+  <app-sidebar></app-sidebar> 
 
 
-  <!-- ==========================================================
-       MAIN WORKSPACE
-  =========================================================== -->
+  <!-- ========================================================== 
+       MAIN WORKSPACE 
+  =========================================================== --> 
 
-  <main
+  <main 
     class="
       main-shell
 
@@ -115,14 +115,14 @@
         : '0px'
     "
     style="container-type: inline-size;"
-  >
+  > 
 
 
-    <!-- ========================================================
-         MAIN CONTENT
-    ========================================================= -->
+    <!-- ======================================================== 
+         MAIN CONTENT 
+    ========================================================= --> 
 
-    <div
+    <div 
       class="
         main-content
 
@@ -131,1783 +131,1827 @@
 
         overflow-hidden
       "
-    >
+    > 
 
-      <router-outlet></router-outlet>
+      <router-outlet></router-outlet> 
 
-    </div>
+    </div> 
 
 
-    <!-- ========================================================
-         SHOW NOW PLAYING
-    ========================================================= -->
+    <!-- ======================================================== 
+         SHOW NOW PLAYING 
+    ========================================================= --> 
 
-    @if (
-      !playerService.state().rightPanel &&
-      playerService.hasPlayableContent()
-    ) {
+    @if ( 
+      !playerService.state().rightPanel && 
+      playerService.hasPlayableContent() 
+    ) { 
 
-      <button
-        type="button"
-        class="show-now-playing"
-        aria-label="Mostrar reproductor"
-        title="Mostrar reproductor"
-        (click)="
-          playerService.toggleRightPanel()
-        "
-      >
+      <button 
+        type="button" 
+        class="show-now-playing" 
+        aria-label="Mostrar reproductor" 
+        title="Mostrar reproductor" 
+        (click)=" 
+          playerService.toggleRightPanel() 
+        " 
+      > 
 
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
+        <svg 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          stroke-width="1.8" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" 
+          aria-hidden="true" 
+        > 
 
-          <path d="M9 18l6-6-6-6" />
+          <path d="M9 18l6-6-6-6" /> 
 
-        </svg>
+        </svg> 
 
-      </button>
+      </button> 
 
-    }
+    } 
 
-  </main>
+  </main> 
 
 
-  <!-- ==========================================================
-       RIGHT PANEL — NOW PLAYING
-  =========================================================== -->
+  <!-- ========================================================== 
+       RIGHT PANEL — NOW PLAYING 
+  =========================================================== --> 
 
-  <app-now-playing></app-now-playing>
+  <app-now-playing></app-now-playing> 
 
-</div>
+</div> 
 
 
-<!-- ============================================================
-     BOTTOM PLAYER — GLOBAL
-============================================================= -->
+<!-- ============================================================ 
+     BOTTOM PLAYER — GLOBAL 
+============================================================= --> 
 
-@if (bottomPlayerMounted()) {
+@if (bottomPlayerMounted()) { 
 
-  <app-bottom-player
-    [class.is-exiting]="bottomPlayerExiting()"
-  ></app-bottom-player>
+  <app-bottom-player 
+    [class.is-exiting]="bottomPlayerExiting()" 
+  ></app-bottom-player> 
 
-}
+} 
 
 
-<!-- ============================================================
-     FULL PLAYER — GLOBAL OVERLAY
-============================================================= -->
+<!-- ============================================================ 
+     FULL PLAYER — GLOBAL OVERLAY 
+============================================================= --> 
 
-@if (
-  playerService.fullPlayerOpen() &&
-  currentTrack
-) {
+@if ( 
+  playerService.fullPlayerOpen() && 
+  currentTrack 
+) { 
 
-  <app-full-player></app-full-player>
+  <app-full-player></app-full-player> 
 
-}
+} 
 
 
-<!-- ============================================================
-     GLOBAL MODAL
-============================================================= -->
+<!-- ============================================================ 
+     GLOBAL MODAL 
+============================================================= --> 
 
-<app-modal
-  [open]="modalService.state().open"
-  [title]="modalService.state().title"
-  [subtitle]="modalService.state().subtitle"
-  [bare]="
-    modalService.is('search') ||
-    modalService.is('track-details') ||
-    modalService.is('add-to-playlist') ||
-    modalService.is('equalizer-editor')
-  "
-  (closed)="closeModal()"
-  (animationFinished)="onModalAnimationFinished()"
->
+<app-modal 
+  [open]="modalService.state().open" 
+  [title]="modalService.state().title" 
+  [subtitle]="modalService.state().subtitle" 
+  [bare]=" 
+    modalService.is('search') || 
+    modalService.is('track-details') || 
+    modalService.is('add-to-playlist') || 
+    modalService.is('equalizer-editor') 
+  " 
+  (closed)="closeModal()" 
+  (animationFinished)="onModalAnimationFinished()" 
+> 
 
 
-  <!-- =========================================================
-       SEARCH
-  ========================================================== -->
+  <!-- ========================================================= 
+       SEARCH 
+  ========================================================== --> 
 
-  @if (modalService.is('search')) {
+  @if (modalService.is('search')) { 
 
-    <app-search-modal />
+    <app-search-modal /> 
 
-  }
+  } 
 
 
-  <!-- =========================================================
-       TRACK MENU
-  ========================================================== -->
+  <!-- ========================================================= 
+       TRACK MENU 
+  ========================================================== --> 
 
-  @if (modalService.is('track-menu')) {
+  @if (modalService.is('track-menu')) { 
 
-    @if (modalTrack) {
+    @if (modalTrack) { 
 
-      <div class="space-y-1">
+      <div class="space-y-1"> 
 
-        <button
-          type="button"
-          class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-white transition-colors hover:bg-[#17191b]"
-          (click)="openMetadata(modalTrack)"
-        >
+        <button 
+          type="button" 
+          class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-white transition-colors hover:bg-[#17191b]" 
+          (click)="openMetadata(modalTrack)" 
+        > 
 
-          <svg
-            class="h-5 w-5 text-zinc-400"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
+          <svg 
+            class="h-5 w-5 text-zinc-400" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            stroke-width="2" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+          > 
 
-            <path d="M12 20h9"></path>
+            <path d="M12 20h9"></path> 
 
-            <path
-              d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"
-            ></path>
+            <path 
+              d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" 
+            ></path> 
 
-          </svg>
+          </svg> 
 
-          <span>
-            Editar información
-          </span>
+          <span> 
+            Editar información 
+          </span> 
 
-        </button>
+        </button> 
 
 
-        <button
-          type="button"
-          class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-white transition-colors hover:bg-[#17191b]"
-          (click)="modalService.openAddToPlaylist(modalTrack.id)"
-        >
+        <button 
+          type="button" 
+          class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-white transition-colors hover:bg-[#17191b]" 
+          (click)="modalService.openAddToPlaylist(modalTrack.id)" 
+        > 
 
-          <svg
-            class="h-5 w-5 text-zinc-400"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
+          <svg 
+            class="h-5 w-5 text-zinc-400" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            stroke-width="2" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+          > 
 
-            <path d="M9 18V5l12-2v13"></path>
+            <path d="M9 18V5l12-2v13"></path> 
 
-            <circle
-              cx="6"
-              cy="18"
-              r="3"
-            ></circle>
+            <circle 
+              cx="6" 
+              cy="18" 
+              r="3" 
+            ></circle> 
 
-            <circle
-              cx="18"
-              cy="16"
-              r="3"
-            ></circle>
+            <circle 
+              cx="18" 
+              cy="16" 
+              r="3" 
+            ></circle> 
 
-            <line
-              x1="21"
-              y1="8"
-              x2="21"
-              y2="2"
-            ></line>
+            <line 
+              x1="21" 
+              y1="8" 
+              x2="21" 
+              y2="2" 
+            ></line> 
 
-            <line
-              x1="18"
-              y1="5"
-              x2="24"
-              y2="5"
-            ></line>
+            <line 
+              x1="18" 
+              y1="5" 
+              x2="24" 
+              y2="5" 
+            ></line> 
 
-          </svg>
+          </svg> 
 
-          <span>
-            Añadir a playlist
-          </span>
+          <span> 
+            Añadir a playlist 
+          </span> 
 
-        </button>
+        </button> 
 
-      </div>
+      </div> 
 
-    }
+    } 
 
-  }
+  } 
 
 
-  <!-- =========================================================
-       TRACK INFORMATION MODAL
-  ========================================================== -->
+  <!-- ========================================================= 
+       TRACK INFORMATION MODAL 
+  ========================================================== --> 
 
-  @if (
-    modalService.is('track-details') &&
-    modalTrack &&
-    editingTrack()
-  ) {
+  @if ( 
+    modalService.is('track-details') && 
+    modalTrack && 
+    editingTrack() 
+  ) { 
 
-    <section
-      class="music-metadata-modal"
-      role="dialog"
-      aria-modal="true"
-      [attr.aria-label]="'Información de ' + modalTrack.title"
-      (click)="$event.stopPropagation()"
-    >
+    <section 
+      class="music-metadata-modal" 
+      role="dialog" 
+      aria-modal="true" 
+      [attr.aria-label]="'Información de ' + modalTrack.title" 
+      (click)="$event.stopPropagation()" 
+    > 
 
 
-      <!-- =====================================================
-           MODAL HEADER
-      ====================================================== -->
+      <!-- ===================================================== 
+           MODAL HEADER 
+      ====================================================== --> 
 
-      <header class="music-metadata-header">
+      <header class="music-metadata-header"> 
 
-        <div>
+        <div> 
 
-          <span class="music-metadata-kicker">
-            METADATOS DE MÚSICA
-          </span>
+          <span class="music-metadata-kicker"> 
+            METADATOS DE MÚSICA 
+          </span> 
 
-          <h2>
-            Información de la canción
-          </h2>
+          <h2> 
+            Información de la canción 
+          </h2> 
 
-        </div>
+        </div> 
 
 
-        <button
-          type="button"
-          class="music-metadata-close"
-          aria-label="Cerrar"
-          (click)="closeModal()"
-        >
+        <button 
+          type="button" 
+          class="music-metadata-close" 
+          aria-label="Cerrar" 
+          (click)="closeModal()" 
+        > 
 
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            aria-hidden="true"
-          >
+          <svg 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            stroke-width="2" 
+            stroke-linecap="round" 
+            aria-hidden="true" 
+          > 
 
-            <path d="M18 6 6 18"></path>
-            <path d="m6 6 12 12"></path>
-
-          </svg>
+            <path d="M18 6 6 18"></path> 
+            <path d="m6 6 12 12"></path> 
+
+          </svg> 
 
-        </button>
-
-      </header>
-
-
-      <!-- =====================================================
-           TRACK PREVIEW
-      ====================================================== -->
-
-      <div class="music-metadata-preview">
-
-        <div class="music-metadata-cover-wrapper">
-
-          <div class="music-metadata-cover">
-
-            @if (
-              editingTrack()!.coverType === 'image' &&
-              editingTrack()!.image
-            ) {
-
-              <img
-                [src]="editingTrack()!.image"
-                [alt]="editingTrack()!.title"
-                style="width:100%;height:100%;object-fit:cover;"
-              />
-
-            } @else if (
-              editingTrack()!.coverType === 'icon'
-            ) {
-
-              <div
-                style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"
-                [style.background]="
-                  (editingTrack()!.coverColor || 'var(--musex-accent)') + '1a'
-                "
-              >
-
-                <svg
-                  viewBox="0 0 24 24"
-                  style="width:28px;height:28px;"
-                  fill="none"
-                  [attr.stroke]="
-                    editingTrack()!.coverColor ||
-                    'var(--musex-accent)'
-                  "
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-
-                  <path
-                    [attr.d]="
-                      getCoverIconPath(
-                        editingTrack()!.coverIcon
-                      )
-                    "
-                  ></path>
-
-                </svg>
-
-              </div>
-
-            } @else {
-
-              <svg
-                class="bottom-default-disc"
-                viewBox="0 0 100 100"
-                role="img"
-                aria-label="Disco Musex"
-              >
-
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="48"
-                  fill="var(--musex-accent)"
-                />
-
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="42"
-                  fill="none"
-                  stroke="#0d0e10"
-                  stroke-width="1.5"
-                  opacity="0.35"
-                />
-
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="35"
-                  fill="none"
-                  stroke="#0d0e10"
-                  stroke-width="1"
-                  opacity="0.3"
-                />
-
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="28"
-                  fill="none"
-                  stroke="#0d0e10"
-                  stroke-width="1"
-                  opacity="0.25"
-                />
-
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="13"
-                  fill="#0d0e10"
-                />
-
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="4"
-                  fill="var(--musex-accent)"
-                />
-
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="44"
-                  fill="none"
-                  stroke="#ffffff"
-                  stroke-width="0.8"
-                  opacity="0.12"
-                />
-
-              </svg>
-
-            }
-
-
-            <!-- =================================================
-                 CAMBIAR PORTADA
-            ================================================== -->
+        </button> 
+
+      </header> 
+
+
+      <!-- ===================================================== 
+           TRACK PREVIEW 
+      ====================================================== --> 
+
+      <div class="music-metadata-preview"> 
+
+        <div class="music-metadata-cover-wrapper"> 
+
+          <div class="music-metadata-cover"> 
+
+            @if ( 
+              editingTrack()!.coverType === 'image' && 
+              editingTrack()!.image 
+            ) { 
+
+              <img 
+                [src]="editingTrack()!.image" 
+                [alt]="editingTrack()!.title" 
+                style="width:100%;height:100%;object-fit:cover;" 
+              /> 
+
+            } @else if ( 
+              editingTrack()!.coverType === 'icon' 
+            ) { 
+
+              <div 
+                style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;" 
+                [style.background]=" 
+                  (editingTrack()!.coverColor || 'var(--musex-accent)') + '1a' 
+                " 
+              > 
+
+                <svg 
+                  viewBox="0 0 24 24" 
+                  style="width:28px;height:28px;" 
+                  fill="none" 
+                  [attr.stroke]=" 
+                    editingTrack()!.coverColor || 
+                    'var(--musex-accent)' 
+                  " 
+                  stroke-width="2" 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round" 
+                  aria-hidden="true" 
+                > 
+
+                  <path 
+                    [attr.d]=" 
+                      getCoverIconPath( 
+                        editingTrack()!.coverIcon 
+                      ) 
+                    " 
+                  ></path> 
+
+                </svg> 
+
+              </div> 
+
+            } @else { 
+
+              <svg 
+                class="bottom-default-disc" 
+                viewBox="0 0 100 100" 
+                role="img" 
+                aria-label="Disco Musex" 
+              > 
+
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="48" 
+                  fill="var(--musex-accent)" 
+                /> 
+
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="42" 
+                  fill="none" 
+                  stroke="#0d0e10" 
+                  stroke-width="1.5" 
+                  opacity="0.35" 
+                /> 
+
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="35" 
+                  fill="none" 
+                  stroke="#0d0e10" 
+                  stroke-width="1" 
+                  opacity="0.3" 
+                /> 
+
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="28" 
+                  fill="none" 
+                  stroke="#0d0e10" 
+                  stroke-width="1" 
+                  opacity="0.25" 
+                /> 
+
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="13" 
+                  fill="#0d0e10" 
+                /> 
+
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="4" 
+                  fill="var(--musex-accent)" 
+                /> 
+
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="44" 
+                  fill="none" 
+                  stroke="#ffffff" 
+                  stroke-width="0.8" 
+                  opacity="0.12" 
+                /> 
+
+              </svg> 
+
+            } 
+
+
+            <!-- ================================================= 
+                 CAMBIAR PORTADA 
+            ================================================== --> 
 
-            <input
-              #coverInput
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              hidden
-              (change)="onCoverImageSelected($event)"
-            />
+            <input 
+              #coverInput 
+              type="file" 
+              accept="image/png,image/jpeg,image/webp" 
+              hidden 
+              (change)="onCoverImageSelected($event)" 
+            /> 
 
 
-            <button
-              type="button"
-              class="cover-action-button"
-              aria-label="Cambiar portada"
-              title="Cambiar portada"
-              (click)="coverInput.click()"
-            >
+            <button 
+              type="button" 
+              class="cover-action-button" 
+              aria-label="Cambiar portada" 
+              title="Cambiar portada" 
+              (click)="coverInput.click()" 
+            > 
 
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="15"
-                height="15"
-              >
+              <svg 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                stroke-width="2" 
+                width="15" 
+                height="15" 
+              > 
 
-                <path
-                  d="M14.5 4h-5L8 6H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3l-1.5-2Z"
-                />
+                <path 
+                  d="M14.5 4h-5L8 6H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3l-1.5-2Z" 
+                /> 
 
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="3"
-                />
+                <circle 
+                  cx="12" 
+                  cy="12" 
+                  r="3" 
+                /> 
 
-              </svg>
+              </svg> 
 
-            </button>
+            </button> 
 
-          </div>
+          </div> 
 
-        </div>
+        </div> 
 
 
-        <div class="music-metadata-preview-info">
+        <div class="music-metadata-preview-info"> 
 
-          <span class="music-metadata-preview-label">
-            MÚSICA ACTUAL
-          </span>
+          <span class="music-metadata-preview-label"> 
+            MÚSICA ACTUAL 
+          </span> 
 
-          <strong>
-            {{ editingTrack()!.title }}
-          </strong>
+          <strong> 
+            {{ editingTrack()!.title }} 
+          </strong> 
 
-          <span>
-            {{ editingTrack()!.artist }}
-          </span>
+          <span> 
+            {{ editingTrack()!.artist }} 
+          </span> 
 
-        </div>
+        </div> 
 
 
-        <div class="cover-actions">
+        <div class="cover-actions"> 
 
-          <button
-            type="button"
-            class="cover-remove-button"
-            (click)="removeCover()"
-          >
+          <button 
+            type="button" 
+            class="cover-remove-button" 
+            (click)="removeCover()" 
+          > 
 
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              width="14"
-              height="14"
-            >
+            <svg 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              stroke-width="2" 
+              width="14" 
+              height="14" 
+            > 
 
-              <path d="M3 6h18" />
+              <path d="M3 6h18" /> 
 
-              <path
-                d="M8 6V4h8v2"
-              />
+              <path 
+                d="M8 6V4h8v2" 
+              /> 
 
-              <path
-                d="M19 6l-1 14H6L5 6"
-              />
+              <path 
+                d="M19 6l-1 14H6L5 6" 
+              /> 
 
-            </svg>
+            </svg> 
 
-            Quitar portada
+            Quitar portada 
 
-          </button>
+          </button> 
 
-        </div>
+        </div> 
 
-      </div>
+      </div> 
 
 
-      <!-- =====================================================
-           EDITABLE INFORMATION
-      ====================================================== -->
+      <!-- ===================================================== 
+           EDITABLE INFORMATION 
+      ====================================================== --> 
 
-      <div class="music-metadata-fields">
+      <div class="music-metadata-fields"> 
 
-        <label class="music-metadata-field">
+        <label class="music-metadata-field"> 
 
-          <span>
-            TÍTULO
-          </span>
+          <span> 
+            TÍTULO 
+          </span> 
 
-          <input
-            type="text"
-            [value]="editingTrack()!.title"
-            (input)="
-              updateEditingField(
-                'title',
-                $any($event.target).value
-              )
-            "
-          />
+          <input 
+            type="text" 
+            [value]="editingTrack()!.title" 
+            (input)=" 
+              updateEditingField( 
+                'title', 
+                $any($event.target).value 
+              ) 
+            " 
+          /> 
 
-        </label>
+        </label> 
 
 
-        <label class="music-metadata-field">
+        <label class="music-metadata-field"> 
 
-          <span>
-            ARTISTA
-          </span>
+          <span> 
+            ARTISTA 
+          </span> 
 
-          <input
-            type="text"
-            [value]="editingTrack()!.artist"
-            (input)="
-              updateEditingField(
-                'artist',
-                $any($event.target).value
-              )
-            "
-          />
+          <input 
+            type="text" 
+            [value]="editingTrack()!.artist" 
+            (input)=" 
+              updateEditingField( 
+                'artist', 
+                $any($event.target).value 
+              ) 
+            " 
+          /> 
 
-        </label>
+        </label> 
 
 
-        <label class="music-metadata-field">
+        <label class="music-metadata-field"> 
 
-          <span>
-            ÁLBUM
-          </span>
+          <span> 
+            ÁLBUM 
+          </span> 
 
-          <input
-            type="text"
-            [value]="editingTrack()!.album"
-            (input)="
-              updateEditingField(
-                'album',
-                $any($event.target).value
-              )
-            "
-          />
+          <input 
+            type="text" 
+            [value]="editingTrack()!.album" 
+            (input)=" 
+              updateEditingField( 
+                'album', 
+                $any($event.target).value 
+              ) 
+            " 
+          /> 
 
-        </label>
+        </label> 
 
 
-        <label class="music-metadata-field">
+        <label class="music-metadata-field"> 
 
-          <span>
-            GÉNERO
-          </span>
+          <span> 
+            GÉNERO 
+          </span> 
 
-          <input
-            type="text"
-            [value]="editingTrack()!.genre ?? ''"
-            (input)="
-              updateEditingField(
-                'genre',
-                $any($event.target).value
-              )
-            "
-            placeholder="Sin género"
-          />
+          <input 
+            type="text" 
+            [value]="editingTrack()!.genre ?? ''" 
+            (input)=" 
+              updateEditingField( 
+                'genre', 
+                $any($event.target).value 
+              ) 
+            " 
+            placeholder="Sin género" 
+          /> 
 
-        </label>
+        </label> 
 
-      </div>
+      </div> 
 
 
-      <!-- =====================================================
-           FILE INFORMATION
-      ====================================================== -->
+      <!-- ===================================================== 
+           FILE INFORMATION 
+      ====================================================== --> 
 
-      <div class="music-metadata-technical">
+      <div class="music-metadata-technical"> 
 
-        <div>
+        <div> 
 
-          <span>
-            DURACIÓN
-          </span>
+          <span> 
+            DURACIÓN 
+          </span> 
 
-          <strong>
-            {{ formatDuration(editingTrack()!.duration) }}
-          </strong>
+          <strong> 
+            {{ formatDuration(editingTrack()!.duration) }} 
+          </strong> 
 
-        </div>
+        </div> 
 
 
-        <div>
+        <div> 
 
-          <span>
-            FUENTE
-          </span>
+          <span> 
+            FUENTE 
+          </span> 
 
-          <strong>
-            {{ editingTrack()!.source || 'LOCAL' }}
-          </strong>
+          <strong> 
+            {{ editingTrack()!.source || 'LOCAL' }} 
+          </strong> 
 
-        </div>
+        </div> 
 
 
-        <div>
+        <div> 
 
-          <span>
-            ARCHIVO
-          </span>
+          <span> 
+            ARCHIVO 
+          </span> 
 
-          <strong [title]="editingTrack()!.path">
-            {{ editingTrack()!.path }}
-          </strong>
+          <strong [title]="editingTrack()!.path"> 
+            {{ editingTrack()!.path }} 
+          </strong> 
 
-        </div>
+        </div> 
 
-      </div>
+      </div> 
 
 
-      <!-- =====================================================
-           ACTIONS
-      ====================================================== -->
+      <!-- ===================================================== 
+           ACTIONS 
+      ====================================================== --> 
 
-      <footer class="music-metadata-actions">
+      <footer class="music-metadata-actions"> 
 
-        <button
-          type="button"
-          class="music-metadata-cancel"
-          (click)="closeModal()"
-        >
-          Cancelar
-        </button>
+        <button 
+          type="button" 
+          class="music-metadata-cancel" 
+          (click)="closeModal()" 
+        > 
+          Cancelar 
+        </button> 
 
-        <button
-          type="button"
-          class="music-metadata-save"
-          (click)="saveMetadata()"
-        >
-          Guardar cambios
-        </button>
+        <button 
+          type="button" 
+          class="music-metadata-save" 
+          (click)="saveMetadata()" 
+        > 
+          Guardar cambios 
+        </button> 
 
-      </footer>
+      </footer> 
 
-    </section>
+    </section> 
 
-  }
+  } 
 
 
-  <!-- =========================================================
-       ADD TO PLAYLIST MODAL
-  ========================================================== -->
+  <!-- ========================================================= 
+       ADD TO PLAYLIST MODAL 
+  ========================================================== --> 
 
-  @if (
-    modalService.is('add-to-playlist') &&
-    modalTrack
-  ) {
+  @if ( 
+    modalService.is('add-to-playlist') && 
+    (modalTrack || modalService.state().trackIds.length > 0)
+  ) { 
 
-    <section
-      class="music-metadata-modal"
-      role="dialog"
-      aria-modal="true"
+    <section 
+      class="music-metadata-modal" 
+      role="dialog" 
+      aria-modal="true" 
       [attr.aria-label]="
-        'Agregar ' +
-        modalTrack.title +
-        ' a una playlist'
-      "
-      (click)="$event.stopPropagation()"
-    >
+        modalService.state().trackIds.length > 0
+          ? 'Agregar canciones a una playlist'
+          : 'Agregar ' + modalTrack!.title + ' a una playlist'
+      " 
+      (click)="$event.stopPropagation()" 
+    > 
 
 
-      <!-- =====================================================
-           MODAL HEADER
-      ====================================================== -->
+      <!-- ===================================================== 
+           MODAL HEADER 
+      ====================================================== --> 
 
-      <header class="music-metadata-header">
+      <header class="music-metadata-header"> 
 
-        <div>
+        <div> 
 
-          <span class="music-metadata-kicker">
-            AGREGAR A PLAYLIST
-          </span>
+          <span class="music-metadata-kicker"> 
+            AGREGAR A PLAYLIST 
+          </span> 
 
-          <h2>
-            Agregar a playlist
-          </h2>
+          <h2> 
+            @if (modalService.state().trackIds.length > 0) {
+              Agregar canciones a playlist
+            } @else {
+              Agregar a playlist
+            }
+          </h2> 
 
-        </div>
+        </div> 
 
 
-        <button
-          type="button"
-          class="music-metadata-close"
-          aria-label="Cerrar"
-          (click)="closeModal()"
-        >
+        <button 
+          type="button" 
+          class="music-metadata-close" 
+          aria-label="Cerrar" 
+          (click)="closeModal()" 
+        > 
 
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            aria-hidden="true"
+          <svg 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            stroke-width="2" 
+            stroke-linecap="round" 
+            aria-hidden="true" 
+          > 
+
+            <path d="M18 6 6 18"></path> 
+            <path d="m6 6 12 12"></path> 
+
+          </svg> 
+
+        </button> 
+
+      </header> 
+
+
+      <div 
+        class="music-metadata-fields" 
+        style="grid-template-columns: 1fr; padding: 16px 22px;" 
+      > 
+
+        @if (modalService.state().trackIds.length > 0) {
+
+          <p 
+            style="color: #74787e; font-size: 13px; margin: 0 0 4px;"
           >
-
-            <path d="M18 6 6 18"></path>
-            <path d="m6 6 12 12"></path>
-
-          </svg>
-
-        </button>
-
-      </header>
-
-
-      <div
-        class="music-metadata-fields"
-        style="grid-template-columns: 1fr; padding: 16px 22px;"
-      >
-
-        @for (
-          playlist of playlists();
-          track playlist.id
-        ) {
-
-          <button
-            type="button"
-            class="music-metadata-cancel"
-            style="
-              width: 100%;
-              justify-content: flex-start;
-              text-align: left;
-            "
-            (click)="addTrackToPlaylist(playlist.id)"
-          >
-
-            {{ playlist.name }} · {{ playlist.count }} canciones
-
-          </button>
-
-        }
-
-
-        @if (playlists().length === 0) {
-
-          <p style="color: #74787e; font-size: 13px;">
-
-            Todavía no tienes playlists.
-            Crea una desde el sidebar.
-
+            {{ modalService.state().trackIds.length }}
+            {{
+              modalService.state().trackIds.length === 1
+                ? 'canción seleccionada'
+                : 'canciones seleccionadas'
+            }}
           </p>
 
         }
 
-      </div>
+        @for ( 
+          playlist of playlists(); 
+          track playlist.id 
+        ) { 
 
-    </section>
+          <button 
+            type="button" 
+            class="music-metadata-cancel" 
+            style=" 
+              width: 100%; 
+              justify-content: flex-start; 
+              text-align: left; 
+            " 
+            (click)="addTrackToPlaylist(playlist.id)" 
+          > 
 
-  }
+            {{ playlist.name }} · {{ playlist.count }} canciones 
 
+          </button> 
 
-  <!-- =========================================================
-       GOOGLE AI STUDIO CONFIRMATION
-  ========================================================== -->
+        } 
 
-  @if (modalService.is('ai-studio-confirmation')) {
 
-    <section
-      class="w-full max-w-[430px] overflow-hidden rounded-xl border border-[#292b30] bg-[#151719] shadow-2xl"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="ai-studio-confirmation-title"
-      (click)="$event.stopPropagation()"
-    >
+        @if (playlists().length === 0) { 
 
+          <p style="color: #74787e; font-size: 13px;"> 
 
-      <!-- =====================================================
-           MODAL HEADER
-      ====================================================== -->
+            Todavía no tienes playlists. 
+            Crea una desde el sidebar. 
 
-      <header
-        class="border-b border-[#292b30] px-5 py-4"
-      >
+          </p> 
 
-        <div class="flex items-center gap-3">
+        } 
 
-          <div
-            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--musex-accent-soft)] text-[var(--musex-accent)]"
-          >
+      </div> 
 
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="h-4 w-4"
-              aria-hidden="true"
-            >
+    </section> 
 
-              <path d="M12 9v4" />
+  } 
 
-              <path d="M12 17h.01" />
 
-              <path
-                d="M10.3 3.8 2.5 17.2A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.8L13.7 3.8a2 2 0 0 0-3.4 0Z"
-              />
+  <!-- ========================================================= 
+       GOOGLE AI STUDIO CONFIRMATION 
+  ========================================================== --> 
 
-            </svg>
+  @if (modalService.is('ai-studio-confirmation')) { 
 
-          </div>
+    <section 
+      class="w-full max-w-[430px] overflow-hidden rounded-xl border border-[#292b30] bg-[#151719] shadow-2xl" 
+      role="dialog" 
+      aria-modal="true" 
+      aria-labelledby="ai-studio-confirmation-title" 
+      (click)="$event.stopPropagation()" 
+    > 
 
 
-          <div>
+      <!-- ===================================================== 
+           MODAL HEADER 
+      ====================================================== --> 
 
-            <span
-              class="font-mono text-[8px] font-semibold tracking-[0.13em] text-[#55585e]"
-            >
-              ACCIÓN EXTERNA
-            </span>
+      <header 
+        class="border-b border-[#292b30] px-5 py-4" 
+      > 
 
-            <h2
-              id="ai-studio-confirmation-title"
-              class="mt-1 text-sm font-medium text-white"
-            >
-              Abrir Google AI Studio
-            </h2>
+        <div class="flex items-center gap-3"> 
 
-          </div>
+          <div 
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--musex-accent-soft)] text-[var(--musex-accent)]" 
+          > 
 
-        </div>
+            <svg 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              stroke-width="1.8" 
+              stroke-linecap="round" 
+              stroke-linejoin="round" 
+              class="h-4 w-4" 
+              aria-hidden="true" 
+            > 
 
-      </header>
+              <path d="M12 9v4" /> 
 
+              <path d="M12 17h.01" /> 
 
-      <!-- =====================================================
-           CONTENT
-      ====================================================== -->
+              <path 
+                d="M10.3 3.8 2.5 17.2A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.8L13.7 3.8a2 2 0 0 0-3.4 0Z" 
+              /> 
 
-      <div class="px-5 py-5">
+            </svg> 
 
-        <p
-          class="text-[11px] leading-relaxed text-[#777a80]"
-        >
+          </div> 
 
-          Vas a salir temporalmente de Musex y abrir
-          <span class="text-white">
-            Google AI Studio
-          </span>
-          en tu navegador.
 
-        </p>
+          <div> 
 
+            <span 
+              class="font-mono text-[8px] font-semibold tracking-[0.13em] text-[#55585e]" 
+            > 
+              ACCIÓN EXTERNA 
+            </span> 
 
-        <p
-          class="mt-3 text-[10px] leading-relaxed text-[#55585e]"
-        >
+            <h2 
+              id="ai-studio-confirmation-title" 
+              class="mt-1 text-sm font-medium text-white" 
+            > 
+              Abrir Google AI Studio 
+            </h2> 
 
-          Allí podrás crear o administrar tu clave de API
-          de Gemini. Musex no enviará ninguna información
-          hasta que configures y utilices una clave.
+          </div> 
 
-        </p>
+        </div> 
 
-      </div>
+      </header> 
 
 
-      <!-- =====================================================
-           ACTIONS
-      ====================================================== -->
+      <!-- ===================================================== 
+           CONTENT 
+      ====================================================== --> 
 
-      <footer
-        class="flex justify-end gap-2 border-t border-[#292b30] px-5 py-4"
-      >
+      <div class="px-5 py-5"> 
 
-        <button
-          type="button"
-          class="rounded-lg border border-[#303236] px-4 py-2 text-[10px] font-medium text-[#777a80] transition hover:border-[#41444a] hover:text-white"
-          (click)="closeModal()"
-        >
+        <p 
+          class="text-[11px] leading-relaxed text-[#777a80]" 
+        > 
 
-          Cancelar
+          Vas a salir temporalmente de Musex y abrir 
+          <span class="text-white"> 
+            Google AI Studio 
+          </span> 
+          en tu navegador. 
 
-        </button>
+        </p> 
 
 
-        <button
-          type="button"
-          class="rounded-lg bg-white px-4 py-2 text-[10px] font-semibold text-[#08090a] transition hover:bg-[#e4e4e4]"
-          (click)="confirmOpenAiStudio()"
-        >
+        <p 
+          class="mt-3 text-[10px] leading-relaxed text-[#55585e]" 
+        > 
 
-          Continuar
+          Allí podrás crear o administrar tu clave de API 
+          de Gemini. Musex no enviará ninguna información 
+          hasta que configures y utilices una clave. 
 
-        </button>
+        </p> 
 
-      </footer>
+      </div> 
 
-    </section>
 
-  }
+      <!-- ===================================================== 
+           ACTIONS 
+      ====================================================== --> 
 
+      <footer 
+        class="flex justify-end gap-2 border-t border-[#292b30] px-5 py-4" 
+      > 
 
-  <!-- =========================================================
-       EQUALIZER EDITOR
-  ========================================================== -->
+        <button 
+          type="button" 
+          class="rounded-lg border border-[#303236] px-4 py-2 text-[10px] font-medium text-[#777a80] transition hover:border-[#41444a] hover:text-white" 
+          (click)="closeModal()" 
+        > 
 
-  @if (modalService.is('equalizer-editor')) {
+          Cancelar 
 
+        </button> 
 
-    <!-- =========================================================
-        SENSE LOADING
-    ========================================================== -->
 
-    @if (eqService.isSenseLoading()) {
+        <button 
+          type="button" 
+          class="rounded-lg bg-white px-4 py-2 text-[10px] font-semibold text-[#08090a] transition hover:bg-[#e4e4e4]" 
+          (click)="confirmOpenAiStudio()" 
+        > 
 
-      <section
-        class="eq-editor-modal eq-sense-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-busy="true"
-        aria-label="Preparando ecualización"
-        (click)="$event.stopPropagation()"
-      >
+          Continuar 
 
-        <!-- =======================================================
-            LOADING HEADER
-        ======================================================== -->
+        </button> 
 
-        <header class="eq-editor-header eq-sense-header">
+      </footer> 
 
-          <div class="eq-editor-track">
+    </section> 
 
-            <div class="eq-editor-cover eq-sense-cover">
+  } 
 
-              @if (
-                eqService.activeTrack();
-                as loadingTrack
-              ) {
 
-                @if (
-                  loadingTrack.coverType === 'image' &&
-                  loadingTrack.image
-                ) {
+  <!-- ========================================================= 
+       EQUALIZER EDITOR 
+  ========================================================== --> 
 
-                  <img
-                    [src]="loadingTrack.image"
-                    [alt]="loadingTrack.title"
-                    style="
-                      width:100%;
-                      height:100%;
-                      object-fit:cover;
-                    "
-                  />
+  @if (modalService.is('equalizer-editor')) { 
 
-                } @else {
 
-                  <svg
-                    viewBox="3 6 20 12"
-                    class="h-full w-full shrink-0"
-                    fill="none"
-                    stroke="var(--musex-accent)"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M4 12h2"></path>
+    <!-- ===================================================== 
+        SENSE LOADING 
+    ====================================================== --> 
 
-                    <path
-                      d="M7 9.5a3.5 3.5 0 0 0 0 5"
-                    ></path>
+    @if (eqService.isSenseLoading()) { 
 
-                    <path
-                      d="M10 7a7 7 0 0 0 0 10"
-                    ></path>
+      <section 
+        class="eq-editor-modal eq-sense-modal" 
+        role="dialog" 
+        aria-modal="true" 
+        aria-busy="true" 
+        aria-label="Preparando ecualización" 
+        (click)="$event.stopPropagation()" 
+      > 
 
-                    <circle
-                      cx="13"
-                      cy="12"
-                      r="1.5"
-                      fill="var(--musex-accent)"
-                      stroke="none"
-                    ></circle>
+        <header class="eq-editor-header eq-sense-header"> 
 
-                    <path
-                      d="M16 7a7 7 0 0 1 0 10"
-                    ></path>
+          <div class="eq-editor-track"> 
 
-                    <path
-                      d="M19 9.5a3.5 3.5 0 0 1 0 5"
-                    ></path>
+            <div class="eq-editor-cover eq-sense-cover"> 
 
-                    <path d="M22 12h-2"></path>
-                  </svg>
+              @if ( 
+                eqService.activeTrack(); 
+                as loadingTrack 
+              ) { 
 
-                }
+                @if ( 
+                  loadingTrack.coverType === 'image' && 
+                  loadingTrack.image 
+                ) { 
 
-              } @else {
+                  <img 
+                    [src]="loadingTrack.image" 
+                    [alt]="loadingTrack.title" 
+                    style=" 
+                      width:100%; 
+                      height:100%; 
+                      object-fit:cover; 
+                    " 
+                  /> 
 
-                <!-- SVG ARBITRARIO — REEMPLAZAR -->
-                <svg
-                  viewBox="0 0 100 100"
-                  class="eq-sense-placeholder-icon"
-                  aria-hidden="true"
-                >
-                  <!-- Tu SVG aquí -->
-                </svg>
+                } @else { 
 
-              }
+                  <svg 
+                    viewBox="3 6 20 12" 
+                    class="h-full w-full shrink-0" 
+                    fill="none" 
+                    stroke="var(--musex-accent)" 
+                    stroke-width="1.8" 
+                    stroke-linecap="round" 
+                    stroke-linejoin="round" 
+                  > 
 
-            </div>
+                    <path d="M4 12h2"></path> 
 
+                    <path 
+                      d="M7 9.5a3.5 3.5 0 0 0 0 5" 
+                    ></path> 
 
-            <div>
+                    <path 
+                      d="M10 7a7 7 0 0 0 0 10" 
+                    ></path> 
 
-              <span class="eq-editor-kicker">
-                MUSEX SENSE
-              </span>
+                    <circle 
+                      cx="13" 
+                      cy="12" 
+                      r="1.5" 
+                      fill="var(--musex-accent)" 
+                      stroke="none" 
+                    ></circle> 
 
-              @if (
-                eqService.activeTrack();
-                as loadingTrack
-              ) {
+                    <path 
+                      d="M16 7a7 7 0 0 1 0 10" 
+                    ></path> 
 
-                <h2>
-                  {{ loadingTrack.title }}
-                </h2>
+                    <path 
+                      d="M19 9.5a3.5 3.5 0 0 1 0 5" 
+                    ></path> 
 
-                <p>
-                  {{ loadingTrack.artist }}
-                </p>
+                    <path d="M22 12h-2"></path> 
+                  </svg> 
 
-              } @else {
+                } 
 
-                <h2>
-                  Preparando...
-                </h2>
+              } @else { 
 
-                <p>
-                  Analizando canción
-                </p>
+                <svg 
+                  viewBox="0 0 100 100" 
+                  class="eq-sense-placeholder-icon" 
+                  aria-hidden="true" 
+                > 
 
-              }
+                </svg> 
 
-            </div>
+              } 
 
-          </div>
+            </div> 
 
 
-          <div class="eq-editor-controls">
+            <div> 
 
-            <button
-              type="button"
-              class="eq-editor-close"
-              (click)="closeModal()"
-              aria-label="Cancelar"
-              title="Cancelar"
-            >
-              ×
-            </button>
+              <span class="eq-editor-kicker"> 
+                MUSEX SENSE 
+              </span> 
 
-          </div>
+              @if ( 
+                eqService.activeTrack(); 
+                as loadingTrack 
+              ) { 
 
-        </header>
+                <h2> 
+                  {{ loadingTrack.title }} 
+                </h2> 
 
+                <p> 
+                  {{ loadingTrack.artist }} 
+                </p> 
 
-        <!-- =======================================================
-            SENSE VISUALIZER
-        ======================================================== -->
+              } @else { 
 
-        <div class="eq-sense-loading">
+                <h2> 
+                  Preparando... 
+                </h2> 
 
-          <div class="eq-sense-visual">
+                <p> 
+                  Analizando canción 
+                </p> 
 
-            <!-- Radar / frecuencia -->
+              } 
 
-            <div class="eq-sense-orbit eq-sense-orbit-outer"></div>
+            </div> 
 
-            <div class="eq-sense-orbit eq-sense-orbit-middle"></div>
+          </div> 
 
-            <div class="eq-sense-orbit eq-sense-orbit-inner"></div>
 
+          <div class="eq-editor-controls"> 
 
-            <!-- Barras de frecuencia -->
+            <button 
+              type="button" 
+              class="eq-editor-close" 
+              (click)="closeModal()" 
+              aria-label="Cancelar" 
+              title="Cancelar" 
+            > 
+              × 
+            </button> 
 
-            <div class="eq-sense-spectrum">
+          </div> 
 
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
+        </header> 
 
-            </div>
 
+        <!-- ======================================================= 
+            SENSE VISUALIZER 
+        ======================================================== --> 
 
-            <!-- Núcleo -->
+        <div class="eq-sense-loading"> 
 
-            <div class="eq-sense-core">
+          <div class="eq-sense-visual"> 
 
-              <div class="eq-sense-core-ring"></div>
+            <div class="eq-sense-orbit eq-sense-orbit-outer"></div> 
 
-              <div class="eq-sense-core-dot"></div>
+            <div class="eq-sense-orbit eq-sense-orbit-middle"></div> 
 
-            </div>
+            <div class="eq-sense-orbit eq-sense-orbit-inner"></div> 
 
 
-            <!-- SVG arbitrario -->
+            <div class="eq-sense-spectrum"> 
 
-            <div class="eq-sense-icon">
+              <span></span> 
+              <span></span> 
+              <span></span> 
+              <span></span> 
+              <span></span> 
+              <span></span> 
+              <span></span> 
+              <span></span> 
+              <span></span> 
+              <span></span> 
+              <span></span> 
+              <span></span> 
+              <span></span> 
+              <span></span> 
+              <span></span> 
+              <span></span> 
+              <span></span> 
+              <span></span> 
 
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <!-- SVG que quieras colocar -->
-              </svg>
+            </div> 
 
-            </div>
 
-          </div>
+            <div class="eq-sense-core"> 
 
+              <div class="eq-sense-core-ring"></div> 
 
-          <!-- =====================================================
-              TEXT
-          ====================================================== -->
+              <div class="eq-sense-core-dot"></div> 
 
-          <div class="eq-sense-copy">
+            </div> 
 
-            <span class="eq-sense-loading-kicker">
-              SENSE ENGINE
-            </span>
 
-            <h2>
-              Construyendo tu ecualización
-            </h2>
+            <div class="eq-sense-icon"> 
 
-            @if (
-              eqService.activeTrack();
-              as loadingTrack
-            ) {
+              <svg 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                aria-hidden="true" 
+              > 
 
-              <p>
-                Analizando
-                <strong>
-                  {{ loadingTrack.title }}
-                </strong>
-                para encontrar una configuración adecuada.
-              </p>
+              </svg> 
 
-            } @else {
+            </div> 
 
-              <p>
-                Analizando las características de la canción.
-              </p>
+          </div> 
 
-            }
 
-          </div>
+          <div class="eq-sense-copy"> 
 
+            <span class="eq-sense-loading-kicker"> 
+              SENSE ENGINE 
+            </span> 
 
-          <!-- =====================================================
-              PROCESS INDICATOR
-          ====================================================== -->
+            <h2> 
+              Construyendo tu ecualización 
+            </h2> 
 
-          <div class="eq-sense-process">
+            @if ( 
+              eqService.activeTrack(); 
+              as loadingTrack 
+            ) { 
 
-            <div class="eq-sense-process-line">
+              <p> 
+                Analizando 
+                <strong> 
+                  {{ loadingTrack.title }} 
+                </strong> 
+                para encontrar una configuración adecuada. 
+              </p> 
 
-              <span></span>
+            } @else { 
 
-            </div>
+              <p> 
+                Analizando las características de la canción. 
+              </p> 
 
+            } 
 
-            <div class="eq-sense-process-label">
+          </div> 
 
-              <span>
-                ANALIZANDO AUDIO
-              </span>
 
-              <span class="eq-sense-process-dots">
-                <i></i>
-                <i></i>
-                <i></i>
-              </span>
+          <div class="eq-sense-process"> 
 
-            </div>
+            <div class="eq-sense-process-line"> 
 
-          </div>
+              <span></span> 
 
+            </div> 
 
-          <span class="eq-sense-loading-hint">
-            Sense está preparando las bandas paramétricas
-          </span>
 
-        </div>
+            <div class="eq-sense-process-label"> 
 
-      </section>
+              <span> 
+                ANALIZANDO AUDIO 
+              </span> 
 
-    } @else {
+              <span class="eq-sense-process-dots"> 
+                <i></i> 
+                <i></i> 
+                <i></i> 
+              </span> 
 
+            </div> 
 
-      <!-- =====================================================
-           EDITOR REAL
-      ====================================================== -->
+          </div> 
 
-      @if (
-        eqService.activeTrack();
-        as track
-      ) {
 
-        <section
-          class="eq-editor-modal"
-          role="dialog"
-          aria-modal="true"
-          [attr.aria-label]="
-            'Editor de ecualización de ' +
-            track.title
-          "
-          (click)="$event.stopPropagation()"
-        >
+          <span class="eq-sense-loading-hint"> 
+            Sense está preparando las bandas paramétricas 
+          </span> 
 
-          <!-- =================================================
-               HEADER
-          ================================================== -->
+        </div> 
 
-          <header class="eq-editor-header">
+      </section> 
 
-            <div class="eq-editor-track">
+    } @else { 
 
-              <div class="eq-editor-cover">
 
-                @if (
-                  track.coverType === 'image' &&
-                  track.image
-                ) {
+      <!-- ===================================================== 
+           EDITOR REAL 
+      ====================================================== --> 
 
-                  <img
-                    [src]="track.image"
-                    [alt]="track.title"
-                    style="
-                      width:100%;
-                      height:100%;
-                      object-fit:cover;
-                    "
-                  />
+      @if ( 
+        eqService.activeTrack(); 
+        as track 
+      ) { 
 
-                } @else {
+        <section 
+          class="eq-editor-modal" 
+          role="dialog" 
+          aria-modal="true" 
+          [attr.aria-label]=" 
+            'Editor de ecualización de ' + 
+            track.title 
+          " 
+          (click)="$event.stopPropagation()" 
+        > 
 
-                  <svg
-                    class="music-table-default-disc"
-                    viewBox="0 0 100 100"
-                    role="img"
-                    [attr.aria-label]="
-                      'Disco Musex para ' +
-                      track.title
-                    "
-                  >
+          <!-- ================================================= 
+               HEADER 
+          ================================================== --> 
 
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="47"
-                      fill="none"
-                      stroke="var(--musex-accent)"
-                      stroke-width="3"
-                      stroke-opacity="0.65"
-                    />
+          <header class="eq-editor-header"> 
 
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="43"
-                      fill="var(--musex-accent)"
-                    />
+            <div class="eq-editor-track"> 
 
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="13"
-                      fill="#0d0e10"
-                    />
+              <div class="eq-editor-cover"> 
 
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="4"
-                      fill="var(--musex-accent)"
-                    />
+                @if ( 
+                  track.coverType === 'image' && 
+                  track.image 
+                ) { 
 
-                  </svg>
+                  <img 
+                    [src]="track.image" 
+                    [alt]="track.title" 
+                    style=" 
+                      width:100%; 
+                      height:100%; 
+                      object-fit:cover; 
+                    " 
+                  /> 
 
-                }
+                } @else { 
 
-              </div>
+                  <svg 
+                    class="music-table-default-disc" 
+                    viewBox="0 0 100 100" 
+                    role="img" 
+                    [attr.aria-label]=" 
+                      'Disco Musex para ' + 
+                      track.title 
+                    " 
+                  > 
 
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="47" 
+                      fill="none" 
+                      stroke="var(--musex-accent)" 
+                      stroke-width="3" 
+                      stroke-opacity="0.65" 
+                    /> 
 
-              <div>
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="43" 
+                      fill="var(--musex-accent)" 
+                    /> 
 
-                <span class="eq-editor-kicker">
-                  EDITOR EN TIEMPO REAL
-                </span>
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="13" 
+                      fill="#0d0e10" 
+                    /> 
 
-                <h2>
-                  {{ track.title }}
-                </h2>
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="4" 
+                      fill="var(--musex-accent)" 
+                    /> 
 
-                <p>
-                  {{ track.artist }}
-                </p>
+                  </svg> 
 
-              </div>
+                } 
 
-            </div>
+              </div> 
 
 
-            <div class="eq-editor-controls">
+              <div> 
 
-              <button
-                type="button"
-                class="eq-editor-play"
-                [attr.aria-label]="
-                  eqService.isPlaying()
-                    ? 'Pausar reproducción'
-                    : 'Reproducir canción'
-                "
-                [attr.title]="
-                  eqService.isPlaying()
-                    ? 'Pausar'
-                    : 'Reproducir'
-                "
-                (click)="toggleEqPlayback()"
-              >
+                <span class="eq-editor-kicker"> 
+                  EDITOR EN TIEMPO REAL 
+                </span> 
 
-                @if (eqService.isPlaying()) {
+                <h2> 
+                  {{ track.title }} 
+                </h2> 
 
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
+                <p> 
+                  {{ track.artist }} 
+                </p> 
 
-                    <rect
-                      x="6"
-                      y="5"
-                      width="4"
-                      height="14"
-                      rx="1"
-                    />
+              </div> 
 
-                    <rect
-                      x="14"
-                      y="5"
-                      width="4"
-                      height="14"
-                      rx="1"
-                    />
+            </div> 
 
-                  </svg>
 
-                } @else {
+            <div class="eq-editor-controls"> 
 
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
+              <button 
+                type="button" 
+                class="eq-editor-play" 
+                [attr.aria-label]=" 
+                  eqService.isPlaying() 
+                    ? 'Pausar reproducción' 
+                    : 'Reproducir canción' 
+                " 
+                [attr.title]=" 
+                  eqService.isPlaying() 
+                    ? 'Pausar' 
+                    : 'Reproducir' 
+                " 
+                (click)="toggleEqPlayback()" 
+              > 
 
-                    <path
-                      d="M8 5.5v13l10-6.5L8 5.5Z"
-                    />
+                @if (eqService.isPlaying()) { 
 
-                  </svg>
+                  <svg 
+                    viewBox="0 0 24 24" 
+                    fill="currentColor" 
+                    aria-hidden="true" 
+                  > 
 
-                }
+                    <rect 
+                      x="6" 
+                      y="5" 
+                      width="4" 
+                      height="14" 
+                      rx="1" 
+                    /> 
 
-              </button>
+                    <rect 
+                      x="14" 
+                      y="5" 
+                      width="4" 
+                      height="14" 
+                      rx="1" 
+                    /> 
 
+                  </svg> 
 
-              <button
-                type="button"
-                class="eq-editor-close"
-                (click)="closeModal()"
-                aria-label="Cerrar editor"
-              >
-                ×
-              </button>
+                } @else { 
 
-            </div>
+                  <svg 
+                    viewBox="0 0 24 24" 
+                    fill="currentColor" 
+                    aria-hidden="true" 
+                  > 
 
-          </header>
+                    <path 
+                      d="M8 5.5v13l10-6.5L8 5.5Z" 
+                    /> 
 
+                  </svg> 
 
-          <!-- =================================================
-               NOTICE
-          ================================================== -->
+                } 
 
-          <div class="eq-editor-notice">
+              </button> 
 
-            <span class="eq-notice-dot"></span>
 
-            <span>
-              Reproduciendo sobre una copia independiente —
-              el archivo original no se modifica.
-            </span>
+              <button 
+                type="button" 
+                class="eq-editor-close" 
+                (click)="closeModal()" 
+                aria-label="Cerrar editor" 
+              > 
+                × 
+              </button> 
 
-          </div>
+            </div> 
 
+          </header> 
 
-          <!-- =================================================
-               SEEK
-          ================================================== -->
 
-          <div class="eq-seek">
+          <!-- ================================================= 
+               NOTICE 
+          ================================================== --> 
 
-            <span class="eq-seek-time">
-              {{ formatEqTime(eqService.currentTime()) }}
-            </span>
+          <div class="eq-editor-notice"> 
 
+            <span class="eq-notice-dot"></span> 
 
-            <input
-              class="eq-seek-slider"
-              type="range"
-              min="0"
-              [max]="track.duration || 0"
-              step="0.01"
-              [value]="eqService.currentTime()"
-              [style.--eq-progress.%]="
-                track.duration
-                  ? (eqService.currentTime() / track.duration) * 100
-                  : 0
-              "
-              aria-label="Progreso del ecualizador"
+            <span> 
+              Reproduciendo sobre una copia independiente — 
+              el archivo original no se modifica. 
+            </span> 
 
-              (pointerdown)="
-                startEqSeek()
-              "
+          </div> 
 
-              (input)="
-                updateEqSeekPosition(
-                  +$any($event.target).value
-                )
-              "
 
-              (change)="
-                finishEqSeek()
-              "
+          <!-- ================================================= 
+               SEEK 
+          ================================================== --> 
 
-              (pointerup)="
-                finishEqSeek()
-              "
+          <div class="eq-seek"> 
 
-              (pointercancel)="
-                finishEqSeek()
-              "
-            />
+            <span class="eq-seek-time"> 
+              {{ formatEqTime(eqService.currentTime()) }} 
+            </span> 
 
 
-            <span class="eq-seek-time">
+            <input 
+              class="eq-seek-slider" 
+              type="range" 
+              min="0" 
+              [max]="track.duration || 0" 
+              step="0.01" 
+              [value]="eqService.currentTime()" 
+              [style.--eq-progress.%]=" 
+                track.duration 
+                  ? (eqService.currentTime() / track.duration) * 100 
+                  : 0 
+              " 
+              aria-label="Progreso del ecualizador" 
 
-              {{ formatEqTime(
-                track.duration || 0
-              ) }}
+              (pointerdown)=" 
+                startEqSeek() 
+              " 
 
-            </span>
+              (input)=" 
+                updateEqSeekPosition( 
+                  +$any($event.target).value 
+                ) 
+              " 
 
-          </div>
+              (change)=" 
+                finishEqSeek() 
+              " 
 
+              (pointerup)=" 
+                finishEqSeek() 
+              " 
 
-          <!-- =================================================
-               BANDS
-          ================================================== -->
+              (pointercancel)=" 
+                finishEqSeek() 
+              " 
+            /> 
 
-          <div class="eq-bands-section">
 
-            <div class="eq-bands-header">
+            <span class="eq-seek-time"> 
 
-              <div>
+              {{ formatEqTime( 
+                track.duration || 0 
+              ) }} 
 
-                <span class="eq-section-kicker">
-                  FILTROS
-                </span>
+            </span> 
 
-                <h3>
-                  Bandas paramétricas
-                </h3>
+          </div> 
 
-              </div>
 
+          <!-- ================================================= 
+               BANDS 
+          ================================================== --> 
 
-              <div class="eq-bands-actions">
+          <div class="eq-bands-section"> 
 
-                <button
-                  type="button"
-                  class="eq-editor-secondary"
-                  (click)="
-                    eqService.resetBands()
-                  "
-                  [disabled]="
-                    !eqService.hasBands()
-                  "
-                >
-                  Limpiar todo
+            <div class="eq-bands-header"> 
+
+              <div> 
+
+                <span class="eq-section-kicker"> 
+                  FILTROS 
+                </span> 
+
+                <h3> 
+                  Bandas paramétricas 
+                </h3> 
+
+              </div> 
+
+
+              <div class="eq-bands-actions"> 
+
+                <!-- =================================================
+                     RESET
+                ================================================== --> 
+
+                <button 
+                  type="button" 
+                  class="eq-editor-secondary" 
+                  (click)=" 
+                    eqService.resetBands() 
+                  " 
+                  [disabled]=" 
+                    !eqService.hasBands() || 
+                    eqService.isSavingPreset() 
+                  " 
+                > 
+                  Limpiar todo 
+                </button> 
+
+
+                <!-- =================================================
+                     ADD BAND
+                ================================================== --> 
+
+                <button 
+                  type="button" 
+                  class="eq-editor-secondary" 
+                  (click)=" 
+                    eqService.addBand() 
+                  " 
+                  [disabled]=" 
+                    eqService.isSavingPreset() 
+                  " 
+                > 
+                  + Banda 
+                </button> 
+
+
+                <!-- =================================================
+                     SAVE PRESET
+                ================================================== --> 
+
+                <button 
+                  type="button" 
+                  class="eq-editor-primary eq-save-preset" 
+                  (click)=" 
+                    eqService.saveCurrentPreset()
+                  " 
+                  [disabled]=" 
+                    !eqService.hasBands() || 
+                    eqService.isSavingPreset() 
+                  " 
+                > 
+
+                  @if (eqService.isSavingPreset()) { 
+
+                    Guardando... 
+
+                  } @else if (eqService.presetSaved()) { 
+
+                    Guardado 
+
+                  } @else { 
+
+                    Guardar preset 
+
+                  } 
+
                 </button>
 
+              </div> 
 
-                <button
-                  type="button"
-                  class="eq-editor-primary"
-                  (click)="
-                    eqService.addBand()
-                  "
-                >
-                  + Banda
-                </button>
+            </div> 
 
-              </div>
 
-            </div>
+            @if (eqService.hasBands()) { 
 
+              <div class="eq-bands-list"> 
 
-            @if (eqService.hasBands()) {
+                @for ( 
+                  band of eqService.bands(); 
+                  track band.id 
+                ) { 
 
-              <div class="eq-bands-list">
+                  <div class="eq-band-row"> 
 
-                @for (
-                  band of eqService.bands();
-                  track band.id
-                ) {
+                    <div class="eq-band-type"> 
 
-                  <div class="eq-band-row">
+                      <label> 
+                        Tipo 
+                      </label> 
 
-                    <div class="eq-band-type">
+                      <select 
+                        [value]="band.filterType" 
+                        (change)=" 
+                          eqService.onFilterTypeChange( 
+                            band.id, 
+                            $any($event.target).value 
+                          ) 
+                        " 
+                      > 
 
-                      <label>
-                        Tipo
-                      </label>
+                        <option value="peaking"> 
+                          Campana 
+                        </option> 
 
-                      <select
-                        [value]="band.filterType"
-                        (change)="
-                          eqService.onFilterTypeChange(
-                            band.id,
-                            $any($event.target).value
-                          )
-                        "
-                      >
+                        <option value="lowshelf"> 
+                          Graves 
+                        </option> 
 
-                        <option value="peaking">
-                          Campana
-                        </option>
+                        <option value="highshelf"> 
+                          Agudos 
+                        </option> 
 
-                        <option value="lowshelf">
-                          Graves
-                        </option>
+                      </select> 
 
-                        <option value="highshelf">
-                          Agudos
-                        </option>
-
-                      </select>
+                    </div> 
 
-                    </div>
 
+                    <div class="eq-band-field"> 
 
-                    <div class="eq-band-field">
+                      <label> 
+                        Frecuencia 
+                      </label> 
 
-                      <label>
-                        Frecuencia
-                      </label>
-
-                      <div class="eq-field-with-unit">
-
-                        <input
-                          type="number"
-                          min="20"
-                          max="20000"
-                          [value]="band.frequency"
-                          (input)="
-                            eqService.onFrequencyInput(
-                              band.id,
-                              $any($event.target).value
-                            )
-                          "
-                        />
+                      <div class="eq-field-with-unit"> 
 
-                        <span>
-                          Hz
-                        </span>
+                        <input 
+                          type="number" 
+                          min="20" 
+                          max="20000" 
+                          [value]="band.frequency" 
+                          (input)=" 
+                            eqService.onFrequencyInput( 
+                              band.id, 
+                              $any($event.target).value 
+                            ) 
+                          " 
+                        /> 
 
-                      </div>
+                        <span> 
+                          Hz 
+                        </span> 
 
-                    </div>
+                      </div> 
 
+                    </div> 
 
-                    <div class="eq-band-field">
 
-                      <label>
-                        Q
-                      </label>
+                    <div class="eq-band-field"> 
 
-                      <input
-                        type="number"
-                        min="0.1"
-                        max="20"
-                        step="0.1"
-                        [value]="band.q"
-                        (input)="
-                          eqService.onQInput(
-                            band.id,
-                            $any($event.target).value
-                          )
-                        "
-                      />
+                      <label> 
+                        Q 
+                      </label> 
 
-                    </div>
+                      <input 
+                        type="number" 
+                        min="0.1" 
+                        max="20" 
+                        step="0.1" 
+                        [value]="band.q" 
+                        (input)=" 
+                          eqService.onQInput( 
+                            band.id, 
+                            $any($event.target).value 
+                          ) 
+                        " 
+                      /> 
 
+                    </div> 
 
-                    <div class="eq-band-gain">
 
-                      <div class="eq-gain-header">
+                    <div class="eq-band-gain"> 
 
-                        <label>
-                          Ganancia
-                        </label>
+                      <div class="eq-gain-header"> 
 
+                        <label> 
+                          Ganancia 
+                        </label> 
 
-                        <input
-                          class="eq-gain-input"
-                          type="number"
-                          min="-24"
-                          max="24"
-                          step="0.1"
-                          [value]="band.gainDb"
-                          (input)="
-                            eqService.onGainInput(
-                              band.id,
-                              $any($event.target).value
-                            )
-                          "
-                        />
 
-                      </div>
+                        <input 
+                          class="eq-gain-input" 
+                          type="number" 
+                          min="-24" 
+                          max="24" 
+                          step="0.1" 
+                          [value]="band.gainDb" 
+                          (input)=" 
+                            eqService.onGainInput( 
+                              band.id, 
+                              $any($event.target).value 
+                            ) 
+                          " 
+                        /> 
 
+                      </div> 
 
-                      <input
-                        class="eq-band-slider"
-                        type="range"
-                        min="-12"
-                        max="12"
-                        step="0.1"
-                        [value]="band.gainDb"
-                        (input)="
-                          eqService.onGainInput(
-                            band.id,
-                            $any($event.target).value
-                          )
-                        "
-                      />
 
-                    </div>
+                      <input 
+                        class="eq-band-slider" 
+                        type="range" 
+                        min="-12" 
+                        max="12" 
+                        step="0.1" 
+                        [value]="band.gainDb" 
+                        (input)=" 
+                          eqService.onGainInput( 
+                            band.id, 
+                            $any($event.target).value 
+                          ) 
+                        " 
+                      /> 
 
+                    </div> 
 
-                    <button
-                      type="button"
-                      class="eq-band-remove"
-                      (click)="
-                        eqService.removeBand(
-                          band.id
-                        )
-                      "
-                      aria-label="Eliminar banda"
-                    >
-                      ×
-                    </button>
 
-                  </div>
+                    <button 
+                      type="button" 
+                      class="eq-band-remove" 
+                      (click)=" 
+                        eqService.removeBand( 
+                          band.id 
+                        ) 
+                      " 
+                      aria-label="Eliminar banda" 
+                    > 
+                      × 
+                    </button> 
 
-                }
+                  </div> 
 
-              </div>
+                } 
 
+              </div> 
 
-            } @else {
 
-              <div class="eq-bands-empty">
+            } @else { 
 
-                <div class="eq-bands-empty-icon">
-                  EQ
-                </div>
+              <div class="eq-bands-empty"> 
 
-                <div>
+                <div class="eq-bands-empty-icon"> 
+                  EQ 
+                </div> 
 
-                  <strong>
-                    Sin bandas configuradas
-                  </strong>
+                <div> 
 
-                  <p>
-                    Agrega una banda para comenzar
-                    a modificar la respuesta de frecuencia.
-                  </p>
+                  <strong> 
+                    Sin bandas configuradas 
+                  </strong> 
 
-                </div>
+                  <p> 
+                    Agrega una banda para comenzar 
+                    a modificar la respuesta de frecuencia. 
+                  </p> 
 
-              </div>
+                </div> 
 
-            }
+              </div> 
 
-          </div>
+            } 
 
-        </section>
+          </div> 
 
-      }
+        </section> 
 
-    }
+      } 
 
-  }
+    } 
 
-</app-modal>
+  } 
 
+</app-modal> 
 
-<!-- ============================================================
-     GLOBAL TOASTS
-============================================================= -->
 
-<app-toast-container></app-toast-container>
+<!-- ============================================================ 
+     GLOBAL TOASTS 
+============================================================= --> 
 
+<app-toast-container></app-toast-container> 
 
-<!-- ============================================================
-     GLOBAL QUEUE PANEL
-============================================================= -->
+
+<!-- ============================================================ 
+     GLOBAL QUEUE PANEL 
+============================================================= --> 
 
 <app-queue-panel></app-queue-panel>

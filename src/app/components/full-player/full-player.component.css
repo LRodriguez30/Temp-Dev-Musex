@@ -361,7 +361,24 @@
   display: block;
 
   object-fit: cover;
+
+  border-radius: 50%;
 }
+
+.full-player-cover-image.is-playing {
+  animation: disc-spin 35s linear infinite;
+}
+
+@keyframes disc-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 
 .full-player-cover-icon {
   width: 100%;
@@ -3179,4 +3196,18 @@
     font-size: 14px;
   }
 
+}
+
+.musex-default-cover.is-playing {
+  animation: musex-disc-spin 8s linear infinite;
+}
+
+@keyframes musex-disc-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }

@@ -18,7 +18,8 @@
 import {
   Component,
   OnInit,
-  inject
+  inject,
+  signal
 } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
@@ -29,6 +30,7 @@ import { PlaylistService } from '../../core/services/playlist.service';
 import { DownloadService } from '../../core/services/download.service';
 import { PlayerService } from '../../core/services/player.service';
 import { DownloadHistoryService } from '../../core/services/download-history.service';
+import { QueueService } from '../../core/services/queue.service';
 
 import { MusicTableComponent } from '../../components/music-table/music-table.component';
 import { DropZoneComponent } from '../../components/drop-zone/drop-zone.component';
@@ -95,6 +97,9 @@ export class LibraryComponent implements OnInit {
   private readonly modalService =
     inject(ModalService);
 
+  readonly queueService =
+    inject(QueueService);
+
 
   // ===========================================================
   // MODALES
@@ -113,6 +118,23 @@ export class LibraryComponent implements OnInit {
    */
   openAddToPlaylist(track: Track): void {
     this.modalService.openAddToPlaylist(track.id);
+  }
+
+  /**
+   * Abre el selector para agregar varias canciones
+   * seleccionadas a una playlist.
+   */
+  openAddSelectedToPlaylist(
+    tracks: Track[]
+  ): void {
+
+    if (tracks.length === 0) {
+      return;
+    }
+
+    this.modalService.openAddSelectedToPlaylist(
+      tracks.map(track => track.id)
+    );
   }
 
 
@@ -134,8 +156,11 @@ export class LibraryComponent implements OnInit {
   /**
    * Estado utilizado para evitar múltiples escaneos
    * simultáneos desde la interfaz.
+   *
+   * Mientras es true, la tabla de canciones muestra
+   * el estado visual de actualización.
    */
-  scanning = false;
+  scanning = signal(false);
 
   /**
    * Estado utilizado durante la importación de archivos.
@@ -151,6 +176,12 @@ export class LibraryComponent implements OnInit {
    * Error producido durante la última importación.
    */
   importError: string | null = null;
+
+  /**
+   * Texto utilizado para buscar canciones dentro
+   * de la biblioteca local.
+   */
+  searchQuery = signal('');
 
 
   // ===========================================================
@@ -208,9 +239,31 @@ export class LibraryComponent implements OnInit {
    */
   get tracks(): Track[] {
 
+    const query = this.searchQuery()
+      .trim()
+      .toLocaleLowerCase();
+
     const tracks = [
       ...this.libraryService.library()
-    ];
+    ].filter(track => {
+
+      if (!query) {
+        return true;
+      }
+
+      return [
+        track.title,
+        track.artist,
+        track.album,
+        track.genre
+      ]
+        .filter(Boolean)
+        .some(value =>
+          value!
+            .toLocaleLowerCase()
+            .includes(query)
+        );
+    });
 
     switch (this.sortBy) {
 
@@ -222,9 +275,10 @@ export class LibraryComponent implements OnInit {
         );
 
       case 'recent':
-        
-        return tracks.sort((a, b) =>
-          b.addedAt.localeCompare(a.addedAt)
+
+        return tracks.sort(
+          (a, b) =>
+            b.addedAt.localeCompare(a.addedAt)
         );
 
       case 'title':
@@ -297,14 +351,24 @@ export class LibraryComponent implements OnInit {
 
   /**
    * Escanea nuevamente la biblioteca musical.
+   *
+   * Mientras el scanner está trabajando, la interfaz
+   * reemplaza temporalmente la tabla por un estado de carga.
    */
   async scanLibrary(): Promise<void> {
 
-    if (this.scanning) {
+    if (this.scanning()) {
       return;
     }
 
-    this.scanning = true;
+    this.scanning.set(true);
+
+    const startedAt =
+      performance.now();
+
+    const minimumLoadingTime =
+      280;
+
     this.scanError = null;
 
     try {
@@ -327,7 +391,29 @@ export class LibraryComponent implements OnInit {
 
     } finally {
 
-      this.scanning = false;
+      const elapsed =
+        performance.now() -
+        startedAt;
+
+      const remaining =
+        Math.max(
+          0,
+          minimumLoadingTime -
+            elapsed
+        );
+
+      if (remaining > 0) {
+
+        await new Promise<void>(resolve =>
+          setTimeout(
+            resolve,
+            remaining
+          )
+        );
+
+      }
+
+      this.scanning.set(false);
     }
   }
 
@@ -337,7 +423,12 @@ export class LibraryComponent implements OnInit {
   // ===========================================================
 
   /**
-   * Reproduce una canción seleccionada desde la biblioteca.
+   * Reproduce o pausa una canción seleccionada desde
+   * la biblioteca.
+   *
+   * MusicTable determina si la acción solicitada corresponde
+   * a reproducir o pausar y LibraryComponent delega la
+   * operación directamente en PlayerService.
    */
   async playTrack(
     event: {
@@ -346,42 +437,52 @@ export class LibraryComponent implements OnInit {
     }
   ): Promise<void> {
 
-    /* =============================================================
-      PAUSAR
-    ============================================================= */
+    try {
 
-    if (event.action === 'pause') {
-      await this.playerService.togglePlay();
+      if (event.action === 'pause') {
+
+        await this.playerService.togglePlay();
+
+        return;
+      }
+
+      await this.playerService.playTrack(
+        event.track.id
+      );
+
+    } catch (error) {
+
+      console.error(
+        'No se pudo reproducir la pista:',
+        error
+      );
+    }
+  }
+
+  /**
+   * Reproduce todas las canciones visibles actualmente.
+   *
+   * La lista visible se convierte en la cola de reproducción
+   * antes de iniciar la primera canción.
+   */
+  async playAll(): Promise<void> {
+
+    const tracksToPlay =
+      this.tracks;
+
+    if (tracksToPlay.length === 0) {
       return;
     }
 
+    const trackIds =
+      tracksToPlay.map(track => track.id);
 
-    /* =============================================================
-      REANUDAR
-      -------------------------------------------------------------
-      Si es la misma canción y está pausada, PlayerService
-      conserva la posición actual.
-    ============================================================= */
-
-    const state = this.playerService.state();
-
-    if (
-      state.currentTrackId === event.track.id &&
-      !state.playing
-    ) {
-      await this.playerService.togglePlay();
-      return;
-    }
-
-
-    /* =============================================================
-      REPRODUCIR
-      -------------------------------------------------------------
-      Es otra canción, por lo que se reproduce normalmente.
-    ============================================================= */
+    this.queueService.setQueue(
+      trackIds
+    );
 
     await this.playerService.playTrack(
-      event.track.id
+      tracksToPlay[0].id
     );
   }
 

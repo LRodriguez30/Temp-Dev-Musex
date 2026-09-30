@@ -1,763 +1,1219 @@
-<section class="equalizer-page view scroll-area">
-
-  <!-- =========================================================
-       HEADER
-       ========================================================= -->
-
-  <header class="equalizer-header">
-
-    <div class="equalizer-header-main">
-
-      <div class="equalizer-eyebrow">
-        AUDIO
-      </div>
-
-      <h1>
-        Ecualizador
-      </h1>
-
-      <p>
-        Ajusta el sonido de tus canciones mediante ecualización paramétrica.
-      </p>
-
-    </div>
-
-  </header>
-
-
-  <!-- =========================================================
-       TRACKS HABILITADOS
-       ========================================================= -->
-
-  <section class="eq-section">
-
-    <div class="section-heading">
-
-      <div>
-
-        <span class="section-kicker">
-          ECUALIZACIÓN
-        </span>
-
-        <h2>
-          Habilitadas para ecualización
-        </h2>
-
-      </div>
-
-      <span class="section-count">
-        {{ eqTracks().length }}
-      </span>
-
-    </div>
-
-
-    @if (hasEnabledTracks()) {
-
-      <div class="music-table">
-
-        <div class="music-table-head">
-
-          <div class="table-index">
-            #
-          </div>
-
-          <div class="table-title">
-            Título
-          </div>
-
-          <div class="table-artist">
-            Artista
-          </div>
-
-          <div class="table-genre">
-            Género
-          </div>
-
-          <div class="table-album">
-            Álbum
-          </div>
-
-          <div class="table-duration">
-            Duración
-          </div>
-
-          <div class="table-actions">
-          </div>
-
-        </div>
-
-
-        @for (
-          track of eqTracks();
-          track track.id;
-          let i = $index
-        ) {
-
-          <div
-            class="music-table-row"
-            [class.is-playing]="isTrackPlaying(track)"
-          >
-
-            <div class="table-index">
-
-              <button
-                type="button"
-                class="track-play"
-                (click)="playTrack(track)"
-                [attr.aria-label]="
-                  isTrackPlaying(track)
-                    ? 'Pausar'
-                    : 'Reproducir'
-                "
-              >
-
-                @if (isTrackPlaying(track)) {
-
-                  <span class="pause-icon">
-                    <span></span>
-                    <span></span>
-                  </span>
-
-                } @else {
-
-                  <span class="row-number">
-                    {{ i + 1 }}
-                  </span>
-
-                  <span class="play-icon"></span>
-
-                }
-
-              </button>
-
-            </div>
-
-
-            <div class="table-title">
-
-              <div class="track-cover">
-
-                @if (
-                  track.coverType === 'image' &&
-                  track.image
-                ) {
-
-                  <img
-                    [src]="track.image"
-                    [alt]="track.title"
-                    style="
-                      width:100%;
-                      height:100%;
-                      object-fit:cover;
-                    "
-                  />
-
-                }
-
-                @else if (
-                  track.coverType === 'icon'
-                ) {
-
-                  <div
-                    style="
-                      width:100%;
-                      height:100%;
-                      display:flex;
-                      align-items:center;
-                      justify-content:center;
-                    "
-                    [style.background]="
-                      (track.coverColor || 'var(--musex-accent)') + '1a'
-                    "
-                  >
-
-                    <svg
-                      viewBox="0 0 24 24"
-                      style="
-                        width:18px;
-                        height:18px;
-                      "
-                      fill="none"
-                      [attr.stroke]="
-                        track.coverColor ||
-                        'var(--musex-accent)'
-                      "
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-
-                      <path
-                        [attr.d]="track.coverIcon"
-                      ></path>
-
-                    </svg>
-
-                  </div>
-
-                }
-
-                @else {
-
-                  <svg
-                    class="music-table-default-disc"
-                    viewBox="0 0 100 100"
-                    role="img"
-                    [attr.aria-label]="
-                      'Disco Musex para ' + track.title
-                    "
-                  >
-
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="47"
-                      fill="none"
-                      stroke="var(--musex-accent)"
-                      stroke-width="3"
-                      stroke-opacity="0.65"
-                    />
-
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="43"
-                      fill="var(--musex-accent)"
-                    />
-
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="38"
-                      fill="none"
-                      stroke="#0d0e10"
-                      stroke-width="1.5"
-                      opacity="0.35"
-                    />
-
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="31"
-                      fill="none"
-                      stroke="#0d0e10"
-                      stroke-width="1"
-                      opacity="0.3"
-                    />
-
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="24"
-                      fill="none"
-                      stroke="#0d0e10"
-                      stroke-width="1"
-                      opacity="0.25"
-                    />
-
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="13"
-                      fill="#0d0e10"
-                    />
-
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="4"
-                      fill="var(--musex-accent)"
-                    />
-
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke="#ffffff"
-                      stroke-width="0.8"
-                      opacity="0.12"
-                    />
-
-                  </svg>
-
-                }
-
-              </div>
-
-
-              <div class="track-info">
-
-                <span
-                  class="track-title"
-                  [class.active]="isTrackPlaying(track)"
-                >
-                  {{ track.title }}
-                </span>
-
-                <span class="track-subtitle">
-                  Ecualización activa
-                </span>
-
-              </div>
-
-            </div>
-
-
-            <div class="table-artist table-text">
-              {{ track.artist || 'Artista desconocido' }}
-            </div>
-
-
-            <div class="table-genre table-text">
-
-              @if (track.genre) {
-                {{ track.genre }}
-              } @else {
-                <span class="muted-value">—</span>
-              }
-
-            </div>
-
-
-            <div class="table-album table-text">
-
-              @if (track.album) {
-                {{ track.album }}
-              } @else {
-                <span class="muted-value">—</span>
-              }
-
-            </div>
-
-
-            <div class="table-duration table-text">
-              {{ formatDuration(track.duration) }}
-            </div>
-
-
-            <div class="table-actions">
-
-              <button
-                type="button"
-                class="table-action secondary"
-                (click)="openEditor(track)"
-              >
-                Editar
-              </button>
-
-              <button
-                type="button"
-                class="table-action danger"
-                (click)="disableFromEq(track)"
-              >
-                Quitar
-              </button>
-
-            </div>
-
-          </div>
-
-        }
-
-      </div>
-
-    } @else {
-
-      <div class="empty-state">
-
-        <div class="empty-icon">
-          EQ
-        </div>
-
-        <div>
-
-          <h3>
-            No hay canciones habilitadas
-          </h3>
-
-          <p>
-            Habilita canciones de tu biblioteca para comenzar a ecualizarlas.
-          </p>
-
-        </div>
-
-      </div>
-
-    }
-
-  </section>
-
-
-  <!-- =========================================================
-       BIBLIOTECA
-       ========================================================= -->
-
-  <section class="eq-section library-section">
-
-    <div class="section-heading">
-
-      <div>
-
-        <span class="section-kicker">
-          BIBLIOTECA
-        </span>
-
-        <h2>
-          Tu biblioteca
-        </h2>
-
-      </div>
-
-      <span class="section-count">
-        {{ libraryTracks().length }}
-      </span>
-
-    </div>
-
-
-    @if (libraryTracks().length > 0) {
-
-      <div class="music-table">
-
-        <div class="music-table-head">
-
-          <div class="table-index">
-            #
-          </div>
-
-          <div class="table-title">
-            Título
-          </div>
-
-          <div class="table-artist">
-            Artista
-          </div>
-
-          <div class="table-genre">
-            Género
-          </div>
-
-          <div class="table-album">
-            Álbum
-          </div>
-
-          <div class="table-duration">
-            Duración
-          </div>
-
-          <div class="table-actions">
-          </div>
-
-        </div>
-
-
-        @for (
-          track of libraryTracks();
-          track track.id;
-          let i = $index
-        ) {
-
-          <div
-            class="music-table-row"
-            [class.is-playing]="isTrackPlaying(track)"
-          >
-
-            <div class="table-index">
-
-              <button
-                type="button"
-                class="track-play"
-                (click)="playTrack(track)"
-                [attr.aria-label]="
-                  isTrackPlaying(track)
-                    ? 'Pausar'
-                    : 'Reproducir'
-                "
-              >
-
-                @if (isTrackPlaying(track)) {
-
-                  <span class="pause-icon">
-                    <span></span>
-                    <span></span>
-                  </span>
-
-                } @else {
-
-                  <span class="row-number">
-                    {{ i + 1 }}
-                  </span>
-
-                  <span class="play-icon"></span>
-
-                }
-
-              </button>
-
-            </div>
-
-
-            <div class="table-title">
-
-              <div class="track-cover">
-
-                @if (
-                  track.coverType === 'image' &&
-                  track.image
-                ) {
-
-                  <img
-                    [src]="track.image"
-                    [alt]="track.title"
-                    style="
-                      width:100%;
-                      height:100%;
-                      object-fit:cover;
-                    "
-                  />
-
-                }
-
-                @else if (
-                  track.coverType === 'icon'
-                ) {
-
-                  <div
-                    style="
-                      width:100%;
-                      height:100%;
-                      display:flex;
-                      align-items:center;
-                      justify-content:center;
-                    "
-                    [style.background]="
-                      (track.coverColor || 'var(--musex-accent)') + '1a'
-                    "
-                  >
-
-                    <svg
-                      viewBox="0 0 24 24"
-                      style="
-                        width:18px;
-                        height:18px;
-                      "
-                      fill="none"
-                      [attr.stroke]="
-                        track.coverColor ||
-                        'var(--musex-accent)'
-                      "
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-
-                      <path
-                        [attr.d]="track.coverIcon"
-                      ></path>
-
-                    </svg>
-
-                  </div>
-
-                }
-
-                @else {
-
-                  <svg
-                    class="music-table-default-disc"
-                    viewBox="0 0 100 100"
-                    role="img"
-                    [attr.aria-label]="
-                      'Disco Musex para ' + track.title
-                    "
-                  >
-
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="47"
-                      fill="none"
-                      stroke="var(--musex-accent)"
-                      stroke-width="3"
-                      stroke-opacity="0.65"
-                    />
-
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="43"
-                      fill="var(--musex-accent)"
-                    />
-
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="38"
-                      fill="none"
-                      stroke="#0d0e10"
-                      stroke-width="1.5"
-                      opacity="0.35"
-                    />
-
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="31"
-                      fill="none"
-                      stroke="#0d0e10"
-                      stroke-width="1"
-                      opacity="0.3"
-                    />
-
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="24"
-                      fill="none"
-                      stroke="#0d0e10"
-                      stroke-width="1"
-                      opacity="0.25"
-                    />
-
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="13"
-                      fill="#0d0e10"
-                    />
-
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="4"
-                      fill="var(--musex-accent)"
-                    />
-
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke="#ffffff"
-                      stroke-width="0.8"
-                      opacity="0.12"
-                    />
-
-                  </svg>
-
-                }
-
-              </div>
-
-
-              <div class="track-info">
-
-                <span
-                  class="track-title"
-                  [class.active]="isTrackPlaying(track)"
-                >
-                  {{ track.title }}
-                </span>
-
-                <span class="track-subtitle">
-                  {{ isEnabled(track)
-                    ? 'Disponible para ecualización'
-                    : 'Biblioteca' }}
-                </span>
-
-              </div>
-
-            </div>
-
-
-            <div class="table-artist table-text">
-              {{ track.artist || 'Artista desconocido' }}
-            </div>
-
-
-            <div class="table-genre table-text">
-
-              @if (track.genre) {
-                {{ track.genre }}
-              } @else {
-                <span class="muted-value">—</span>
-              }
-
-            </div>
-
-
-            <div class="table-album table-text">
-
-              @if (track.album) {
-                {{ track.album }}
-              } @else {
-                <span class="muted-value">—</span>
-              }
-
-            </div>
-
-
-            <div class="table-duration table-text">
-              {{ formatDuration(track.duration) }}
-            </div>
-
-
-            <div class="table-actions">
-
-              @if (isEnabled(track)) {
-
-                <span class="enabled-badge">
-                  Habilitada
-                </span>
-
-              } @else {
-
-                <button
-                  type="button"
-                  class="table-action primary"
-                  (click)="enableForEq(track)"
-                >
-                  Habilitar
-                </button>
-
-              }
-
-            </div>
-
-          </div>
-
-        }
-
-      </div>
-
-    } @else {
-
-      <div class="empty-state">
-
-        <div class="empty-icon">
-          ♪
-        </div>
-
-        <div>
-
-          <h3>
-            Tu biblioteca está vacía
-          </h3>
-
-          <p>
-            Agrega música a Musex para poder utilizar el ecualizador.
-          </p>
-
-        </div>
-
-      </div>
-
-    }
-
-  </section>
-
+<section class="equalizer-page view scroll-area"> 
+ 
+  <!-- ========================================================= 
+       HEADER 
+       ========================================================= --> 
+ 
+  <header class="equalizer-header"> 
+ 
+    <div class="equalizer-header-main"> 
+ 
+      <div class="equalizer-eyebrow"> 
+        AUDIO 
+      </div> 
+ 
+      <h1> 
+        Ecualizador 
+      </h1> 
+ 
+      <p> 
+        Ajusta el sonido de tus canciones mediante ecualización paramétrica. 
+      </p> 
+ 
+    </div> 
+ 
+ 
+    <!-- ======================================================= 
+         HEADER ACTIONS 
+         ======================================================= --> 
+ 
+    <div class="equalizer-header-actions"> 
+ 
+      <button 
+        type="button" 
+        class="header-control" 
+        [class.is-active]="senseEnabled()" 
+        [disabled]="!canToggleSense()" 
+        (click)="toggleSense()" 
+        [attr.aria-label]=" 
+          !canToggleSense() 
+            ? 'Sense está deshabilitado' 
+            : senseEnabled() 
+              ? 'Desactivar asistente de ecualización de Sense' 
+              : 'Activar asistente de ecualización de Sense' 
+        " 
+        [title]=" 
+          !canToggleSense() 
+            ? 'Activa Musex Sense para utilizar el asistente de ecualización' 
+            : senseEnabled() 
+              ? 'Desactivar asistente de ecualización de Sense' 
+              : 'Activar asistente de ecualización de Sense' 
+        " 
+      > 
+ 
+        <span 
+          class="control-status" 
+          [class.active]="senseEnabled()" 
+        ></span> 
+ 
+        <span> 
+          Sense · 
+          {{ senseEnabled() ? 'Activado' : 'Desactivado' }} 
+        </span> 
+ 
+      </button> 
+ 
+ 
+      <button 
+        type="button" 
+        class="header-control refresh-control" 
+        [disabled]="isRefreshing()" 
+        (click)="refreshTracks()" 
+        aria-label="Actualizar canciones del ecualizador" 
+      > 
+ 
+        <span 
+          class="refresh-icon" 
+          [class.is-spinning]="isRefreshing()" 
+        > 
+          ↻ 
+        </span> 
+ 
+        <span> 
+          {{ isRefreshing() ? 'Actualizando...' : 'Actualizar' }} 
+        </span> 
+ 
+      </button> 
+ 
+    </div> 
+ 
+  </header> 
+ 
+ 
+  <!-- ========================================================= 
+       SEARCH / FILTERS 
+       ========================================================= --> 
+ 
+  <section class="eq-toolbar"> 
+ 
+    <div class="eq-search"> 
+ 
+      <span 
+        class="eq-search-icon" 
+        aria-hidden="true" 
+      > 
+        ⌕ 
+      </span> 
+ 
+      <input 
+        type="search" 
+        [value]="searchQuery()" 
+        (input)="setSearchQuery($any($event.target).value)" 
+        placeholder="Buscar por título, artista, álbum o género..." 
+        aria-label="Buscar canciones" 
+      /> 
+ 
+      @if (searchQuery()) { 
+ 
+        <button 
+          type="button" 
+          class="eq-search-clear" 
+          (click)="clearSearch()" 
+          aria-label="Limpiar búsqueda" 
+          title="Limpiar búsqueda" 
+        > 
+          × 
+        </button> 
+ 
+      } 
+ 
+    </div> 
+ 
+ 
+    <div class="eq-filter-group"> 
+ 
+      <button 
+        type="button" 
+        [class.is-active]="libraryFilter() === 'all'" 
+        (click)="setLibraryFilter('all')" 
+      > 
+        Todas 
+      </button> 
+ 
+      <button 
+        type="button" 
+        [class.is-active]="libraryFilter() === 'enabled'" 
+        (click)="setLibraryFilter('enabled')" 
+      > 
+        Habilitadas 
+      </button> 
+ 
+      <button 
+        type="button" 
+        [class.is-active]="libraryFilter() === 'disabled'" 
+        (click)="setLibraryFilter('disabled')" 
+      > 
+        No habilitadas 
+      </button> 
+ 
+    </div> 
+ 
+ 
+    <div class="eq-sort"> 
+ 
+      <span class="eq-sort-label"> 
+        ORDENAR 
+      </span> 
+ 
+      <div class="eq-sort-control"> 
+ 
+        <button 
+          type="button" 
+          class="eq-sort-button" 
+          [class.is-open]="sortMenuOpen()" 
+          [attr.aria-expanded]="sortMenuOpen()" 
+          aria-haspopup="listbox" 
+          aria-label="Ordenar canciones" 
+          (click)="sortMenuOpen.update(open => !open)" 
+        > 
+ 
+          <span class="eq-sort-icon"> 
+ 
+            <svg 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              stroke-width="1.8" 
+              stroke-linecap="round" 
+              stroke-linejoin="round" 
+              aria-hidden="true" 
+            > 
+              <path d="M8 6h13"></path> 
+              <path d="M8 12h10"></path> 
+              <path d="M8 18h7"></path> 
+ 
+              <path d="M3 6h.01"></path> 
+              <path d="M3 12h.01"></path> 
+              <path d="M3 18h.01"></path> 
+            </svg> 
+ 
+          </span> 
+ 
+          <span class="eq-sort-value"> 
+ 
+            @if (sortBy() === 'title') { 
+              Título 
+            } @else if (sortBy() === 'artist') { 
+              Artista 
+            } @else { 
+              Más recientes 
+            } 
+ 
+          </span> 
+ 
+          <span 
+            class="eq-sort-chevron" 
+            [class.is-open]="sortMenuOpen()" 
+          > 
+ 
+            <svg 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              stroke-width="1.8" 
+              stroke-linecap="round" 
+              stroke-linejoin="round" 
+              aria-hidden="true" 
+            > 
+              <polyline points="6 9 12 15 18 9"></polyline> 
+            </svg> 
+ 
+          </span> 
+ 
+        </button> 
+ 
+ 
+        @if (sortMenuOpen()) { 
+ 
+          <div 
+            class="eq-sort-menu" 
+            role="listbox" 
+            aria-label="Opciones de orden" 
+          > 
+ 
+            <button 
+              type="button" 
+              class="eq-sort-option" 
+              [class.is-selected]="sortBy() === 'title'" 
+              (click)="setSort('title'); sortMenuOpen.set(false)" 
+            > 
+ 
+              <span> 
+                Título 
+              </span> 
+ 
+              @if (sortBy() === 'title') { 
+ 
+                <svg 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  stroke-width="2" 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round" 
+                  aria-hidden="true" 
+                > 
+                  <polyline points="20 6 9 17 4 12"></polyline> 
+                </svg> 
+ 
+              } 
+ 
+            </button> 
+ 
+ 
+            <button 
+              type="button" 
+              class="eq-sort-option" 
+              [class.is-selected]="sortBy() === 'artist'" 
+              (click)="setSort('artist'); sortMenuOpen.set(false)" 
+            > 
+ 
+              <span> 
+                Artista 
+              </span> 
+ 
+              @if (sortBy() === 'artist') { 
+ 
+                <svg 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  stroke-width="2" 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round" 
+                  aria-hidden="true" 
+                > 
+                  <polyline points="20 6 9 17 4 12"></polyline> 
+                </svg> 
+ 
+              } 
+ 
+            </button> 
+ 
+ 
+            <button 
+              type="button" 
+              class="eq-sort-option" 
+              [class.is-selected]="sortBy() === 'recent'" 
+              (click)="setSort('recent'); sortMenuOpen.set(false)" 
+            > 
+ 
+              <span> 
+                Más recientes 
+              </span> 
+ 
+              @if (sortBy() === 'recent') { 
+ 
+                <svg 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  stroke-width="2" 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round" 
+                  aria-hidden="true" 
+                > 
+                  <polyline points="20 6 9 17 4 12"></polyline> 
+                </svg> 
+ 
+              } 
+ 
+            </button> 
+ 
+          </div> 
+ 
+        } 
+ 
+      </div> 
+ 
+    </div> 
+ 
+  </section> 
+ 
+ 
+  <!-- ========================================================= 
+       SEARCH STATUS 
+       ========================================================= --> 
+ 
+  @if (searchQuery() || libraryFilter() !== 'all') { 
+ 
+    <div class="eq-results-info"> 
+ 
+      <span> 
+ 
+        @if (searchQuery()) { 
+ 
+          Resultados para 
+          <strong> 
+            "{{ searchQuery() }}" 
+          </strong> 
+ 
+        } @else { 
+ 
+          Filtro: 
+          <strong> 
+ 
+            @if (libraryFilter() === 'enabled') { 
+              Habilitadas 
+            } @else { 
+              No habilitadas 
+            } 
+ 
+          </strong> 
+ 
+        } 
+ 
+      </span> 
+ 
+      <span> 
+        {{ filteredLibraryTracks().length }} 
+        {{ filteredLibraryTracks().length === 1 ? 'canción' : 'canciones' }} 
+      </span> 
+ 
+    </div> 
+ 
+  } 
+ 
+ 
+  <!-- ========================================================= 
+       TRACKS HABILITADOS 
+       ========================================================= --> 
+ 
+  <section class="eq-section"> 
+ 
+    <div class="section-heading"> 
+ 
+      <div> 
+ 
+        <span class="section-kicker"> 
+          ECUALIZACIÓN 
+        </span> 
+ 
+        <h2> 
+          Habilitadas para ecualización 
+        </h2> 
+ 
+      </div> 
+ 
+      <span class="section-count"> 
+        {{ filteredEqTracks().length }} 
+      </span> 
+ 
+    </div> 
+ 
+ 
+    @if (isRefreshing()) { 
+ 
+      <div class="table-loading"> 
+ 
+        <div class="loading-spinner"></div> 
+ 
+        <div class="loading-content"> 
+ 
+          <span class="loading-title"> 
+            Actualizando canciones 
+          </span> 
+ 
+          <span class="loading-subtitle"> 
+            Sincronizando el estado del ecualizador... 
+          </span> 
+ 
+        </div> 
+ 
+      </div> 
+ 
+    } @else if (hasFilteredEqTracks()) { 
+ 
+      <div class="music-table"> 
+ 
+        <div class="music-table-head"> 
+ 
+          <div class="table-index"> 
+            # 
+          </div> 
+ 
+          <div class="table-title"> 
+            Título 
+          </div> 
+ 
+          <div class="table-artist"> 
+            Artista 
+          </div> 
+ 
+          <div class="table-genre"> 
+            Género 
+          </div> 
+ 
+          <div class="table-album"> 
+            Álbum 
+          </div> 
+ 
+          <div class="table-duration"> 
+            Duración 
+          </div> 
+ 
+          <div class="table-actions"> 
+          </div> 
+ 
+        </div> 
+ 
+ 
+        @for ( 
+          track of filteredEqTracks(); 
+          track track.id; 
+          let i = $index 
+        ) { 
+ 
+          <div 
+            class="music-table-row" 
+            [class.is-playing]="isTrackPlaying(track)" 
+          > 
+ 
+            <div class="table-index"> 
+ 
+              <button 
+                type="button" 
+                class="track-play" 
+                (click)="playTrack(track)" 
+                [attr.aria-label]=" 
+                  isTrackPlaying(track) 
+                    ? 'Pausar' 
+                    : 'Reproducir' 
+                " 
+              > 
+ 
+                @if (isTrackPlaying(track)) { 
+ 
+                  <span class="pause-icon"> 
+                    <span></span> 
+                    <span></span> 
+                  </span> 
+ 
+                } @else { 
+ 
+                  <span class="row-number"> 
+                    {{ i + 1 }} 
+                  </span> 
+ 
+                  <span class="play-icon"></span> 
+ 
+                } 
+ 
+              </button> 
+ 
+            </div> 
+ 
+ 
+            <div class="table-title"> 
+ 
+              <div class="track-cover"> 
+ 
+                @if ( 
+                  track.coverType === 'image' && 
+                  track.image 
+                ) { 
+ 
+                  <img 
+                    [src]="track.image" 
+                    [alt]="track.title" 
+                    style=" 
+                      width:100%; 
+                      height:100%; 
+                      object-fit:cover; 
+                    " 
+                  /> 
+ 
+                } @else if ( 
+                  track.coverType === 'icon' 
+                ) { 
+ 
+                  <div 
+                    style=" 
+                      width:100%; 
+                      height:100%; 
+                      display:flex; 
+                      align-items:center; 
+                      justify-content:center; 
+                    " 
+                    [style.background]=" 
+                      (track.coverColor || 'var(--musex-accent)') + '1a' 
+                    " 
+                  > 
+ 
+                    <svg 
+                      viewBox="0 0 24 24" 
+                      style=" 
+                        width:18px; 
+                        height:18px; 
+                      " 
+                      fill="none" 
+                      [attr.stroke]=" 
+                        track.coverColor || 
+                        'var(--musex-accent)' 
+                      " 
+                      stroke-width="2" 
+                      stroke-linecap="round" 
+                      stroke-linejoin="round" 
+                      aria-hidden="true" 
+                    > 
+ 
+                      <path 
+                        [attr.d]="track.coverIcon" 
+                      ></path> 
+ 
+                    </svg> 
+ 
+                  </div> 
+ 
+                } @else { 
+ 
+                  <svg 
+                    class="music-table-default-disc" 
+                    viewBox="0 0 100 100" 
+                    role="img" 
+                    [attr.aria-label]=" 
+                      'Disco Musex para ' + track.title 
+                    " 
+                  > 
+ 
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="47" 
+                      fill="none" 
+                      stroke="var(--musex-accent)" 
+                      stroke-width="3" 
+                      stroke-opacity="0.65" 
+                    /> 
+ 
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="43" 
+                      fill="var(--musex-accent)" 
+                    /> 
+ 
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="38" 
+                      fill="none" 
+                      stroke="#0d0e10" 
+                      stroke-width="1.5" 
+                      opacity="0.35" 
+                    /> 
+ 
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="31" 
+                      fill="none" 
+                      stroke="#0d0e10" 
+                      stroke-width="1" 
+                      opacity="0.3" 
+                    /> 
+ 
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="24" 
+                      fill="none" 
+                      stroke="#0d0e10" 
+                      stroke-width="1" 
+                      opacity="0.25" 
+                    /> 
+ 
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="13" 
+                      fill="#0d0e10" 
+                    /> 
+ 
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="4" 
+                      fill="var(--musex-accent)" 
+                    /> 
+ 
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="40" 
+                      fill="none" 
+                      stroke="#ffffff" 
+                      stroke-width="0.8" 
+                      opacity="0.12" 
+                    /> 
+ 
+                  </svg> 
+ 
+                } 
+ 
+              </div> 
+ 
+ 
+              <div class="track-info"> 
+ 
+                <span 
+                  class="track-title" 
+                  [class.active]="isTrackPlaying(track)" 
+                > 
+                  {{ track.title }} 
+                </span> 
+ 
+                <span class="track-subtitle"> 
+                  Ecualización activa 
+                </span> 
+ 
+              </div> 
+ 
+            </div> 
+ 
+ 
+            <div class="table-artist table-text"> 
+              {{ track.artist || 'Artista desconocido' }} 
+            </div> 
+ 
+ 
+            <div class="table-genre table-text"> 
+ 
+              @if (track.genre) { 
+ 
+                {{ track.genre }} 
+ 
+              } @else { 
+ 
+                <span class="muted-value"> 
+                  — 
+                </span> 
+ 
+              } 
+ 
+            </div> 
+ 
+ 
+            <div class="table-album table-text"> 
+ 
+              @if (track.album) { 
+ 
+                {{ track.album }} 
+ 
+              } @else { 
+ 
+                <span class="muted-value"> 
+                  — 
+                </span> 
+ 
+              } 
+ 
+            </div> 
+ 
+ 
+            <div class="table-duration table-text"> 
+              {{ formatDuration(track.duration) }} 
+            </div> 
+ 
+ 
+            <div class="table-actions"> 
+ 
+              <button 
+                type="button" 
+                class="table-action secondary" 
+                (click)="openEditor(track)" 
+              > 
+                Editar 
+              </button> 
+ 
+              <button 
+                type="button" 
+                class="table-action danger" 
+                (click)="disableFromEq(track)" 
+              > 
+                Quitar 
+              </button> 
+ 
+            </div> 
+ 
+          </div> 
+ 
+        } 
+ 
+      </div> 
+ 
+    } @else { 
+ 
+      <div class="empty-state"> 
+ 
+        <div class="empty-icon"> 
+          EQ 
+        </div> 
+ 
+        <div> 
+ 
+          <h3> 
+            @if (searchQuery()) { 
+              No se encontraron canciones 
+            } @else { 
+              No hay canciones habilitadas 
+            } 
+          </h3> 
+ 
+          <p> 
+            @if (searchQuery()) { 
+              No hay canciones habilitadas que coincidan con tu búsqueda. 
+            } @else { 
+              Habilita canciones de tu biblioteca para comenzar a ecualizarlas. 
+            } 
+          </p> 
+ 
+        </div> 
+ 
+      </div> 
+ 
+    } 
+ 
+  </section> 
+ 
+ 
+  <!-- ========================================================= 
+       BIBLIOTECA 
+       ========================================================= --> 
+ 
+  <section class="eq-section library-section"> 
+ 
+    <div class="section-heading"> 
+ 
+      <div> 
+ 
+        <span class="section-kicker"> 
+          BIBLIOTECA 
+        </span> 
+ 
+        <h2> 
+          Tu biblioteca 
+        </h2> 
+ 
+      </div> 
+ 
+      <span class="section-count"> 
+        {{ filteredLibraryTracks().length }} 
+      </span> 
+ 
+    </div> 
+ 
+ 
+    @if (isRefreshing()) { 
+ 
+      <div class="table-loading"> 
+ 
+        <div class="loading-spinner"></div> 
+ 
+        <div class="loading-content"> 
+ 
+          <span class="loading-title"> 
+            Actualizando biblioteca 
+          </span> 
+ 
+          <span class="loading-subtitle"> 
+            Sincronizando canciones... 
+          </span> 
+ 
+        </div> 
+ 
+      </div> 
+ 
+    } @else if (filteredLibraryTracks().length > 0) { 
+ 
+      <div class="music-table"> 
+ 
+        <div class="music-table-head"> 
+ 
+          <div class="table-index"> 
+            # 
+          </div> 
+ 
+          <div class="table-title"> 
+            Título 
+          </div> 
+ 
+          <div class="table-artist"> 
+            Artista 
+          </div> 
+ 
+          <div class="table-genre"> 
+            Género 
+          </div> 
+ 
+          <div class="table-album"> 
+            Álbum 
+          </div> 
+ 
+          <div class="table-duration"> 
+            Duración 
+          </div> 
+ 
+          <div class="table-actions"> 
+          </div> 
+ 
+        </div> 
+ 
+ 
+        @for ( 
+          track of filteredLibraryTracks(); 
+          track track.id; 
+          let i = $index 
+        ) { 
+ 
+          <div 
+            class="music-table-row" 
+            [class.is-playing]="isTrackPlaying(track)" 
+          > 
+ 
+            <div class="table-index"> 
+ 
+              <button 
+                type="button" 
+                class="track-play" 
+                (click)="playTrack(track)" 
+                [attr.aria-label]=" 
+                  isTrackPlaying(track) 
+                    ? 'Pausar' 
+                    : 'Reproducir' 
+                " 
+              > 
+ 
+                @if (isTrackPlaying(track)) { 
+ 
+                  <span class="pause-icon"> 
+                    <span></span> 
+                    <span></span> 
+                  </span> 
+ 
+                } @else { 
+ 
+                  <span class="row-number"> 
+                    {{ i + 1 }} 
+                  </span> 
+ 
+                  <span class="play-icon"></span> 
+ 
+                } 
+ 
+              </button> 
+ 
+            </div> 
+ 
+ 
+            <div class="table-title"> 
+ 
+              <div class="track-cover"> 
+ 
+                @if ( 
+                  track.coverType === 'image' && 
+                  track.image 
+                ) { 
+ 
+                  <img 
+                    [src]="track.image" 
+                    [alt]="track.title" 
+                    style=" 
+                      width:100%; 
+                      height:100%; 
+                      object-fit:cover; 
+                    " 
+                  /> 
+ 
+                } @else if ( 
+                  track.coverType === 'icon' 
+                ) { 
+ 
+                  <div 
+                    style=" 
+                      width:100%; 
+                      height:100%; 
+                      display:flex; 
+                      align-items:center; 
+                      justify-content:center; 
+                    " 
+                    [style.background]=" 
+                      (track.coverColor || 'var(--musex-accent)') + '1a' 
+                    " 
+                  > 
+ 
+                    <svg 
+                      viewBox="0 0 24 24" 
+                      style=" 
+                        width:18px; 
+                        height:18px; 
+                      " 
+                      fill="none" 
+                      [attr.stroke]=" 
+                        track.coverColor || 
+                        'var(--musex-accent)' 
+                      " 
+                      stroke-width="2" 
+                      stroke-linecap="round" 
+                      stroke-linejoin="round" 
+                      aria-hidden="true" 
+                    > 
+ 
+                      <path 
+                        [attr.d]="track.coverIcon" 
+                      ></path> 
+ 
+                    </svg> 
+ 
+                  </div> 
+ 
+                } @else { 
+ 
+                  <svg 
+                    class="music-table-default-disc" 
+                    viewBox="0 0 100 100" 
+                    role="img" 
+                    [attr.aria-label]=" 
+                      'Disco Musex para ' + track.title 
+                    " 
+                  > 
+ 
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="47" 
+                      fill="none" 
+                      stroke="var(--musex-accent)" 
+                      stroke-width="3" 
+                      stroke-opacity="0.65" 
+                    /> 
+ 
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="43" 
+                      fill="var(--musex-accent)" 
+                    /> 
+ 
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="38" 
+                      fill="none" 
+                      stroke="#0d0e10" 
+                      stroke-width="1.5" 
+                      opacity="0.35" 
+                    /> 
+ 
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="31" 
+                      fill="none" 
+                      stroke="#0d0e10" 
+                      stroke-width="1" 
+                      opacity="0.3" 
+                    /> 
+ 
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="24" 
+                      fill="none" 
+                      stroke="#0d0e10" 
+                      stroke-width="1" 
+                      opacity="0.25" 
+                    /> 
+ 
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="13" 
+                      fill="#0d0e10" 
+                    /> 
+ 
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="4" 
+                      fill="var(--musex-accent)" 
+                    /> 
+ 
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="40" 
+                      fill="none" 
+                      stroke="#ffffff" 
+                      stroke-width="0.8" 
+                      opacity="0.12" 
+                    /> 
+ 
+                  </svg> 
+ 
+                } 
+ 
+              </div> 
+ 
+ 
+              <div class="track-info"> 
+ 
+                <span 
+                  class="track-title" 
+                  [class.active]="isTrackPlaying(track)" 
+                > 
+                  {{ track.title }} 
+                </span> 
+ 
+                <span class="track-subtitle"> 
+ 
+                  @if (isEnabled(track)) { 
+ 
+                    Disponible para ecualización 
+ 
+                  } @else { 
+ 
+                    Biblioteca 
+ 
+                  } 
+ 
+                </span> 
+ 
+              </div> 
+ 
+            </div> 
+ 
+ 
+            <div class="table-artist table-text"> 
+              {{ track.artist || 'Artista desconocido' }} 
+            </div> 
+ 
+ 
+            <div class="table-genre table-text"> 
+ 
+              @if (track.genre) { 
+ 
+                {{ track.genre }} 
+ 
+              } @else { 
+ 
+                <span class="muted-value"> 
+                  — 
+                </span> 
+ 
+              } 
+ 
+            </div> 
+ 
+ 
+            <div class="table-album table-text"> 
+ 
+              @if (track.album) { 
+ 
+                {{ track.album }} 
+ 
+              } @else { 
+ 
+                <span class="muted-value"> 
+                  — 
+                </span> 
+ 
+              } 
+ 
+            </div> 
+ 
+ 
+            <div class="table-duration table-text"> 
+              {{ formatDuration(track.duration) }} 
+            </div> 
+ 
+ 
+            <div class="table-actions"> 
+ 
+              @if (isEnabled(track)) { 
+ 
+                <span class="enabled-badge"> 
+                  Habilitada 
+                </span> 
+ 
+              } @else { 
+ 
+                <button 
+                  type="button" 
+                  class="table-action primary" 
+                  (click)="enableForEq(track)" 
+                > 
+                  Habilitar 
+                </button> 
+ 
+              } 
+ 
+            </div> 
+ 
+          </div> 
+ 
+        } 
+ 
+      </div> 
+ 
+    } @else { 
+ 
+      <div class="empty-state"> 
+ 
+        <div class="empty-icon"> 
+          ♪ 
+        </div> 
+ 
+        <div> 
+ 
+          <h3> 
+ 
+            @if (searchQuery() || libraryFilter() !== 'all') { 
+              No se encontraron canciones 
+            } @else { 
+              Tu biblioteca está vacía 
+            } 
+ 
+          </h3> 
+ 
+          <p> 
+ 
+            @if (searchQuery()) { 
+ 
+              No hay canciones que coincidan con tu búsqueda. 
+ 
+            } @else if (libraryFilter() === 'enabled') { 
+ 
+              No hay canciones habilitadas para ecualización. 
+ 
+            } @else if (libraryFilter() === 'disabled') { 
+ 
+              Todas las canciones de tu biblioteca están habilitadas. 
+ 
+            } @else { 
+ 
+              Agrega música a Musex para poder utilizar el ecualizador. 
+ 
+            } 
+ 
+          </p> 
+ 
+        </div> 
+ 
+      </div> 
+ 
+    } 
+ 
+  </section> 
+ 
 </section>

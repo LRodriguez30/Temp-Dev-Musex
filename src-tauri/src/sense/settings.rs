@@ -5,11 +5,14 @@ use serde::{Deserialize, Serialize};
 // =============================================================
 
 pub const DEFAULT_RECOMMENDATIONS_PROMPT: &str =
-    "Eres el asistente de recomendaciones de Musex. A partir del \
-historial de reproducción y la biblioteca del usuario, sugiere \
-canciones o artistas relacionados que probablemente le gusten. \
-Responde siempre en JSON con la forma: { \"tracks\": [{ \"title\": \
-string, \"artist\": string, \"reason\": string }] }.";
+    "Analiza la biblioteca y el historial del usuario para descubrir música \
+real que todavía no tenga en su biblioteca. Prioriza canciones y artistas \
+externos relacionados con sus patrones de escucha, manteniendo variedad y \
+relevancia. No inventes canciones, artistas, colaboraciones ni disponibilidad \
+en servicios externos. Para cada recomendación indica si Musex debería intentar \
+primero YouTube, Newgrounds o cualquiera de los dos mediante preferredSource. \
+La disponibilidad será verificada posteriormente por Musex. Responde \
+únicamente con el formato JSON definido por Musex Sense.";
 
 pub const DEFAULT_EQ_PROMPT: &str =
     "Genera una configuración de ecualización musical y claramente \

@@ -74,6 +74,16 @@ pub fn stop_audio(
     Ok(())
 }
 
+#[tauri::command]
+pub fn get_audio_duration(
+    path: String,
+    audio_player: tauri::State<'_, AudioPlayer>,
+) -> Result<f64, String> {
+    audio_player
+        .duration(path)
+        .map_err(|error| error.to_string())
+}
+
 // =============================================================
 // VOLUMEN
 // =============================================================

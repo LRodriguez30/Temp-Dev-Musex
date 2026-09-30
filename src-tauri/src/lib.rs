@@ -8,6 +8,9 @@
 // - Almacenamiento.
 // - Reproductor de audio.
 // - Administrador de descargas.
+// - Historial de descargas.
+// - Persistencia de presets del ecualizador.
+// - Persistencia de Sense.
 // - Plugins de Tauri.
 // - Comandos disponibles para Angular.
 // =============================================================
@@ -36,7 +39,10 @@ use filesystem::storage::Storage;
 
 use downloads::history::DownloadHistory;
 
+use equalizer::EqPresetStore;
+
 use sense::store::SenseStore;
+
 
 // =============================================================
 // COMANDO DE PRUEBA
@@ -49,6 +55,7 @@ fn greet(name: &str) -> String {
         name
     )
 }
+
 
 // =============================================================
 // ENTRADA PRINCIPAL DE TAURI
@@ -70,6 +77,7 @@ pub fn run() {
         .join("Desktop")
         .join("Musex");
 
+
     // =========================================================
     // INICIALIZACIÓN DEL ALMACENAMIENTO
     // =========================================================
@@ -85,9 +93,21 @@ pub fn run() {
             "No se pudo inicializar el almacenamiento de Musex."
         );
 
-    let download_history = DownloadHistory::new(&base_dir);
+    let download_history =
+        DownloadHistory::new(
+            &base_dir
+        );
 
-    let sense_store = SenseStore::new(base_dir.clone());
+    let sense_store =
+        SenseStore::new(
+            base_dir.clone()
+        );
+
+    let eq_preset_store =
+        EqPresetStore::new(
+            &base_dir
+        );
+
 
     // =========================================================
     // INICIALIZACIÓN DEL DOWNLOAD MANAGER
@@ -133,6 +153,7 @@ pub fn run() {
             )
         );
 
+
     // =========================================================
     // INICIALIZACIÓN DEL REPRODUCTOR
     // =========================================================
@@ -156,6 +177,7 @@ pub fn run() {
                 "No se pudo inicializar el dispositivo de audio."
             );
 
+
     // =========================================================
     // INICIO DE TAURI
     // =========================================================
@@ -175,6 +197,15 @@ pub fn run() {
         // DownloadManager:
         // administración compartida de descargas.
         //
+        // DownloadHistory:
+        // historial persistente de descargas.
+        //
+        // SenseStore:
+        // configuración persistente de Musex Sense.
+        //
+        // EqPresetStore:
+        // presets persistentes del ecualizador.
+        //
         // -----------------------------------------------------
 
         .manage(storage)
@@ -182,49 +213,68 @@ pub fn run() {
         .manage(download_manager)
         .manage(download_history)
         .manage(sense_store)
+        .manage(eq_preset_store)
+
 
         .setup(|app| {
-            let app_handle = app.handle().clone();
+
+            let app_handle =
+                app.handle().clone();
 
             thread::spawn(move || {
+
                 let mut last_device =
                     AudioPlayer::current_default_device_name();
 
                 loop {
-                    thread::sleep(Duration::from_secs(2));
+
+                    thread::sleep(
+                        Duration::from_secs(2)
+                    );
 
                     let current_device =
                         AudioPlayer::current_default_device_name();
 
                     if current_device != last_device {
+
                         println!(
                             "[AUDIO] Dispositivo de salida cambió: {:?} -> {:?}",
-                            last_device, current_device
+                            last_device,
+                            current_device
                         );
 
                         if let Some(player) =
                             app_handle.try_state::<AudioPlayer>()
                         {
-                            if let Err(error) = player.reinitialize_output() {
+
+                            if let Err(error) =
+                                player.reinitialize_output()
+                            {
+
                                 eprintln!(
                                     "[AUDIO] No se pudo reinicializar la salida: {}",
                                     error
                                 );
+
                             } else {
+
                                 println!(
                                     "[AUDIO] Salida de audio reinicializada correctamente."
                                 );
+
                             }
                         }
 
-                        last_device = current_device;
+                        last_device =
+                            current_device;
                     }
                 }
             });
 
             Ok(())
         })
-        
+
+
         // -----------------------------------------------------
         // PLUGINS
         // -----------------------------------------------------
@@ -240,6 +290,7 @@ pub fn run() {
         .plugin(
             tauri_plugin_shell::init()
         )
+
 
         // -----------------------------------------------------
         // COMANDOS
@@ -267,11 +318,13 @@ pub fn run() {
                 commands::audio::get_audio_metadata,
                 commands::audio::get_audio_position,
                 commands::audio::seek_audio,
+                commands::audio::get_audio_duration,
                 commands::audio::update_audio_metadata,
 
                 commands::audio::set_volume,
 
                 commands::audio::reinitialize_audio_device,
+
 
                 // =============================================
                 // DOWNLOADS
@@ -285,6 +338,7 @@ pub fn run() {
                 commands::downloads::get_download_history,
                 commands::downloads::remove_download_history_entry,
                 commands::downloads::clear_download_history,
+
 
                 // =============================================
                 // FILESYSTEM
@@ -324,6 +378,11 @@ pub fn run() {
                 commands::equalizer::remove_eq_band,
                 commands::equalizer::reset_eq,
 
+                commands::equalizer::get_eq_preset,
+                commands::equalizer::save_eq_preset,
+                commands::equalizer::remove_eq_preset,
+
+
                 // =============================================
                 // SENSE
                 // =============================================
@@ -339,6 +398,7 @@ pub fn run() {
                 commands::sense::get_sense_recommendations,
                 commands::sense::recommend_eq_preset,
 
+
                 // =============================================
                 // LIBRARY
                 // =============================================
@@ -348,6 +408,7 @@ pub fn run() {
                 commands::library::import_tracks,
             ]
         )
+
 
         // -----------------------------------------------------
         // EJECUCIÓN DE TAURI

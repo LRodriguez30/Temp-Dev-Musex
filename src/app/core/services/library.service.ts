@@ -188,7 +188,7 @@ export class LibraryService {
 
             album:
               track.album ??
-              'Álbum desconocido',
+              'Youtube',
 
             genre:
               track.genre ??
@@ -288,7 +288,7 @@ export class LibraryService {
 
             album:
               track.album ??
-              'Álbum desconocido',
+              'Youtube',
 
             genre:
               track.genre ??

@@ -140,6 +140,7 @@
 
             <img
               class="full-player-cover-image"
+              [class.is-playing]="playerState().playing"
               [src]="currentTrack.image"
               [alt]="currentTrack.title"
             />
@@ -186,6 +187,7 @@
 
             <svg
               class="musex-default-cover"
+              [class.is-playing]="playerState().playing"
               viewBox="0 0 400 400"
               role="img"
               [attr.aria-label]="
@@ -199,7 +201,7 @@
               <rect
                 width="400"
                 height="400"
-                fill="#111214"
+                fill="rgba(13, 14, 16, 0.9)"
               />
 
               <circle
@@ -347,25 +349,27 @@
           </div>
 
 
-          <button
-            type="button"
-            class="full-player-favorite"
-            [class.active]="currentTrackIsFavorite"
-            [attr.aria-pressed]="currentTrackIsFavorite"
-            [attr.aria-label]="
-              currentTrackIsFavorite
-                ? 'Quitar de favoritos'
-                : 'Agregar a favoritos'
-            "
-            [attr.title]="
-              currentTrackIsFavorite
-                ? 'Quitar de favoritos'
-                : 'Agregar a favoritos'
-            "
-            (click)="toggleFavorite()"
-          >
+          @if (currentTrack?.source !== 'download') {
 
-            <svg
+            <button
+              type="button"
+              class="full-player-favorite"
+              [class.active]="currentTrackIsFavorite"
+              [attr.aria-pressed]="currentTrackIsFavorite"
+              [attr.aria-label]="
+                currentTrackIsFavorite
+                  ? 'Quitar de favoritos'
+                  : 'Agregar a favoritos'
+              "
+              [attr.title]="
+                currentTrackIsFavorite
+                  ? 'Quitar de favoritos'
+                  : 'Agregar a favoritos'
+              "
+              (click)="toggleFavorite()"
+            >
+
+              <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="none"
@@ -373,13 +377,27 @@
                 stroke-width="1.8"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-            >
+              >
                 <polygon
-                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                  points="
+                    12 2
+                    15.09 8.26
+                    22 9.27
+                    17 14.14
+                    18.18 21.02
+                    12 17.77
+                    5.82 21.02
+                    7 14.14
+                    2 9.27
+                    8.91 8.26
+                    12 2
+                  "
                 />
-            </svg>
+              </svg>
 
-          </button>
+            </button>
+
+          }
 
         </div>
 

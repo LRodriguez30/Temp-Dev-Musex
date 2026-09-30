@@ -86,6 +86,30 @@ export class PlayerService implements OnDestroy {
     });
 
     /**
+     * Track externo que se está reproduciendo temporalmente.
+     *
+     * Se utiliza para archivos descargados que todavía no
+     * pertenecen a la biblioteca.
+     *
+     * No se agrega a LibraryService ni a QueueService.
+     */
+    private readonly externalTrack =
+        signal<Track | null>(null);
+
+    /**
+     * Indica si la canción actual está siendo reproducida
+     * mediante el reproductor EQ.
+     *
+     * IMPORTANTE:
+     *
+     * Esto no representa el estado del editor.
+     *
+     * Solo se activa cuando una canción de la página
+     * de Ecualizador está utilizando play_eq_audio().
+     */
+    private eqPlayback = false;
+
+    /**
      * Indica si el historial de reproducción está procesando
      * la canción que acaba de comenzar.
      *
@@ -178,6 +202,9 @@ export class PlayerService implements OnDestroy {
      *
      * previous:
      *   La nueva canción entra desde la izquierda.
+     *
+     * previous:
+     *   La nueva canción entra desde la izquierda.
      */
     readonly trackTransitionDirection =
         signal<'next' | 'previous'>('next');
@@ -235,6 +262,18 @@ export class PlayerService implements OnDestroy {
      */
     async playTrack(trackId: string): Promise<void> {
 
+        /*
+         * Si anteriormente estaba reproduciéndose una canción
+         * mediante EQ, dejamos ese modo antes de iniciar
+         * la reproducción normal.
+         */
+        if (this.eqPlayback) {
+
+            await this.stopEqPlayback();
+
+        }
+
+
         const currentTrackId =
             this.playerState().currentTrackId;
 
@@ -287,6 +326,8 @@ export class PlayerService implements OnDestroy {
 
             this.historyService.addEntry(trackId);
 
+            this.eqPlayback = false;
+
             this.playerState.update(state => ({
                 ...state,
                 playing: true,
@@ -315,6 +356,107 @@ export class PlayerService implements OnDestroy {
     }
 
     /**
+     * Registra en PlayerService una reproducción que utiliza
+     * el backend del ecualizador.
+     *
+     * Este método NO inicia el audio.
+     *
+     * EqualizerService ya se encarga de preparar las bandas
+     * y ejecutar play_eq_audio().
+     *
+     * PlayerService solamente incorpora esa reproducción
+     * al estado global del reproductor para que:
+     *
+     * - Bottom Player pueda mostrar la canción.
+     * - Full Player conozca la canción actual.
+     * - Play/Pause pueda controlar el audio EQ.
+     * - Seek pueda controlar el audio EQ.
+     * - La posición pueda sincronizarse.
+     */
+    startEqPlayback(
+        track: Track
+    ): void {
+
+        if (!track.path) {
+            console.warn(
+                `La canción "${track.title}" no tiene una ruta de audio.`
+            );
+
+            return;
+        }
+
+        if (!this.queueService.getQueue().includes(track.id)) {
+            this.queueService.add(track.id);
+        }
+
+        this.handlingTrackEnd = false;
+
+        this.eqPlayback = true;
+
+        this.playerState.update(state => ({
+            ...state,
+            playing: true,
+            currentTrackId: track.id,
+            currentTime: 0,
+            queue: this.queueService.getQueue()
+        }));
+
+        this.startPositionSync();
+    }
+
+    /**
+     * Indica si la reproducción actual pertenece al backend EQ.
+     *
+     * Se mantiene como API pública para que otros servicios
+     * puedan consultar el modo actual sin acceder al estado interno.
+     */
+    isEqPlayback(): boolean {
+
+        return this.eqPlayback;
+    }
+
+    /**
+     * Detiene únicamente la reproducción EQ registrada
+     * como reproducción global del PlayerService.
+     *
+     * El editor de EQ no utiliza este método porque su
+     * reproducción es independiente del Bottom Player.
+     */
+    async stopEqPlayback(): Promise<void> {
+
+        if (!this.eqPlayback) {
+            return;
+        }
+
+        try {
+
+            await invoke(
+                'stop_eq_audio'
+            );
+
+        } catch (error) {
+
+            console.error(
+                'Error al detener la reproducción EQ:',
+                error
+            );
+
+        } finally {
+
+            this.eqPlayback = false;
+
+            this.stopPositionSync();
+
+            this.playerState.update(state => ({
+                ...state,
+                playing: false,
+                currentTrackId: null,
+                currentTime: 0
+            }));
+        }
+    }
+
+    /**
      * Alterna entre reproducción y pausa.
      *
      * Cuando una canción terminó completamente, Rust ya no tiene
@@ -327,6 +469,45 @@ export class PlayerService implements OnDestroy {
         const currentState = this.playerState();
 
         try {
+
+            /**
+             * La reproducción EQ utiliza su propio backend
+             * de audio, pero mantiene el mismo estado global
+             * del reproductor.
+             */
+            if (this.eqPlayback) {
+
+                if (currentState.playing) {
+
+                    await invoke(
+                        'pause_eq_audio'
+                    );
+
+                    this.playerState.update(state => ({
+                        ...state,
+                        playing: false
+                    }));
+
+                    this.stopPositionSync();
+
+                    this.saveContinueListening();
+
+                    return;
+                }
+
+                await invoke(
+                    'resume_eq_audio'
+                );
+
+                this.playerState.update(state => ({
+                    ...state,
+                    playing: true
+                }));
+
+                this.startPositionSync();
+
+                return;
+            }
 
             /**
              * Si está reproduciendo, simplemente pausamos.
@@ -667,12 +848,24 @@ export class PlayerService implements OnDestroy {
 
         try {
 
-            await invoke(
-                'seek_audio',
-                {
-                    seconds: normalizedTime
-                }
-            );
+            if (this.eqPlayback) {
+
+                await invoke(
+                    'seek_eq_audio',
+                    {
+                        seconds: normalizedTime
+                    }
+                );
+
+            } else {
+
+                await invoke(
+                    'seek_audio',
+                    {
+                        seconds: normalizedTime
+                    }
+                );
+            }
 
             this.playerState.update(state => ({
                 ...state,
@@ -1128,7 +1321,18 @@ export class PlayerService implements OnDestroy {
 
         try {
 
-            await invoke('stop_audio');
+            if (this.eqPlayback) {
+
+                await invoke(
+                    'stop_eq_audio'
+                );
+
+            } else {
+
+                await invoke(
+                    'stop_audio'
+                );
+            }
 
         } catch (error) {
 
@@ -1137,6 +1341,8 @@ export class PlayerService implements OnDestroy {
                 error
             );
         }
+
+        this.eqPlayback = false;
 
         this.stopPositionSync();
 
@@ -1155,6 +1361,8 @@ export class PlayerService implements OnDestroy {
          */
         this.queueService.clear();
 
+        this.externalTrack.set(null);
+        
         this.playerState.update(state => ({
             ...state,
             playing: false,
@@ -1228,7 +1436,9 @@ export class PlayerService implements OnDestroy {
 
             const position =
                 await invoke<number>(
-                    'get_audio_position'
+                    this.eqPlayback
+                        ? 'get_eq_audio_position'
+                        : 'get_audio_position'
                 );
 
             const track =
@@ -1242,30 +1452,44 @@ export class PlayerService implements OnDestroy {
              * El margen evita depender de que la posición
              * coincida exactamente con la duración de la pista.
              */
-            const hasEnded =
-                position >=
-                track.duration - 0.25;
 
-            if (hasEnded) {
+            /**
+             * Los tracks externos pueden no tener todavía
+             * una duración conocida.
+             *
+             * En ese caso no intentamos detectar el final
+             * mediante duration.
+             */
+            if (track.duration > 0) {
 
-                this.playerState.update(state => ({
-                    ...state,
-                    currentTime: track.duration
-                }));
+                const hasEnded =
+                    position >=
+                    track.duration - 0.25;
 
-                this.clearContinueListening();
+                if (hasEnded) {
 
-                this.handleTrackEnded();
+                    this.playerState.update(state => ({
+                        ...state,
+                        currentTime: track.duration
+                    }));
 
-                return;
+                    this.clearContinueListening();
+
+                    this.handleTrackEnded();
+
+                    return;
+                }
             }
 
             this.playerState.update(state => ({
                 ...state,
-                currentTime: Math.min(
-                    position,
-                    track.duration
-                )
+                currentTime:
+                    track.duration > 0
+                        ? Math.min(
+                            position,
+                            track.duration
+                        )
+                        : position
             }));
 
             this.scheduleContinueListeningSave();
@@ -1292,21 +1516,67 @@ export class PlayerService implements OnDestroy {
 
             this.handlingTrackEnd = false;
 
-            await invoke(
-                'play_audio',
+            /**
+             * Cada reproducción externa recibe un ID propio.
+             *
+             * El prefijo evita cualquier posibilidad de colisión
+             * con los IDs reales de la biblioteca.
+             */
+            const externalTrackId =
+                `external:${crypto.randomUUID()}`;
+
+            /**
+             * Creamos una representación temporal del archivo.
+             *
+             * Este Track NO se agrega a LibraryService.
+             * Solo existe mientras este archivo está siendo
+             * utilizado por el reproductor.
+             */
+            const duration = await invoke<number>(
+                'get_audio_duration',
                 { path }
             );
+
+            const track: Track = {
+                id: externalTrackId,
+                title,
+                artist: 'Descarga',
+                album: '',
+                genre: undefined,
+                duration,
+                path,
+                addedAt: '',
+                image: '',
+                source: 'download',
+                favorite: false
+            };
+            /**
+             * Guardamos el track externo para que
+             * getTrack() y getCurrentTrack() puedan encontrarlo.
+             */
+            this.externalTrack.set(track);
+
+            await invoke(
+                'play_audio',
+                {
+                    path
+                }
+            );
+
+            this.eqPlayback = false;
 
             this.playerState.update(state => ({
                 ...state,
                 playing: true,
-                currentTrackId: null,
+                currentTrackId: externalTrackId,
                 currentTime: 0
             }));
 
             this.startPositionSync();
 
         } catch (error) {
+
+            this.externalTrack.set(null);
 
             console.error(
                 'Error al reproducir archivo externo:',
@@ -1324,13 +1594,30 @@ export class PlayerService implements OnDestroy {
 
         try {
 
-            await invoke('stop_audio');
+            if (this.eqPlayback) {
+
+                await invoke(
+                    'stop_eq_audio'
+                );
+
+            } else {
+
+                await invoke('stop_audio');
+
+            }
+
+            this.externalTrack.set(null);
+
+            this.eqPlayback = false;
 
             this.playerState.update(state => ({
                 ...state,
                 playing: false,
+                currentTrackId: null,
                 currentTime: 0
             }));
+
+            this.stopPositionSync();
 
         } catch (error) {
 
@@ -1365,6 +1652,16 @@ export class PlayerService implements OnDestroy {
     getTrack(
         trackId: string
     ): Track | undefined {
+
+        const externalTrack =
+            this.externalTrack();
+
+        if (
+            externalTrack &&
+            externalTrack.id === trackId
+        ) {
+            return externalTrack;
+        }
 
         return this.tracks().find(
             track => track.id === trackId

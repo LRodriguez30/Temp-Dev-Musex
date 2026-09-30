@@ -13,7 +13,9 @@
 mod band;
 mod source;
 mod state;
+mod presets;
 
 pub use band::{EqBand, EqFilterType};
+pub use presets::{EqPreset, EqPresetSource, EqPresetStore};
 pub use source::EqualizerSource;
 pub use state::EqualizerState;

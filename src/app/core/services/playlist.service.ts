@@ -207,6 +207,57 @@ export class PlaylistService {
   }
 
   /**
+   * Agrega varias canciones a una playlist.
+   *
+   * Las canciones que ya pertenecen a la playlist se ignoran.
+   * El contador se actualiza con la cantidad final de canciones.
+   */
+  addTracks(
+    playlistId: string,
+    trackIds: string[]
+  ): void {
+
+    if (trackIds.length === 0) {
+      return;
+    }
+
+    this.playlists.update(playlists => {
+
+      const updated = playlists.map(playlist => {
+
+        if (playlist.id !== playlistId) {
+          return playlist;
+        }
+
+        const currentTrackIds = playlist.trackIds ?? [];
+
+        const newTrackIds = trackIds.filter(
+          trackId => !currentTrackIds.includes(trackId)
+        );
+
+        if (newTrackIds.length === 0) {
+          return playlist;
+        }
+
+        const updatedTrackIds = [
+          ...currentTrackIds,
+          ...newTrackIds
+        ];
+
+        return {
+          ...playlist,
+          trackIds: updatedTrackIds,
+          count: updatedTrackIds.length
+        };
+      });
+
+      this.saveToStorage(updated);
+
+      return updated;
+    });
+  }
+
+  /**
    * Elimina una canción de una playlist.
    */
   removeTrack(

@@ -51,8 +51,17 @@ export interface ModalState {
 
   /**
    * Identificador de la canción relacionada con el modal.
+   *
+   * Se utiliza para operaciones individuales.
    */
   trackId: string | null;
+
+  /**
+   * Identificadores de las canciones relacionadas con el modal.
+   *
+   * Se utiliza para operaciones sobre múltiples canciones.
+   */
+  trackIds: string[];
 
   /**
    * Identificador de la playlist relacionada con el modal.
@@ -81,6 +90,7 @@ export class ModalService {
     title: '',
     subtitle: '',
     trackId: null,
+    trackIds: [],
     playlistId: null
   });
 
@@ -103,6 +113,7 @@ export class ModalService {
       title?: string;
       subtitle?: string;
       trackId?: string | null;
+      trackIds?: string[];
       playlistId?: string | null;
     } = {}
   ): void {
@@ -113,6 +124,7 @@ export class ModalService {
       title: options.title ?? '',
       subtitle: options.subtitle ?? '',
       trackId: options.trackId ?? null,
+      trackIds: options.trackIds ?? [],
       playlistId: options.playlistId ?? null
     });
   }
@@ -154,6 +166,7 @@ export class ModalService {
       title: '',
       subtitle: '',
       trackId: null,
+      trackIds: [],
       playlistId: null
     });
   }
@@ -264,6 +277,31 @@ export class ModalService {
   }
 
   /**
+   * Abre el modal para añadir varias canciones a una playlist.
+   */
+  openAddSelectedToPlaylist(trackIds: string[]): void {
+
+    const normalizedTrackIds = [
+      ...new Set(
+        trackIds.filter(trackId => Boolean(trackId))
+      )
+    ];
+
+    if (normalizedTrackIds.length === 0) {
+      return;
+    }
+
+    this.open('add-to-playlist', {
+      title: 'Añadir canciones a playlist',
+      subtitle:
+        normalizedTrackIds.length === 1
+          ? '1 canción seleccionada'
+          : `${normalizedTrackIds.length} canciones seleccionadas`,
+      trackIds: normalizedTrackIds
+    });
+  }
+
+  /**
    * Abre el formulario para crear una nueva playlist.
    */
   openNewPlaylist(): void {
@@ -310,13 +348,18 @@ export class ModalService {
    * Abre el editor de ecualización de una canción habilitada.
    */
   openEqualizerEditor(trackId: string): void {
+
     this.open('equalizer-editor', {
       title: 'Editor de ecualización',
       trackId
     });
   }
 
+  /**
+   * Abre la búsqueda global de Musex.
+   */
   openSearch(): void {
+
     this.open('search', {
       title: 'Buscar en Musex'
     });

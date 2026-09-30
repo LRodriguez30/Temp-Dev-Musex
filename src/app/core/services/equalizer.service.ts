@@ -10,11 +10,19 @@
 // - Sincronizar posición.
 // - Gestionar bandas.
 // - Enviar cambios al backend Rust.
+// - Persistir presets por pista.
+// - Gestionar estado de cambios pendientes.
 // - Solicitar presets a Sense cuando corresponde.
 //
 // Sense NO controla directamente este servicio.
 // Sense únicamente recomienda un preset.
 // EqualizerService mantiene la propiedad del estado real del EQ.
+//
+// IMPORTANTE:
+// - Los cambios de las bandas son inmediatos en el audio.
+// - Los cambios manuales NO se persisten automáticamente.
+// - El usuario debe pulsar "Guardar preset".
+// - Los presets generados por Sense sí se guardan automáticamente.
 // =============================================================
 
 import {
@@ -32,6 +40,8 @@ import {
 } from './sense.service';
 
 import { Track } from '../models/track.model';
+import { PlayerService } from './player.service';
+import { LibraryService } from './library.service';
 
 
 // =============================================================
@@ -70,13 +80,43 @@ export interface EqTrack
 }
 
 
-interface EqTrackInfo {
+// =============================================================
+// PERSISTENT PRESET
+// =============================================================
 
-    path:
+type EqPresetSource =
+    | 'manual'
+    | 'sense';
+
+
+interface StoredEqPreset {
+
+    trackId:
     string;
 
-    file_name:
+    source:
+    EqPresetSource;
+
+    name:
     string;
+
+    bands:
+    Array<{
+
+        id?: number;
+
+        frequency:
+        number;
+
+        gainDb:
+        number;
+
+        q:
+        number;
+
+        filterType:
+        EqFilterType;
+    }>;
 }
 
 
@@ -87,12 +127,433 @@ interface EqTrackInfo {
 @Injectable({
     providedIn: 'root'
 })
-export class EqualizerService implements OnDestroy {
+export class EqualizerService
+    implements OnDestroy {
+
 
     constructor(
         private readonly senseService:
-            SenseService
+            SenseService,
+
+        private readonly playerService:
+            PlayerService,
+
+        private readonly libraryService:
+            LibraryService
     ) { }
+
+
+    // ===========================================================
+    // NORMAL PLAYER STATE
+    // ===========================================================
+
+    private normalPlaybackState: {
+        trackId: string;
+        position: number;
+        wasPlaying: boolean;
+    } | null = null;
+
+
+    private async suspendNormalPlayback(): Promise<void> {
+
+        const state =
+            this.playerService.state();
+
+        const currentTrack =
+            this.playerService.getCurrentTrack();
+
+
+        if (!currentTrack) {
+
+            this.normalPlaybackState = null;
+
+            return;
+        }
+
+
+        this.normalPlaybackState = {
+
+            trackId:
+                currentTrack.id,
+
+            position:
+                state.currentTime ?? 0,
+
+            wasPlaying:
+                state.playing
+        };
+
+
+        if (state.playing) {
+
+            await this.playerService.togglePlay();
+        }
+    }
+
+
+    // ===========================================================
+    // EQ PAGE PLAYBACK
+    // ===========================================================
+
+    /**
+     * Identificador de la pista que actualmente está
+     * siendo reproducida desde la página de Ecualizador.
+     *
+     * Este estado es independiente del editor.
+     *
+     * El editor continúa utilizando activeTrack(),
+     * isPlaying(), currentTime(), etc.
+     */
+    private eqPagePlaybackTrackId:
+        string | null =
+        null;
+
+
+    /**
+     * Indica si la reproducción iniciada desde
+     * la página de Ecualizador está activa.
+     */
+    private eqPagePlaybackPlaying =
+        false;
+
+
+    /**
+     * Reproduce una pista desde la página de Ecualizador.
+     *
+     * REGLA:
+     *
+     * 1. Si la pista no está habilitada para EQ:
+     *    -> reproducción normal.
+     *
+     * 2. Si está habilitada pero NO tiene preset persistente:
+     *    -> reproducción normal.
+     *
+     * 3. Si está habilitada y tiene preset persistente:
+     *    -> reproduce tempPath mediante el backend EQ
+     *       y carga exactamente el preset guardado.
+     *
+     * Los presets de Sense cuentan como persistentes porque
+     * también se almacenan mediante save_eq_preset.
+     */
+    async playTrack(
+        track: Track
+    ): Promise<void> {
+
+        const eqTrack =
+            this.eqTracks().find(
+                item =>
+                    item.id === track.id
+            );
+
+
+        /*
+         * Primero comprobamos si existe un preset
+         * persistente para esta pista.
+         *
+         * No generamos uno nuevo con Sense aquí.
+         *
+         * La página de Ecualizador solamente debe
+         * utilizar un preset que ya exista.
+         */
+        const storedPreset =
+            await this.getPersistentPreset(
+                track.id
+            );
+
+
+        /*
+         * No hay versión EQ utilizable.
+         *
+         * En este caso detenemos cualquier reproducción
+         * EQ de la página y dejamos trabajar al reproductor
+         * normal.
+         */
+        if (
+            !eqTrack ||
+            !storedPreset
+        ) {
+
+            await this.stopEqPagePlayback();
+
+
+            const current =
+                this.playerService.getCurrentTrack();
+
+
+            if (
+                current?.id === track.id
+            ) {
+
+                this.playerService.togglePlay();
+
+                return;
+            }
+
+
+            await this.playerService.playTrack(
+                track.id
+            );
+
+            return;
+        }
+
+
+        /*
+         * Si la misma pista ya está siendo reproducida
+         * mediante EQ, alternamos pausa/reproducción.
+         */
+        if (
+            this.eqPagePlaybackTrackId ===
+                track.id
+        ) {
+
+            if (
+                this.eqPagePlaybackPlaying
+            ) {
+
+                await invoke(
+                    'pause_eq_audio'
+                );
+
+                this.eqPagePlaybackPlaying =
+                    false;
+
+                /*
+                 * PlayerService mantiene el mismo
+                 * estado global utilizado por Bottom Player.
+                 */
+                this.playerService.state();
+
+                this.playerService['playerState']?.update?.(
+                    state => ({
+                        ...state,
+                        playing: false
+                    })
+                );
+
+                return;
+            }
+
+
+            await invoke(
+                'resume_eq_audio'
+            );
+
+            this.eqPagePlaybackPlaying =
+                true;
+
+            this.playerService['playerState']?.update?.(
+                state => ({
+                    ...state,
+                    playing: true
+                })
+            );
+
+            return;
+        }
+
+
+        /*
+         * Cambiamos a una pista EQ diferente.
+         */
+        await this.stopEqPagePlayback();
+
+
+        /*
+         * El reproductor normal y el reproductor EQ
+         * no deben sonar simultáneamente.
+         */
+        await this.suspendNormalPlayback();
+
+
+        try {
+
+            /*
+             * Limpiamos cualquier estado anterior
+             * del ecualizador Rust.
+             */
+            await invoke(
+                'reset_eq'
+            );
+
+
+            /*
+             * Aplicamos exactamente las bandas
+             * almacenadas en el preset persistente.
+             */
+            const bands =
+                this.convertStoredPreset(
+                    storedPreset
+                );
+
+
+            for (
+                const band of bands
+            ) {
+
+                await this.pushBand(
+                    band
+                );
+            }
+
+
+            /*
+             * Reproducimos la copia temporal habilitada
+             * para ecualización.
+             */
+            await invoke(
+                'play_eq_audio',
+                {
+                    path:
+                        eqTrack.tempPath
+                }
+            );
+
+
+            this.eqPagePlaybackTrackId =
+                track.id;
+
+
+            this.eqPagePlaybackPlaying =
+                true;
+
+
+            /*
+             * PlayerService se convierte en la fuente
+             * global del estado de reproducción.
+             *
+             * Esto permite que Bottom Player aparezca
+             * aunque el audio real provenga de EQ.
+             */
+            this.playerService.startEqPlayback(
+                track
+            );
+
+        } catch (error) {
+
+            console.error(
+                'No se pudo reproducir la versión ecualizada:',
+                error
+            );
+
+
+            /*
+             * Si el backend EQ falla, dejamos el sistema
+             * en un estado limpio y utilizamos el
+             * reproductor normal como fallback.
+             */
+            this.eqPagePlaybackTrackId =
+                null;
+
+
+            this.eqPagePlaybackPlaying =
+                false;
+
+
+            try {
+
+                await invoke(
+                    'stop_eq_audio'
+                );
+
+            } catch {
+                // El backend ya puede estar detenido.
+            }
+
+
+            await this.playerService.playTrack(
+                track.id
+            );
+        }
+    }
+
+
+    /**
+     * Obtiene únicamente el preset persistente.
+     *
+     * Este método NO solicita nada a Sense y NO crea
+     * presets nuevos.
+     */
+    private async getPersistentPreset(
+        trackId: string
+    ): Promise<StoredEqPreset | null> {
+
+        try {
+
+            return await invoke<
+                StoredEqPreset | null
+            >(
+                'get_eq_preset',
+                {
+                    trackId
+                }
+            );
+
+        } catch (error) {
+
+            console.warn(
+                'No se pudo consultar el preset persistente del ecualizador:',
+                error
+            );
+
+            return null;
+        }
+    }
+
+
+    /**
+     * Detiene exclusivamente la reproducción iniciada
+     * desde la página de Ecualizador.
+     *
+     * No modifica el estado del editor.
+     */
+    private async stopEqPagePlayback(): Promise<void> {
+
+        if (
+            this.eqPagePlaybackTrackId ===
+            null
+        ) {
+
+            return;
+        }
+
+
+        try {
+
+            await this.playerService.stopEqPlayback();
+
+        } catch (error) {
+
+            console.error(
+                'No se pudo detener la reproducción EQ:',
+                error
+            );
+
+        } finally {
+
+            this.eqPagePlaybackTrackId =
+                null;
+
+
+            this.eqPagePlaybackPlaying =
+                false;
+
+
+            try {
+
+                await invoke(
+                    'reset_eq'
+                );
+
+            } catch (error) {
+
+                console.error(
+                    'No se pudo limpiar el estado del ecualizador:',
+                    error
+                );
+            }
+        }
+    }
 
 
     // ===========================================================
@@ -153,10 +614,26 @@ export class EqualizerService implements OnDestroy {
 
 
         this.eqTracks.update(
-            tracks => [
-                ...tracks,
-                eqTrack
-            ]
+            tracks => {
+
+                const alreadyExists =
+                    tracks.some(
+                        item =>
+                            item.id === track.id
+                    );
+
+
+                if (alreadyExists) {
+
+                    return tracks;
+                }
+
+
+                return [
+                    ...tracks,
+                    eqTrack
+                ];
+            }
         );
     }
 
@@ -164,6 +641,20 @@ export class EqualizerService implements OnDestroy {
     async disableFromEq(
         track: EqTrack
     ): Promise<void> {
+
+        /*
+         * Si esta pista está reproduciéndose desde
+         * la página de EQ, detenemos primero esa
+         * reproducción.
+         */
+        if (
+            this.eqPagePlaybackTrackId ===
+            track.id
+        ) {
+
+            await this.stopEqPagePlayback();
+        }
+
 
         await invoke(
             'disable_track_for_eq',
@@ -198,31 +689,55 @@ export class EqualizerService implements OnDestroy {
     }
 
 
-    /**
-     * Sincroniza `eqTracks` con lo que realmente
-     * existe en temp/.
-     */
+    // ===========================================================
+    // SYNCHRONIZE ENABLED TRACKS
+    // ===========================================================
+
     async refreshFromDisk(
         library: Track[]
     ): Promise<void> {
 
-        const infos =
-            await invoke<EqTrackInfo[]>(
-                'list_eq_tracks'
-            );
+        const tempTracks =
+            this.libraryService.getTempTracks();
 
 
         const matched =
-            infos
-                .map(info => {
+            tempTracks
+                .map(tempTrack => {
 
-                    const track =
+                    // -------------------------------------------------
+                    // 1. Intentar por ID
+                    // -------------------------------------------------
+
+                    let track =
                         library.find(
                             item =>
-                                info.file_name.startsWith(
-                                    item.id
-                                )
+                                item.id ===
+                                tempTrack.id
                         );
+
+
+                    // -------------------------------------------------
+                    // 2. Fallback por nombre de archivo
+                    // -------------------------------------------------
+
+                    if (!track) {
+
+                        const tempFileName =
+                            this.getFileName(
+                                tempTrack.path
+                            );
+
+
+                        track =
+                            library.find(
+                                item =>
+                                    this.getFileName(
+                                        item.path
+                                    ) ===
+                                    tempFileName
+                            );
+                    }
 
 
                     if (!track) {
@@ -236,7 +751,7 @@ export class EqualizerService implements OnDestroy {
                         ...track,
 
                         tempPath:
-                            info.path
+                            tempTrack.path
 
                     } as EqTrack;
                 })
@@ -251,6 +766,20 @@ export class EqualizerService implements OnDestroy {
         this.eqTracks.set(
             matched
         );
+    }
+
+
+    private getFileName(
+        path: string
+    ): string {
+
+        return path
+            .trim()
+            .replace(/\\/g, '/')
+            .split('/')
+            .pop()
+            ?.toLocaleLowerCase()
+            ?? '';
     }
 
 
@@ -272,57 +801,62 @@ export class EqualizerService implements OnDestroy {
         signal(0);
 
 
-    /**
-     * Indica que el usuario está manipulando
-     * manualmente la barra de reproducción.
-     */
     readonly isSeeking =
         signal(false);
 
 
-    /**
-     * Indica que Sense está esperando la respuesta
-     * del proveedor de IA.
-     *
-     * IMPORTANTE:
-     * Este estado solamente se activa mientras
-     * `recommendEqPreset()` está esperando el resultado.
-     *
-     * No se activa:
-     * - Si existe un preset en cache.
-     * - Si Sense está deshabilitado.
-     * - Si Sense no tiene API key.
-     * - Si el asistente de EQ está deshabilitado.
-     * - Mientras se utiliza el preset local.
-     */
     readonly isSenseLoading =
         signal(false);
 
 
-    /**
-     * Error ocurrido al intentar generar el preset
-     * mediante Sense.
-     *
-     * No bloquea el editor.
-     */
     readonly senseError =
         signal<string | null>(
             null
         );
 
 
-    /**
-     * Indica si el preset actualmente cargado
-     * proviene de Musex Sense.
-     */
     readonly isSensePreset =
         signal(false);
 
 
-    /**
-     * Nombre del preset de Sense actualmente cargado.
-     */
     readonly activePresetName =
+        signal<string | null>(
+            null
+        );
+
+
+    // ===========================================================
+    // PRESET SAVE STATE
+    // ===========================================================
+
+    /**
+     * Indica que el preset actual tiene cambios
+     * que todavía no han sido guardados.
+     */
+    readonly isPresetDirty =
+        signal(false);
+
+
+    /**
+     * Indica que actualmente se está escribiendo
+     * el preset en Rust.
+     */
+    readonly isSavingPreset =
+        signal(false);
+
+
+    /**
+     * Indica que el último guardado terminó
+     * correctamente.
+     */
+    readonly presetSaved =
+        signal(false);
+
+
+    /**
+     * Guarda el último error de persistencia.
+     */
+    readonly presetSaveError =
         signal<string | null>(
             null
         );
@@ -366,15 +900,31 @@ export class EqualizerService implements OnDestroy {
 
 
     // ===========================================================
-    // SENSE PRESETS
+    // PRESET PERSISTENCE
     // ===========================================================
-    //
-    // Se mantienen en memoria durante la sesión.
-    //
-    // La clave es el ID de la pista.
-    //
-    // Esto evita volver a consultar Gemini cada vez que el usuario
-    // abre y cierra el mismo ecualizador.
+
+    /**
+     * Todas las escrituras de presets pasan
+     * por esta cola.
+     *
+     * Esto evita que dos llamadas simultáneas
+     * a save_eq_preset se pisen entre sí.
+     *
+     * IMPORTANTE:
+     *
+     * La operación original conserva su error para
+     * que "Guardar preset" pueda saber si falló.
+     *
+     * La cola interna continúa disponible aunque
+     * una operación anterior haya fallado.
+     */
+    private presetSaveQueue:
+        Promise<void> =
+        Promise.resolve();
+
+
+    // ===========================================================
+    // SENSE PRESETS - SESSION CACHE
     // ===========================================================
 
     private readonly recommendedPresets =
@@ -405,7 +955,6 @@ export class EqualizerService implements OnDestroy {
                     0.70,
             },
 
-
             {
                 filterType:
                     'peaking',
@@ -419,7 +968,6 @@ export class EqualizerService implements OnDestroy {
                 q:
                     0.90,
             },
-
 
             {
                 filterType:
@@ -435,7 +983,6 @@ export class EqualizerService implements OnDestroy {
                     1.00,
             },
 
-
             {
                 filterType:
                     'peaking',
@@ -449,7 +996,6 @@ export class EqualizerService implements OnDestroy {
                 q:
                     1.10,
             },
-
 
             {
                 filterType:
@@ -465,7 +1011,6 @@ export class EqualizerService implements OnDestroy {
                     0.80,
             },
 
-
             {
                 filterType:
                     'peaking',
@@ -479,7 +1024,6 @@ export class EqualizerService implements OnDestroy {
                 q:
                     1.00,
             },
-
 
             {
                 filterType:
@@ -495,7 +1039,6 @@ export class EqualizerService implements OnDestroy {
                     0.90,
             },
 
-
             {
                 filterType:
                     'peaking',
@@ -509,7 +1052,6 @@ export class EqualizerService implements OnDestroy {
                 q:
                     1.00,
             },
-
 
             {
                 filterType:
@@ -537,10 +1079,8 @@ export class EqualizerService implements OnDestroy {
 
         this.stopPositionSync();
 
+        await this.suspendNormalPlayback();
 
-        // ---------------------------------------------------------
-        // PREPARAR ESTADO
-        // ---------------------------------------------------------
 
         this.activeTrack.set(
             track
@@ -586,6 +1126,26 @@ export class EqualizerService implements OnDestroy {
         );
 
 
+        this.isPresetDirty.set(
+            false
+        );
+
+
+        this.presetSaved.set(
+            false
+        );
+
+
+        this.presetSaveError.set(
+            null
+        );
+
+
+        this.isSavingPreset.set(
+            false
+        );
+
+
         this.bands.set(
             []
         );
@@ -596,19 +1156,11 @@ export class EqualizerService implements OnDestroy {
         );
 
 
-        // ---------------------------------------------------------
-        // OBTENER PRESET
-        // ---------------------------------------------------------
-
         const initialBands =
             await this.getInitialBands(
                 track
             );
 
-
-        // ---------------------------------------------------------
-        // CARGAR BANDAS
-        // ---------------------------------------------------------
 
         this.bands.set(
             initialBands
@@ -624,10 +1176,6 @@ export class EqualizerService implements OnDestroy {
             );
         }
 
-
-        // ---------------------------------------------------------
-        // PLAYBACK
-        // ---------------------------------------------------------
 
         await invoke(
             'play_eq_audio',
@@ -661,7 +1209,108 @@ export class EqualizerService implements OnDestroy {
     ): Promise<EqBand[]> {
 
         // ---------------------------------------------------------
-        // 1. COMPROBAR CACHE
+        // 1. PRESET PERSISTENTE
+        // ---------------------------------------------------------
+
+        try {
+
+            const storedPreset =
+                await invoke<StoredEqPreset | null>(
+                    'get_eq_preset',
+                    {
+                        trackId:
+                            track.id
+                    }
+                );
+
+
+            if (storedPreset) {
+
+                if (
+                    storedPreset.source ===
+                    'manual'
+                ) {
+
+                    this.isSensePreset.set(
+                        false
+                    );
+
+
+                    this.activePresetName.set(
+                        storedPreset.name
+                    );
+
+
+                    this.presetSaved.set(
+                        true
+                    );
+
+
+                    this.isPresetDirty.set(
+                        false
+                    );
+
+
+                    return this.convertStoredPreset(
+                        storedPreset
+                    );
+                }
+
+
+                if (
+                    storedPreset.source ===
+                    'sense'
+                ) {
+
+                    const sensePreset =
+                        this.convertStoredPresetToSensePreset(
+                            storedPreset
+                        );
+
+
+                    this.recommendedPresets.set(
+                        track.id,
+                        sensePreset
+                    );
+
+
+                    this.isSensePreset.set(
+                        true
+                    );
+
+
+                    this.activePresetName.set(
+                        storedPreset.name
+                    );
+
+
+                    this.presetSaved.set(
+                        true
+                    );
+
+
+                    this.isPresetDirty.set(
+                        false
+                    );
+
+
+                    return this.convertSensePreset(
+                        sensePreset
+                    );
+                }
+            }
+
+        } catch (error) {
+
+            console.warn(
+                'No se pudo cargar el preset persistente del ecualizador:',
+                error
+            );
+        }
+
+
+        // ---------------------------------------------------------
+        // 2. CACHE DE SESIÓN
         // ---------------------------------------------------------
 
         const cachedPreset =
@@ -682,6 +1331,16 @@ export class EqualizerService implements OnDestroy {
             );
 
 
+            this.presetSaved.set(
+                true
+            );
+
+
+            this.isPresetDirty.set(
+                false
+            );
+
+
             return this.convertSensePreset(
                 cachedPreset
             );
@@ -689,7 +1348,7 @@ export class EqualizerService implements OnDestroy {
 
 
         // ---------------------------------------------------------
-        // 2. COMPROBAR SI SENSE PUEDE USARSE
+        // 3. COMPROBAR SENSE
         // ---------------------------------------------------------
 
         try {
@@ -708,20 +1367,6 @@ export class EqualizerService implements OnDestroy {
 
 
             if (senseAvailable) {
-
-                // -----------------------------------------------------
-                // SENSE ESTÁ GENERANDO EL PRESET
-                // -----------------------------------------------------
-                //
-                // El loading empieza JUSTO antes de la petición
-                // real a Gemini.
-                //
-                // Así no mostramos loading mientras:
-                // - se revisa el cache;
-                // - se carga configuración;
-                // - Sense está deshabilitado;
-                // - no existe API key.
-                // -----------------------------------------------------
 
                 this.isSenseLoading.set(
                     true
@@ -752,7 +1397,6 @@ export class EqualizerService implements OnDestroy {
                             }
                         );
 
-                        
 
                     const sanitizedPreset =
                         this.sanitizeSensePreset(
@@ -766,6 +1410,20 @@ export class EqualizerService implements OnDestroy {
                     );
 
 
+                    /*
+                     * Sense generó un preset nuevo.
+                     *
+                     * A diferencia de los cambios manuales,
+                     * este sí se persiste inmediatamente.
+                     */
+                    await this.savePersistentPreset(
+                        track.id,
+                        'sense',
+                        sanitizedPreset.name,
+                        sanitizedPreset.bands
+                    );
+
+
                     this.isSensePreset.set(
                         true
                     );
@@ -773,6 +1431,16 @@ export class EqualizerService implements OnDestroy {
 
                     this.activePresetName.set(
                         sanitizedPreset.name
+                    );
+
+
+                    this.isPresetDirty.set(
+                        false
+                    );
+
+
+                    this.presetSaved.set(
+                        true
                     );
 
 
@@ -803,14 +1471,19 @@ export class EqualizerService implements OnDestroy {
                     );
 
 
+                    this.isPresetDirty.set(
+                        false
+                    );
+
+
+                    this.presetSaved.set(
+                        false
+                    );
+
+
                     return this.createDefaultBands();
 
                 } finally {
-
-                    // ---------------------------------------------------
-                    // LA RESPUESTA YA LLEGÓ O LA PETICIÓN FALLÓ.
-                    // EN AMBOS CASOS TERMINA LA PANTALLA DE CARGA.
-                    // ---------------------------------------------------
 
                     this.isSenseLoading.set(
                         false
@@ -828,7 +1501,7 @@ export class EqualizerService implements OnDestroy {
 
 
         // ---------------------------------------------------------
-        // 3. FALLBACK LOCAL
+        // 4. FALLBACK LOCAL
         // ---------------------------------------------------------
 
         this.isSenseLoading.set(
@@ -843,6 +1516,16 @@ export class EqualizerService implements OnDestroy {
 
         this.activePresetName.set(
             null
+        );
+
+
+        this.isPresetDirty.set(
+            false
+        );
+
+
+        this.presetSaved.set(
+            false
         );
 
 
@@ -900,20 +1583,346 @@ export class EqualizerService implements OnDestroy {
 
 
     // ===========================================================
-    // SANITIZE SENSE PRESET
+    // CONVERT STORED PRESET
     // ===========================================================
-    //
-    // Rust ya valida estos valores.
-    //
-    // Esta segunda capa evita que un cambio futuro del backend
-    // pueda introducir valores problemáticos en el frontend.
+
+    private convertStoredPreset(
+        preset: StoredEqPreset
+    ): EqBand[] {
+
+        return preset.bands.map(
+            band => ({
+
+                id:
+                    this.nextBandId++,
+
+                filterType:
+                    band.filterType,
+
+                frequency:
+                    band.frequency,
+
+                gainDb:
+                    band.gainDb,
+
+                q:
+                    band.q,
+            })
+        );
+    }
+
+
+    // ===========================================================
+    // CONVERT STORED -> SENSE
+    // ===========================================================
+
+    private convertStoredPresetToSensePreset(
+        preset: StoredEqPreset
+    ): SenseEqPreset {
+
+        return {
+
+            name:
+                preset.name,
+
+            bands:
+                preset.bands.map(
+                    band => ({
+
+                        filterType:
+                            band.filterType,
+
+                        frequency:
+                            band.frequency,
+
+                        gainDb:
+                            band.gainDb,
+
+                        q:
+                            band.q,
+                    })
+                )
+        };
+    }
+
+
+    // ===========================================================
+    // SAVE PERSISTENT PRESET
+    // ===========================================================
+
+    private savePersistentPreset(
+        trackId: string,
+        source: EqPresetSource,
+        name: string,
+        bands: Array<{
+            frequency: number;
+            gainDb: number;
+            q: number;
+            filterType: EqFilterType;
+        }>
+    ): Promise<void> {
+
+        const save =
+            async (): Promise<void> => {
+
+                await invoke(
+                    'save_eq_preset',
+                    {
+                        preset: {
+
+                            trackId,
+
+                            source,
+
+                            name,
+
+                            bands: bands.map(
+                                (band, index) => ({
+
+                                    id:
+                                        index + 1,
+
+                                    frequency:
+                                        band.frequency,
+
+                                    gainDb:
+                                        band.gainDb,
+
+                                    q:
+                                        band.q,
+
+                                    filterType:
+                                        band.filterType,
+                                })
+                            )
+                        }
+                    }
+                );
+            };
+
+
+        /*
+         * La operación actual conserva su propio
+         * resultado/error.
+         *
+         * La siguiente operación continúa aunque
+         * esta falle.
+         */
+        const operation =
+            this.presetSaveQueue.then(
+                save
+            );
+
+
+        this.presetSaveQueue =
+            operation.catch(
+                error => {
+
+                    console.error(
+                        'No se pudo guardar el preset persistente del ecualizador:',
+                        error
+                    );
+                }
+            );
+
+
+        return operation;
+    }
+
+
+    // ===========================================================
+    // SAVE CURRENT PRESET
+    // ===========================================================
+
+    /**
+     * Guarda explícitamente el estado actual
+     * del ecualizador como preset manual.
+     *
+     * Este método es llamado por el botón
+     * "Guardar preset" del editor.
+     */
+    async saveCurrentPreset(): Promise<boolean> {
+
+        const track =
+            this.activeTrack();
+
+
+        if (!track) {
+
+            return false;
+        }
+
+
+        const currentBands =
+            this.bands();
+
+
+        if (
+            currentBands.length === 0
+        ) {
+
+            return false;
+        }
+
+
+        const bands =
+            currentBands.map(
+                band => ({
+
+                    frequency:
+                        band.frequency,
+
+                    gainDb:
+                        band.gainDb,
+
+                    q:
+                        band.q,
+
+                    filterType:
+                        band.filterType,
+                })
+            );
+
+
+        const name =
+            this.activePresetName()?.trim() ||
+            'Personal';
+
+
+        this.isSavingPreset.set(
+            true
+        );
+
+
+        this.presetSaved.set(
+            false
+        );
+
+
+        this.presetSaveError.set(
+            null
+        );
+
+
+        try {
+
+            await this.savePersistentPreset(
+                track.id,
+                'manual',
+                name,
+                bands
+            );
+
+
+            /*
+             * Una vez guardado correctamente,
+             * el preset deja de ser considerado
+             * un preset de Sense.
+             */
+            this.isSensePreset.set(
+                false
+            );
+
+
+            this.activePresetName.set(
+                name
+            );
+
+
+            this.isPresetDirty.set(
+                false
+            );
+
+
+            this.presetSaved.set(
+                true
+            );
+
+
+            return true;
+
+        } catch (error) {
+
+            console.error(
+                'No se pudo guardar el preset actual del ecualizador:',
+                error
+            );
+
+
+            this.presetSaveError.set(
+                'No se pudo guardar el preset.'
+            );
+
+
+            this.presetSaved.set(
+                false
+            );
+
+
+            return false;
+
+        } finally {
+
+            this.isSavingPreset.set(
+                false
+            );
+        }
+    }
+
+
+    // ===========================================================
+    // MARK PRESET AS MODIFIED
+    // ===========================================================
+
+    private markPresetAsModified(): void {
+
+        /*
+         * Una modificación manual transforma
+         * conceptualmente el preset actual en
+         * una configuración manual.
+         */
+        this.isSensePreset.set(
+            false
+        );
+
+
+        if (
+            !this.activePresetName()
+        ) {
+
+            this.activePresetName.set(
+                'Personal'
+            );
+        }
+
+
+        this.isPresetDirty.set(
+            true
+        );
+
+
+        this.presetSaved.set(
+            false
+        );
+
+
+        this.presetSaveError.set(
+            null
+        );
+    }
+
+
+    // ===========================================================
+    // SANITIZE SENSE PRESET
     // ===========================================================
 
     private sanitizeSensePreset(
         preset: SenseEqPreset
     ): SenseEqPreset {
 
-        if (preset.bands.length !== 10) {
+        if (
+            preset.bands.length !== 10
+        ) {
 
             throw new Error(
                 `Sense devolvió ${preset.bands.length} bandas. Se esperaban exactamente 10.`
@@ -938,19 +1947,33 @@ export class EqualizerService implements OnDestroy {
 
 
                     const frequency =
-                        Number(band.frequency);
+                        Number(
+                            band.frequency
+                        );
+
 
                     const gainDb =
-                        Number(band.gainDb);
+                        Number(
+                            band.gainDb
+                        );
+
 
                     const q =
-                        Number(band.q);
+                        Number(
+                            band.q
+                        );
 
 
                     if (
-                        !Number.isFinite(frequency) ||
-                        !Number.isFinite(gainDb) ||
-                        !Number.isFinite(q)
+                        !Number.isFinite(
+                            frequency
+                        ) ||
+                        !Number.isFinite(
+                            gainDb
+                        ) ||
+                        !Number.isFinite(
+                            q
+                        )
                     ) {
 
                         throw new Error(
@@ -1053,6 +2076,19 @@ export class EqualizerService implements OnDestroy {
 
     async closeEditor(): Promise<void> {
 
+        /*
+         * IMPORTANTE:
+         *
+         * No guardamos automáticamente al cerrar.
+         *
+         * El usuario debe haber utilizado
+         * "Guardar preset".
+         *
+         * Esto hace que la persistencia sea
+         * explícita y predecible.
+         */
+
+
         this.stopPositionSync();
 
 
@@ -1107,6 +2143,26 @@ export class EqualizerService implements OnDestroy {
             this.activePresetName.set(
                 null
             );
+
+
+            this.isPresetDirty.set(
+                false
+            );
+
+
+            this.presetSaved.set(
+                false
+            );
+
+
+            this.presetSaveError.set(
+                null
+            );
+
+
+            this.isSavingPreset.set(
+                false
+            );
         }
     }
 
@@ -1120,10 +2176,6 @@ export class EqualizerService implements OnDestroy {
         const next =
             !this.isPlaying();
 
-
-        // ---------------------------------------------------------
-        // PLAY
-        // ---------------------------------------------------------
 
         if (next) {
 
@@ -1139,14 +2191,9 @@ export class EqualizerService implements OnDestroy {
 
             this.startPositionSync();
 
-
             return;
         }
 
-
-        // ---------------------------------------------------------
-        // PAUSE
-        // ---------------------------------------------------------
 
         await invoke(
             'pause_eq_audio'
@@ -1241,10 +2288,6 @@ export class EqualizerService implements OnDestroy {
                 track?.duration ?? 0;
 
 
-            // -------------------------------------------------------
-            // DETECTAR FINAL DE LA PISTA
-            // -------------------------------------------------------
-
             if (
                 duration > 0 &&
                 position >= duration - 0.15
@@ -1262,14 +2305,9 @@ export class EqualizerService implements OnDestroy {
 
                 this.stopPositionSync();
 
-
                 return;
             }
 
-
-            // -------------------------------------------------------
-            // ACTUALIZAR POSICIÓN
-            // -------------------------------------------------------
 
             const normalized =
                 duration > 0
@@ -1303,7 +2341,7 @@ export class EqualizerService implements OnDestroy {
 
 
     // ===========================================================
-    // SEEK — START
+    // SEEK
     // ===========================================================
 
     startSeek(): void {
@@ -1313,10 +2351,6 @@ export class EqualizerService implements OnDestroy {
         );
     }
 
-
-    // ===========================================================
-    // SEEK — UPDATE
-    // ===========================================================
 
     updateSeekPosition(
         seconds: number
@@ -1369,10 +2403,6 @@ export class EqualizerService implements OnDestroy {
     }
 
 
-    // ===========================================================
-    // SEEK — FINISH
-    // ===========================================================
-
     async finishSeek(): Promise<void> {
 
         if (
@@ -1401,10 +2431,6 @@ export class EqualizerService implements OnDestroy {
         }
     }
 
-
-    // ===========================================================
-    // SEEK — EXECUTE
-    // ===========================================================
 
     async seek(
         seconds: number
@@ -1510,9 +2536,19 @@ export class EqualizerService implements OnDestroy {
         );
 
 
-        this.pushBand(
+        /*
+         * El audio cambia inmediatamente.
+         */
+        void this.pushBand(
             band
         );
+
+
+        /*
+         * Pero todavía no guardamos
+         * el preset en disco.
+         */
+        this.markPresetAsModified();
     }
 
 
@@ -1536,6 +2572,14 @@ export class EqualizerService implements OnDestroy {
                     id
             }
         );
+
+
+        /*
+         * El cambio es inmediato en Rust,
+         * pero la persistencia requiere
+         * pulsar Guardar preset.
+         */
+        this.markPresetAsModified();
     }
 
 
@@ -1578,9 +2622,20 @@ export class EqualizerService implements OnDestroy {
 
         if (updated) {
 
-            this.pushBand(
+            /*
+             * Actualización inmediata
+             * del audio.
+             */
+            void this.pushBand(
                 updated
             );
+
+
+            /*
+             * La modificación queda pendiente
+             * de persistencia.
+             */
+            this.markPresetAsModified();
         }
     }
 
@@ -1691,6 +2746,10 @@ export class EqualizerService implements OnDestroy {
 
     resetBands(): void {
 
+        const track =
+            this.activeTrack();
+
+
         this.bands.set(
             []
         );
@@ -1704,6 +2763,45 @@ export class EqualizerService implements OnDestroy {
         this.activePresetName.set(
             null
         );
+
+
+        this.isPresetDirty.set(
+            false
+        );
+
+
+        this.presetSaved.set(
+            false
+        );
+
+
+        this.presetSaveError.set(
+            null
+        );
+
+
+        if (track) {
+
+            this.recommendedPresets.delete(
+                track.id
+            );
+
+
+            void invoke(
+                'remove_eq_preset',
+                {
+                    trackId:
+                        track.id
+                }
+            ).catch(error => {
+
+                console.error(
+                    'No se pudo eliminar el preset persistente del ecualizador:',
+                    error
+                );
+
+            });
+        }
 
 
         void invoke(
@@ -1720,24 +2818,49 @@ export class EqualizerService implements OnDestroy {
         band: EqBand
     ): Promise<void> {
 
-        await invoke(
-            'set_eq_band',
-            {
-                band: {
-                    id: band.id,
-                    filterType: band.filterType,
-                    frequency: band.frequency,
-                    gainDb: band.gainDb,
-                    q: band.q,
+        try {
+
+            await invoke(
+                'set_eq_band',
+                {
+                    band: {
+
+                        id:
+                            band.id,
+
+                        filterType:
+                            band.filterType,
+
+                        frequency:
+                            band.frequency,
+
+                        gainDb:
+                            band.gainDb,
+
+                        q:
+                            band.q,
+                    }
                 }
-            }
-        );
+            );
+
+        } catch (error) {
+
+            console.error(
+                'No se pudo actualizar la banda del ecualizador:',
+                error
+            );
+        }
     }
 
+
+    // ===========================================================
+    // DESTROY
+    // ===========================================================
 
     ngOnDestroy(): void {
 
         this.stopPositionSync();
+
 
         void invoke(
             'stop_eq_audio'

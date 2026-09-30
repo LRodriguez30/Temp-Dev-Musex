@@ -303,7 +303,7 @@
 
   border-radius: 18px;
 
-  background: #191a1d;
+  background: #0d0e10;
 
   box-shadow:
     0 18px 45px rgba(0, 0, 0, 0.38),
@@ -334,6 +334,8 @@
 
   object-fit: cover;
 
+  border-radius: 50%;
+
   transition:
     transform 700ms cubic-bezier(0.22, 1, 0.36, 1),
     filter 400ms ease;
@@ -350,6 +352,20 @@
 
   width: 100%;
   height: 100%;
+}
+
+.cover-image.is-playing {
+  animation: disc-spin 35s linear infinite;
+}
+
+@keyframes disc-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 
@@ -1404,4 +1420,18 @@
     transition: none !important;
   }
 
+}
+
+.musex-default-cover.is-playing {
+  animation: musex-disc-spin 8s linear infinite;
+}
+
+@keyframes musex-disc-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }

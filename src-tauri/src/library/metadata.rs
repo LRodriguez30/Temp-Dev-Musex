@@ -95,7 +95,7 @@ impl LibraryMetadata {
             .album
             .as_deref()
             .filter(|album| !album.trim().is_empty())
-            .unwrap_or("Álbum desconocido")
+            .unwrap_or("Youtube")
             .to_string()
     }
 
