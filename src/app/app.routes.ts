@@ -10,6 +10,13 @@ import { DownloadsComponent } from './pages/downloads/downloads.component';
 import { HistoryComponent } from './pages/history/history.component';
 import { SenseComponent } from './pages/sense/sense.component';
 import { EqualizerComponent } from './pages/equalizer/equalizer.component';
+import { PlaylistsComponent } from './pages/playlists/playlists.component';
+import { ConnectComponent } from './components/connect/connect.component';
+import { LibraryMobileComponent } from './pages/library-mobile/library-mobile.component';
+import { FavoritesMobileComponent } from './pages/favorites-mobile/favorites-mobile.component';
+import { LocalStorageManagerComponent } from './pages/local-storage-manager/local-storage-manager.component';
+
+import { IS_ANDROID, getRemote } from './core/platform/invoke';
 
 /**
  * Configuración principal de rutas de Musex.
@@ -37,13 +44,25 @@ export const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'home'
+        redirectTo: () => IS_ANDROID && !getRemote() ? 'connect' : 'home'
       },
 
       {
         path: 'home',
         component: HomeComponent,
         title: 'Inicio | Musex'
+      },
+
+      {
+        path: 'connect',
+        component: ConnectComponent,
+        title: 'Conectar | Musex'
+      },
+
+      {
+        path: 'playlists',
+        component: PlaylistsComponent,
+        title: 'Playlists | Musex'
       },
 
 
@@ -64,7 +83,7 @@ export const routes: Routes = [
 
       {
         path: 'library',
-        component: LibraryComponent,
+        component: IS_ANDROID ? LibraryMobileComponent : LibraryComponent,
         title: 'Mi biblioteca | Musex'
       },
 
@@ -75,7 +94,7 @@ export const routes: Routes = [
 
       {
         path: 'favorites',
-        component: FavoritesComponent,
+        component: IS_ANDROID ? FavoritesMobileComponent : FavoritesComponent,
         title: 'Favoritos | Musex'
       },
 
@@ -88,6 +107,16 @@ export const routes: Routes = [
         path: 'downloads',
         component: DownloadsComponent,
         title: 'Descargas | Musex'
+      },
+
+      // --------------------------------------------------------
+      // LOCAL STORAGE
+      // --------------------------------------------------------
+
+      {
+        path: 'local-storage',
+        component: LocalStorageManagerComponent,
+        title: 'Archivos locales | Musex'
       },
 
 

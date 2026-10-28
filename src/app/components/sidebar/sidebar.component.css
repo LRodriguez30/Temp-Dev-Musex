@@ -587,7 +587,7 @@
 
 
 .mobile-more-panel {
-  top: 60px;
+  top: calc(60px + var(--safe-top));
   bottom: auto;
 
   transform-origin: top center;
@@ -1268,4 +1268,10 @@ app-bottom-player {
     animation: none !important;
   }
 
+}
+
+.mobile-navigation {
+  box-sizing: border-box;
+  height: calc(72px + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
 }

@@ -32,10 +32,15 @@ import {
 
 import { DEMO_TRACKS } from '../data/demo-tracks';
 import { Track } from '../models/track.model';
+import { IS_ANDROID } from '../platform/invoke';
 import { QueueService } from './queue.service';
 
 const FAVORITES_STORAGE_KEY =
   'musex_favorite_tracks';
+
+/** Favoritos que llegan del escritorio (solo lectura en el teléfono). */
+const REMOTE_FAVORITES_STORAGE_KEY =
+  'musex_remote_favorite_tracks';
 
 const COVERS_STORAGE_KEY =
   'musex_track_covers';
@@ -84,7 +89,7 @@ interface CoverOverride {
 export class LibraryService {
 
   readonly tracks =
-    signal<Track[]>([...DEMO_TRACKS]);
+    signal<Track[]>(IS_ANDROID ? [] : [...DEMO_TRACKS]);
 
   readonly library =
     this.tracks.asReadonly();
@@ -95,8 +100,26 @@ export class LibraryService {
   private readonly queueService =
     inject(QueueService);
 
+  /**
+   * Favoritos propios de este dispositivo.
+   * En escritorio son los favoritos de siempre; en Android son los
+   * del teléfono (pueden ser de música local o remota).
+   */
   private readonly favoriteIds =
     new Set<string>();
+
+  /**
+   * Favoritos del escritorio, sincronizados hacia el teléfono.
+   * Son de solo lectura: se reemplazan en cada sincronización.
+   */
+  private readonly remoteFavoriteIds =
+    new Set<string>();
+
+  /**
+   * Último error al leer la biblioteca remota (Android).
+   */
+  readonly remoteError =
+    signal('');
 
   // ===========================================================
   // CONSTRUCTOR
@@ -104,6 +127,7 @@ export class LibraryService {
 
   constructor() {
     this.loadFavorites();
+    this.loadRemoteFavorites();
     this.restoreFavoriteState();
   }
 
@@ -129,6 +153,38 @@ export class LibraryService {
     );
   }
 
+  /** Favoritos de canciones almacenadas en este teléfono. */
+  getLocalFavorites(): Track[] {
+    return this.tracks().filter(
+      track =>
+        track.favorite &&
+        (!IS_ANDROID || track.origin === 'local')
+    );
+  }
+
+  /** Favoritos marcados en Musex de escritorio. */
+  getRemoteFavorites(): Track[] {
+    return this.tracks().filter(
+      track =>
+        track.remoteFavorite === true &&
+        track.origin === 'remote'
+    );
+  }
+
+  /** Música guardada en el teléfono (solo Android). */
+  getLocalTracks(): Track[] {
+    return this.tracks().filter(
+      track => track.origin === 'local'
+    );
+  }
+
+  /** Música del escritorio (solo Android). */
+  getRemoteTracks(): Track[] {
+    return this.tracks().filter(
+      track => track.origin === 'remote'
+    );
+  }
+
   isFavorite(
     trackId: string
   ): boolean {
@@ -147,97 +203,151 @@ export class LibraryService {
   // SCAN LIBRARY
   // ===========================================================
 
+  /**
+   * Lee la biblioteca.
+   *
+   * - Escritorio: la carpeta Musex del PC.
+   * - Android: la música remota (escritorio vinculado) y la local
+   *   (carpeta Musex del teléfono), cada una marcada con su origen.
+   */
   async scanLibrary(): Promise<Track[]> {
+
+    if (!IS_ANDROID) {
+
+      const tracks =
+        await this.loadTracks('scan_library');
+
+      this.setLibrary(tracks);
+
+      return this.tracks();
+    }
+
+    const [remote, local] =
+      await Promise.allSettled([
+        this.loadTracks('scan_library', 'remote'),
+        this.loadTracks('scan_local_library', 'local')
+      ]);
+
+    // Si el escritorio no responde se conserva lo último que se vio.
+    const remoteTracks =
+      remote.status === 'fulfilled'
+        ? remote.value
+        : this.getRemoteTracks();
+
+    this.remoteError.set(
+      remote.status === 'rejected'
+        ? this.messageOf(remote.reason)
+        : ''
+    );
+
+    const localTracks =
+      local.status === 'fulfilled'
+        ? local.value
+        : this.getLocalTracks();
+
+    this.setLibrary(
+      this.dedupe([...remoteTracks, ...localTracks])
+    );
+
+    return this.tracks();
+  }
+
+  /**
+   * Vuelve a leer solo la música del teléfono (Android).
+   * Se usa después de mover o borrar archivos.
+   */
+  async scanLocal(): Promise<Track[]> {
+
+    if (!IS_ANDROID) {
+      return this.scanLibrary();
+    }
+
+    const local =
+      await this.loadTracks('scan_local_library', 'local');
+
+    this.setLibrary(
+      this.dedupe([...this.getRemoteTracks(), ...local])
+    );
+
+    return this.tracks();
+  }
+
+  private async loadTracks(
+    command: string,
+    origin?: 'local' | 'remote'
+  ): Promise<Track[]> {
 
     try {
 
-      const scannedTracks =
-        await invoke<RustTrack[]>(
-          'scan_library'
-        );
+      const scanned =
+        await invoke<RustTrack[]>(command);
 
-      const tracks: Track[] =
-        scannedTracks.map(track => {
+      return scanned.map(track => {
 
-          const coverOverrides =
-            this.getCoverOverride(track.id);
+        const coverOverrides =
+          this.getCoverOverride(track.id);
 
-          console.log(
-            'MUSEX COVER FINAL:',
-            {
-              id: track.id,
-              rustCoverPath: track.coverPath,
-              image: this.resolveCoverPath(track.coverPath),
-              coverType:
-                coverOverrides?.coverType ??
-                (track.coverPath
-                  ? 'image'
-                  : undefined)
-            }
-          );
+        return {
+          id: track.id,
 
-          return {
-            id: track.id,
+          title:
+            track.title,
 
-            title:
-              track.title,
+          artist:
+            track.artist ??
+            'Artista desconocido',
 
-            artist:
-              track.artist ??
-              'Artista desconocido',
+          album:
+            track.album ??
+            'Youtube',
 
-            album:
-              track.album ??
-              'Youtube',
+          genre:
+            track.genre ??
+            undefined,
 
-            genre:
-              track.genre ??
-              undefined,
+          duration:
+            track.duration ??
+            0,
 
-            duration:
-              track.duration ??
-              0,
+          path:
+            track.path,
 
-            path:
-              track.path,
+          addedAt:
+            track.addedAt,
 
-            addedAt:
-              track.addedAt,
+          image:
+            this.resolveCoverPath(
+              track.coverPath
+            ),
 
-            image:
-              this.resolveCoverPath(
-                track.coverPath
-              ),
+          source:
+            null,
 
-            source:
-              null,
+          favorite:
+            this.favoriteIds.has(
+              track.id
+            ),
 
-            favorite:
-              this.favoriteIds.has(
-                track.id
-              ),
+          origin,
 
-            coverType:
-              coverOverrides?.coverType ??
-              (track.coverPath
-                ? 'image'
-                : undefined),
+          remoteFavorite:
+            origin === 'remote' || IS_ANDROID
+              ? this.remoteFavoriteIds.has(track.id)
+              : undefined,
 
-            coverIcon:
-              coverOverrides?.coverIcon,
+          coverType:
+            coverOverrides?.coverType ??
+            (track.coverPath
+              ? 'image'
+              : undefined),
 
-            coverColor:
-              coverOverrides?.coverColor
-          };
-        });
+          coverIcon:
+            coverOverrides?.coverIcon,
 
-      this.tracks.set(tracks);
-
-      this.queueService.syncWithLibrary(
-        tracks.map(track => track.id)
-      );
-
-      return this.tracks();
+          coverColor:
+            coverOverrides?.coverColor
+        };
+      });
 
     } catch (error) {
 
@@ -248,6 +358,39 @@ export class LibraryService {
 
       throw error;
     }
+  }
+
+  private setLibrary(tracks: Track[]): void {
+
+    this.tracks.set(tracks);
+
+    this.queueService.syncWithLibrary(
+      tracks.map(track => track.id)
+    );
+  }
+
+  /** Si un mismo ID aparece dos veces se queda con el primero. */
+  private dedupe(tracks: Track[]): Track[] {
+
+    const seen = new Set<string>();
+
+    return tracks.filter(track => {
+
+      if (seen.has(track.id)) {
+        return false;
+      }
+
+      seen.add(track.id);
+
+      return true;
+    });
+  }
+
+  private messageOf(error: unknown): string {
+
+    return error instanceof Error
+      ? error.message
+      : String(error);
   }
 
   // ===========================================================
@@ -606,6 +749,22 @@ export class LibraryService {
     this.saveFavorites();
   }
 
+  /**
+   * Reemplaza los favoritos del escritorio (Android).
+   *
+   * Son una lista aparte de los favoritos del teléfono: sincronizar
+   * nunca toca los favoritos que marcaste aquí.
+   */
+  replaceRemoteFavorites(ids: string[]): void {
+
+    this.remoteFavoriteIds.clear();
+
+    ids.forEach(id => this.remoteFavoriteIds.add(id));
+
+    this.saveRemoteFavorites();
+    this.restoreFavoriteState();
+  }
+
   // ===========================================================
   // FAVORITES STORAGE
   // ===========================================================
@@ -647,6 +806,61 @@ export class LibraryService {
     }
   }
 
+  private loadRemoteFavorites(): void {
+
+    try {
+
+      const stored =
+        localStorage.getItem(
+          REMOTE_FAVORITES_STORAGE_KEY
+        );
+
+      if (!stored) return;
+
+      const parsed: unknown =
+        JSON.parse(stored);
+
+      if (!Array.isArray(parsed)) return;
+
+      parsed
+        .filter(
+          (id): id is string =>
+            typeof id === 'string'
+        )
+        .forEach(
+          id =>
+            this.remoteFavoriteIds.add(id)
+        );
+
+    } catch (error) {
+
+      console.error(
+        'No se pudieron cargar los favoritos del escritorio:',
+        error
+      );
+    }
+  }
+
+  private saveRemoteFavorites(): void {
+
+    try {
+
+      localStorage.setItem(
+        REMOTE_FAVORITES_STORAGE_KEY,
+        JSON.stringify([
+          ...this.remoteFavoriteIds
+        ])
+      );
+
+    } catch (error) {
+
+      console.error(
+        'No se pudieron guardar los favoritos del escritorio:',
+        error
+      );
+    }
+  }
+
   private saveFavorites(): void {
 
     try {
@@ -676,7 +890,11 @@ export class LibraryService {
           favorite:
             this.favoriteIds.has(
               track.id
-            )
+            ),
+          remoteFavorite:
+            IS_ANDROID
+              ? this.remoteFavoriteIds.has(track.id)
+              : undefined
         }))
     );
   }

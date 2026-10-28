@@ -1,423 +1,259 @@
 // =============================================================
-// MUSEX - TAURI CORE
-// =============================================================
-//
-// Punto de entrada principal del backend de Musex.
-//
-// Aquí se inicializan:
-// - Almacenamiento.
-// - Reproductor de audio.
-// - Administrador de descargas.
-// - Historial de descargas.
-// - Persistencia de presets del ecualizador.
-// - Persistencia de Sense.
-// - Plugins de Tauri.
-// - Comandos disponibles para Angular.
+// MUSEX - TAURI CORE (desktop + Android)
 // =============================================================
 
 mod commands;
-
-mod audio;
-mod downloads;
 mod filesystem;
 mod library;
 mod models;
 
-mod equalizer;
-mod sense;
+// `audio::metadata` (lofty) lo usan library y models, así que
+// el módulo existe siempre; player/decoder son solo desktop.
+mod audio;
 
-use tauri::Manager;
-use std::thread;
-use std::time::Duration;
+#[cfg(desktop)]
+mod downloads;
+#[cfg(desktop)]
+mod equalizer;
+#[cfg(desktop)]
+mod sense;
+#[cfg(desktop)]
+mod streaming;
+
+#[cfg(mobile)]
+mod android_storage;
 
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
+use tauri::Manager;
 
-use audio::player::AudioPlayer;
-use downloads::manager::DownloadManager;
 use filesystem::storage::Storage;
 
-use downloads::history::DownloadHistory;
+#[cfg(desktop)]
+use std::{
+    sync::{Arc, Mutex},
+    thread,
+    time::Duration,
+};
 
+#[cfg(desktop)]
+use audio::player::AudioPlayer;
+#[cfg(desktop)]
+use downloads::{history::DownloadHistory, manager::DownloadManager};
+#[cfg(desktop)]
 use equalizer::EqPresetStore;
-
+#[cfg(desktop)]
 use sense::store::SenseStore;
-
-
-// =============================================================
-// COMANDO DE PRUEBA
-// =============================================================
 
 #[tauri::command]
 fn greet(name: &str) -> String {
-    format!(
-        "Hello, {}! You've been greeted by Rust!",
-        name
-    )
+    format!("Hello, {}! You've been greeted by Rust!", name)
 }
 
+/// Carpeta base de Musex.
+///
+/// - Desktop: Escritorio/Musex.
+/// - Android: /storage/emulated/0/Musex (carpeta pública, requiere
+///   "Acceso a todos los archivos"). Si todavía no se concedió el
+///   permiso se usa la carpeta privada de la app; al conceder el
+///   permiso basta con reabrir Musex.
+fn resolve_base_dir(app: &tauri::AppHandle) -> PathBuf {
+    #[cfg(desktop)]
+    {
+        let _ = app;
 
-// =============================================================
-// ENTRADA PRINCIPAL DE TAURI
-// =============================================================
+        PathBuf::from(
+            std::env::var("USERPROFILE")
+                .expect("No se pudo determinar el perfil del usuario."),
+        )
+        .join("Desktop")
+        .join("Musex")
+    }
+
+    #[cfg(mobile)]
+    {
+        android_storage::shared_base_dir().unwrap_or_else(|| {
+            app.path()
+                .app_data_dir()
+                .expect("No se pudo obtener app_data_dir.")
+        })
+    }
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let mut builder = tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init());
 
-    // =========================================================
-    // RUTA BASE DE MUSEX
-    // =========================================================
+    #[cfg(desktop)]
+    {
+        builder = builder.plugin(tauri_plugin_shell::init());
+    }
 
-    let user_profile = std::env::var("USERPROFILE")
-        .expect(
-            "No se pudo determinar el perfil del usuario."
-        );
+    #[cfg(mobile)]
+    {
+        builder = builder.plugin(tauri_plugin_barcode_scanner::init());
+    }
 
-    let base_dir = PathBuf::from(user_profile)
-        .join("Desktop")
-        .join("Musex");
+    // ---------------------------------------------------------
+    // COMANDOS
+    // ---------------------------------------------------------
 
+    #[cfg(desktop)]
+    let builder = builder.invoke_handler(tauri::generate_handler![
+        greet,
+        // Audio
+        commands::audio::play_audio,
+        commands::audio::pause_audio,
+        commands::audio::resume_audio,
+        commands::audio::stop_audio,
+        commands::audio::get_audio_metadata,
+        commands::audio::get_audio_position,
+        commands::audio::seek_audio,
+        commands::audio::get_audio_duration,
+        commands::audio::update_audio_metadata,
+        commands::audio::set_volume,
+        commands::audio::reinitialize_audio_device,
+        // Downloads
+        commands::downloads::detect_download_source,
+        commands::downloads::move_download_to_library,
+        commands::downloads::download_audio,
+        commands::downloads::open_download_location,
+        commands::downloads::get_download_history,
+        commands::downloads::remove_download_history_entry,
+        commands::downloads::clear_download_history,
+        // Filesystem
+        commands::filesystem::get_storage_info,
+        commands::filesystem::get_musex_storage_size,
+        commands::filesystem::create_directory,
+        commands::filesystem::path_exists,
+        commands::filesystem::save_cover,
+        // Equalizer
+        commands::equalizer::enable_track_for_eq,
+        commands::equalizer::list_eq_tracks,
+        commands::equalizer::disable_track_for_eq,
+        commands::equalizer::play_eq_audio,
+        commands::equalizer::pause_eq_audio,
+        commands::equalizer::resume_eq_audio,
+        commands::equalizer::stop_eq_audio,
+        commands::equalizer::get_eq_audio_position,
+        commands::equalizer::seek_eq_audio,
+        commands::equalizer::set_eq_band,
+        commands::equalizer::remove_eq_band,
+        commands::equalizer::reset_eq,
+        commands::equalizer::get_eq_preset,
+        commands::equalizer::save_eq_preset,
+        commands::equalizer::remove_eq_preset,
+        // Sense
+        commands::sense::get_sense_settings,
+        commands::sense::set_sense_enabled,
+        commands::sense::set_sense_capability,
+        commands::sense::set_sense_prompt,
+        commands::sense::reset_sense_prompt,
+        commands::sense::save_sense_api_key,
+        commands::sense::remove_sense_api_key,
+        commands::sense::test_sense_connection,
+        commands::sense::get_sense_recommendations,
+        commands::sense::recommend_eq_preset,
+        // Library
+        commands::library::scan_library,
+        commands::library::scan_temp,
+        commands::library::import_tracks,
+        // Streaming (QR, dispositivos vinculados, sincronización)
+        streaming::get_stream_info,
+        streaming::list_paired_devices,
+        streaming::revoke_paired_device,
+        streaming::set_stream_playlists,
+        streaming::set_stream_favorites,
+    ]);
 
-    // =========================================================
-    // INICIALIZACIÓN DEL ALMACENAMIENTO
-    // =========================================================
+    #[cfg(mobile)]
+    let builder = builder.invoke_handler(tauri::generate_handler![
+        greet,
+        commands::filesystem::get_storage_info,
+        commands::filesystem::get_musex_storage_size,
+        commands::filesystem::create_directory,
+        commands::filesystem::path_exists,
+        commands::filesystem::save_cover,
+        commands::library::scan_library,
+        commands::library::scan_temp,
+        commands::library::import_tracks,
+        // Música local del teléfono
+        android_storage::get_local_storage_info,
+        android_storage::scan_phone_audio,
+        android_storage::browse_phone_directory,
+        android_storage::transfer_phone_folder,
+        android_storage::delete_local_files,
+        android_storage::read_local_audio,
+        android_storage::import_phone_audio_files,
+        android_storage::analyze_phone_audio_duplicates,
+    ]);
 
-    let storage =
-        Storage::new(
-            base_dir.clone()
-        );
+    // ---------------------------------------------------------
+    // ARRANQUE
+    // ---------------------------------------------------------
 
-    storage
-        .initialize()
-        .expect(
-            "No se pudo inicializar el almacenamiento de Musex."
-        );
-
-    let download_history =
-        DownloadHistory::new(
-            &base_dir
-        );
-
-    let sense_store =
-        SenseStore::new(
-            base_dir.clone()
-        );
-
-    let eq_preset_store =
-        EqPresetStore::new(
-            &base_dir
-        );
-
-
-    // =========================================================
-    // INICIALIZACIÓN DEL DOWNLOAD MANAGER
-    // =========================================================
-    //
-    // DownloadManager necesita su propia instancia de Storage
-    // para resolver las rutas relacionadas con las descargas.
-    //
-    // El manager se coloca dentro de:
-    //
-    // Arc
-    //   ↓
-    // Mutex
-    //   ↓
-    // DownloadManager
-    //
-    // Esto permite que los workers de descarga compartan el
-    // mismo manager sin intentar mover una referencia prestada
-    // por Tauri al thread.
-    //
-    // =========================================================
-
-    let manager_storage =
-        Storage::new(
-            base_dir
-        );
-
-    manager_storage
-        .initialize()
-        .expect(
-            "No se pudo inicializar el almacenamiento del administrador de descargas."
-        );
-
-    let download_manager =
-        DownloadManager::new(
-            manager_storage
-        );
-
-    let download_manager =
-        Arc::new(
-            Mutex::new(
-                download_manager
-            )
-        );
-
-
-    // =========================================================
-    // INICIALIZACIÓN DEL REPRODUCTOR
-    // =========================================================
-    //
-    // El reproductor se crea una sola vez al iniciar Musex.
-    //
-    // De esta manera, los comandos:
-    //
-    // play_audio
-    // pause_audio
-    // resume_audio
-    // stop_audio
-    //
-    // trabajan sobre la misma instancia de AudioPlayer.
-    //
-    // =========================================================
-
-    let audio_player =
-        AudioPlayer::new()
-            .expect(
-                "No se pudo inicializar el dispositivo de audio."
-            );
-
-
-    // =========================================================
-    // INICIO DE TAURI
-    // =========================================================
-
-    tauri::Builder::default()
-
-        // -----------------------------------------------------
-        // ESTADO GLOBAL
-        // -----------------------------------------------------
-        //
-        // Storage:
-        // operaciones generales de almacenamiento.
-        //
-        // AudioPlayer:
-        // reproducción de audio.
-        //
-        // DownloadManager:
-        // administración compartida de descargas.
-        //
-        // DownloadHistory:
-        // historial persistente de descargas.
-        //
-        // SenseStore:
-        // configuración persistente de Musex Sense.
-        //
-        // EqPresetStore:
-        // presets persistentes del ecualizador.
-        //
-        // -----------------------------------------------------
-
-        .manage(storage)
-        .manage(audio_player)
-        .manage(download_manager)
-        .manage(download_history)
-        .manage(sense_store)
-        .manage(eq_preset_store)
-
-
+    builder
         .setup(|app| {
+            let base_dir = resolve_base_dir(app.handle());
 
-            let app_handle =
-                app.handle().clone();
+            let storage = Storage::new(base_dir.clone());
+            storage
+                .initialize()
+                .expect("No se pudo inicializar el almacenamiento de Musex.");
+            app.manage(storage);
 
-            thread::spawn(move || {
+            #[cfg(desktop)]
+            {
+                app.manage(DownloadHistory::new(&base_dir));
+                app.manage(SenseStore::new(base_dir.clone()));
+                app.manage(EqPresetStore::new(&base_dir));
+                app.manage(streaming::StreamState::default());
 
-                let mut last_device =
-                    AudioPlayer::current_default_device_name();
+                let manager_storage = Storage::new(base_dir);
+                manager_storage.initialize().expect(
+                    "No se pudo inicializar el almacenamiento del administrador de descargas.",
+                );
+                app.manage(Arc::new(Mutex::new(DownloadManager::new(
+                    manager_storage,
+                ))));
 
-                loop {
+                app.manage(
+                    AudioPlayer::new()
+                        .expect("No se pudo inicializar el dispositivo de audio."),
+                );
 
-                    thread::sleep(
-                        Duration::from_secs(2)
-                    );
+                // Detecta cambios del dispositivo de salida.
+                let app_handle = app.handle().clone();
 
-                    let current_device =
-                        AudioPlayer::current_default_device_name();
+                thread::spawn(move || {
+                    let mut last = AudioPlayer::current_default_device_name();
 
-                    if current_device != last_device {
+                    loop {
+                        thread::sleep(Duration::from_secs(2));
 
-                        println!(
-                            "[AUDIO] Dispositivo de salida cambió: {:?} -> {:?}",
-                            last_device,
-                            current_device
-                        );
+                        let current = AudioPlayer::current_default_device_name();
 
-                        if let Some(player) =
-                            app_handle.try_state::<AudioPlayer>()
-                        {
-
-                            if let Err(error) =
-                                player.reinitialize_output()
+                        if current != last {
+                            if let Some(player) =
+                                app_handle.try_state::<AudioPlayer>()
                             {
-
-                                eprintln!(
-                                    "[AUDIO] No se pudo reinicializar la salida: {}",
-                                    error
-                                );
-
-                            } else {
-
-                                println!(
-                                    "[AUDIO] Salida de audio reinicializada correctamente."
-                                );
-
+                                if let Err(error) = player.reinitialize_output() {
+                                    eprintln!(
+                                        "[AUDIO] No se pudo reinicializar la salida: {}",
+                                        error
+                                    );
+                                }
                             }
-                        }
 
-                        last_device =
-                            current_device;
+                            last = current;
+                        }
                     }
-                }
-            });
+                });
+            }
 
             Ok(())
         })
-
-
-        // -----------------------------------------------------
-        // PLUGINS
-        // -----------------------------------------------------
-
-        .plugin(
-            tauri_plugin_opener::init()
-        )
-
-        .plugin(
-            tauri_plugin_dialog::init()
-        )
-
-        .plugin(
-            tauri_plugin_shell::init()
-        )
-
-
-        // -----------------------------------------------------
-        // COMANDOS
-        // -----------------------------------------------------
-
-        .invoke_handler(
-            tauri::generate_handler![
-
-                // =============================================
-                // GENERAL
-                // =============================================
-
-                greet,
-
-
-                // =============================================
-                // AUDIO / PLAYER
-                // =============================================
-
-                commands::audio::play_audio,
-                commands::audio::pause_audio,
-                commands::audio::resume_audio,
-                commands::audio::stop_audio,
-
-                commands::audio::get_audio_metadata,
-                commands::audio::get_audio_position,
-                commands::audio::seek_audio,
-                commands::audio::get_audio_duration,
-                commands::audio::update_audio_metadata,
-
-                commands::audio::set_volume,
-
-                commands::audio::reinitialize_audio_device,
-
-
-                // =============================================
-                // DOWNLOADS
-                // =============================================
-
-                commands::downloads::detect_download_source,
-                commands::downloads::move_download_to_library,
-                commands::downloads::download_audio,
-                commands::downloads::open_download_location,
-
-                commands::downloads::get_download_history,
-                commands::downloads::remove_download_history_entry,
-                commands::downloads::clear_download_history,
-
-
-                // =============================================
-                // FILESYSTEM
-                // =============================================
-
-                // Comprueba el tipo de una ruta.
-                commands::filesystem::get_storage_info,
-
-                // Obtiene cuánto ocupa Musex físicamente
-                // dentro de la máquina.
-                commands::filesystem::get_musex_storage_size,
-
-                // Operaciones generales de filesystem.
-                commands::filesystem::create_directory,
-                commands::filesystem::path_exists,
-
-                // Guarda físicamente una portada de canción.
-                commands::filesystem::save_cover,
-
-
-                // =============================================
-                // EQUALIZER
-                // =============================================
-
-                commands::equalizer::enable_track_for_eq,
-                commands::equalizer::list_eq_tracks,
-                commands::equalizer::disable_track_for_eq,
-
-                commands::equalizer::play_eq_audio,
-                commands::equalizer::pause_eq_audio,
-                commands::equalizer::resume_eq_audio,
-                commands::equalizer::stop_eq_audio,
-                commands::equalizer::get_eq_audio_position,
-                commands::equalizer::seek_eq_audio,
-
-                commands::equalizer::set_eq_band,
-                commands::equalizer::remove_eq_band,
-                commands::equalizer::reset_eq,
-
-                commands::equalizer::get_eq_preset,
-                commands::equalizer::save_eq_preset,
-                commands::equalizer::remove_eq_preset,
-
-
-                // =============================================
-                // SENSE
-                // =============================================
-
-                commands::sense::get_sense_settings,
-                commands::sense::set_sense_enabled,
-                commands::sense::set_sense_capability,
-                commands::sense::set_sense_prompt,
-                commands::sense::reset_sense_prompt,
-                commands::sense::save_sense_api_key,
-                commands::sense::remove_sense_api_key,
-                commands::sense::test_sense_connection,
-                commands::sense::get_sense_recommendations,
-                commands::sense::recommend_eq_preset,
-
-
-                // =============================================
-                // LIBRARY
-                // =============================================
-
-                commands::library::scan_library,
-                commands::library::scan_temp,
-                commands::library::import_tracks,
-            ]
-        )
-
-
-        // -----------------------------------------------------
-        // EJECUCIÓN DE TAURI
-        // -----------------------------------------------------
-
-        .run(
-            tauri::generate_context!()
-        )
-        .expect(
-            "error while running tauri application"
-        );
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }

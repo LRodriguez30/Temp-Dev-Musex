@@ -1,5 +1,6 @@
 import {
   Component,
+  effect,
   inject,
   signal
 } from '@angular/core';
@@ -8,8 +9,7 @@ import { PlayerService } from '../../core/services/player.service';
 import { LibraryService } from '../../core/services/library.service';
 import { QueuePanelService } from '../../core/services/queue-panel.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { FullPlayerComponent } from '../full-player/full-player.component';
-
+import { IS_ANDROID } from '@tauri-apps/api/core';
 
 /**
  * Reproductor inferior persistente de Musex.
@@ -29,6 +29,8 @@ import { FullPlayerComponent } from '../full-player/full-player.component';
   styleUrl: './bottom-player.component.css'
 })
 export class BottomPlayerComponent {
+
+  readonly isAndroid = IS_ANDROID;
 
   /**
    * Indica si el usuario está manipulando manualmente
@@ -104,6 +106,96 @@ export class BottomPlayerComponent {
    * Indica si el reproductor expandido está visible.
    */
   readonly fullPlayerOpen = signal(false);
+
+  // ===========================================================
+  // PANEL DE CONTROLES — MÓVIL
+  // ===========================================================
+
+  /**
+   * Panel que se abre desde el mini player en móvil.
+   */
+  readonly mobileSheetOpen = signal(false);
+
+  private swipeStartX = 0;
+  private swipeStartY = 0;
+  private swipeIgnored = false;
+
+  /**
+   * Si deja de haber algo reproducible, el panel se cierra solo.
+   */
+  private readonly autoCloseSheet = effect(() => {
+    if (!this.playerService.hasPlayableContent()) {
+      this.mobileSheetOpen.set(false);
+    }
+  });
+
+  openMobileSheet(): void {
+    if (this.playerService.hasPlayableContent()) {
+      this.mobileSheetOpen.set(true);
+    }
+  }
+
+  closeMobileSheet(): void {
+    this.mobileSheetOpen.set(false);
+  }
+
+  onSwipeStart(event: TouchEvent): void {
+    const touch = event.touches[0];
+
+    this.swipeStartX = touch.clientX;
+    this.swipeStartY = touch.clientY;
+
+    /*
+     * Si el gesto empieza sobre una barra (progreso / volumen)
+     * se ignora, para no cerrar el panel al arrastrar.
+     */
+    this.swipeIgnored =
+      !!(event.target as HTMLElement | null)
+        ?.closest('input[type="range"]');
+  }
+
+  onMiniSwipeEnd(event: TouchEvent): void {
+    if (this.swipeIgnored) {
+      return;
+    }
+
+    const { dx, dy } = this.swipeDelta(event);
+
+    if (dy < -40 && Math.abs(dx) < Math.abs(dy)) {
+      this.openMobileSheet();
+    }
+  }
+
+  onSheetSwipeEnd(event: TouchEvent): void {
+    if (this.swipeIgnored) {
+      return;
+    }
+
+    const { dx, dy } = this.swipeDelta(event);
+
+    if (dy > 50 && Math.abs(dx) < dy) {
+      this.closeMobileSheet();
+    }
+  }
+
+  private swipeDelta(event: TouchEvent): { dx: number; dy: number } {
+    const touch = event.changedTouches[0];
+
+    return {
+      dx: touch.clientX - this.swipeStartX,
+      dy: touch.clientY - this.swipeStartY
+    };
+  }
+
+  openQueueFromSheet(): void {
+    this.closeMobileSheet();
+    this.toggleQueue();
+  }
+
+  openFullPlayerFromSheet(): void {
+    this.closeMobileSheet();
+    this.toggleFullPlayer();
+  }
 
   /**
    * Canción actualmente seleccionada.

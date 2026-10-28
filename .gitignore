@@ -40,3 +40,7 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Artefactos de compilación Android
+musex.apk
+*.apk

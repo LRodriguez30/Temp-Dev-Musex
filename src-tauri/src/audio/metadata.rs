@@ -201,7 +201,7 @@ impl AudioMetadata {
         use lofty::config::WriteOptions;
         use lofty::file::TaggedFileExt;
         use lofty::probe::Probe;
-        use lofty::tag::{ItemKey, TagType};
+        use lofty::tag::{ItemKey, Tag, TagType};
 
         let path = path.as_ref();
 

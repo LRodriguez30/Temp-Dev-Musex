@@ -142,38 +142,26 @@
          SHOW NOW PLAYING 
     ========================================================= --> 
 
-    @if ( 
-      !playerService.state().rightPanel && 
-      playerService.hasPlayableContent() 
-    ) { 
-
-      <button 
-        type="button" 
-        class="show-now-playing" 
-        aria-label="Mostrar reproductor" 
-        title="Mostrar reproductor" 
-        (click)=" 
-          playerService.toggleRightPanel() 
-        " 
-      > 
-
-        <svg 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          stroke="currentColor" 
-          stroke-width="1.8" 
-          stroke-linecap="round" 
-          stroke-linejoin="round" 
-          aria-hidden="true" 
-        > 
-
-          <path d="M9 18l6-6-6-6" /> 
-
-        </svg> 
-
-      </button> 
-
-    } 
+    @if (
+      !playerService.state().rightPanel &&
+      playerService.hasPlayableContent() &&
+      !isAndroid
+    ) {
+      <button
+        type="button"
+        class="vinyl-player-trigger"
+        aria-label="Abrir reproductor"
+        title="Abrir reproductor"
+        (click)="playerService.toggleRightPanel()"
+      >
+        <span class="vinyl-disc" aria-hidden="true">
+          <span class="vinyl-groove vinyl-groove-outer"></span>
+          <span class="vinyl-groove vinyl-groove-middle"></span>
+          <span class="vinyl-groove vinyl-groove-inner"></span>
+          <span class="vinyl-center"></span>
+        </span>
+      </button>
+    }
 
   </main> 
 
@@ -216,603 +204,6 @@
 
 <!-- ============================================================ 
      GLOBAL MODAL 
-============================================================= --> 
-
-<app-modal 
-  [open]="modalService.state().open" 
-  [title]="modalService.state().title" 
-  [subtitle]="modalService.state().subtitle" 
-  [bare]=" 
-    modalService.is('search') || 
-    modalService.is('track-details') || 
-    modalService.is('add-to-playlist') || 
-    modalService.is('equalizer-editor') 
-  " 
-  (closed)="closeModal()" 
-  (animationFinished)="onModalAnimationFinished()" 
-> 
-
-
-  <!-- ========================================================= 
-       SEARCH 
-  ========================================================== --> 
-
-  @if (modalService.is('search')) { 
-
-    <app-search-modal /> 
-
-  } 
-
-
-  <!-- ========================================================= 
-       TRACK MENU 
-  ========================================================== --> 
-
-  @if (modalService.is('track-menu')) { 
-
-    @if (modalTrack) { 
-
-      <div class="space-y-1"> 
-
-        <button 
-          type="button" 
-          class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-white transition-colors hover:bg-[#17191b]" 
-          (click)="openMetadata(modalTrack)" 
-        > 
-
-          <svg 
-            class="h-5 w-5 text-zinc-400" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            stroke-width="2" 
-            stroke-linecap="round" 
-            stroke-linejoin="round" 
-          > 
-
-            <path d="M12 20h9"></path> 
-
-            <path 
-              d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" 
-            ></path> 
-
-          </svg> 
-
-          <span> 
-            Editar información 
-          </span> 
-
-        </button> 
-
-
-        <button 
-          type="button" 
-          class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-white transition-colors hover:bg-[#17191b]" 
-          (click)="modalService.openAddToPlaylist(modalTrack.id)" 
-        > 
-
-          <svg 
-            class="h-5 w-5 text-zinc-400" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            stroke-width="2" 
-            stroke-linecap="round" 
-            stroke-linejoin="round" 
-          > 
-
-            <path d="M9 18V5l12-2v13"></path> 
-
-            <circle 
-              cx="6" 
-              cy="18" 
-              r="3" 
-            ></circle> 
-
-            <circle 
-              cx="18" 
-              cy="16" 
-              r="3" 
-            ></circle> 
-
-            <line 
-              x1="21" 
-              y1="8" 
-              x2="21" 
-              y2="2" 
-            ></line> 
-
-            <line 
-              x1="18" 
-              y1="5" 
-              x2="24" 
-              y2="5" 
-            ></line> 
-
-          </svg> 
-
-          <span> 
-            Añadir a playlist 
-          </span> 
-
-        </button> 
-
-      </div> 
-
-    } 
-
-  } 
-
-
-  <!-- ========================================================= 
-       TRACK INFORMATION MODAL 
-  ========================================================== --> 
-
-  @if ( 
-    modalService.is('track-details') && 
-    modalTrack && 
-    editingTrack() 
-  ) { 
-
-    <section 
-      class="music-metadata-modal" 
-      role="dialog" 
-      aria-modal="true" 
-      [attr.aria-label]="'Información de ' + modalTrack.title" 
-      (click)="$event.stopPropagation()" 
-    > 
-
-
-      <!-- ===================================================== 
-           MODAL HEADER 
-      ====================================================== --> 
-
-      <header class="music-metadata-header"> 
-
-        <div> 
-
-          <span class="music-metadata-kicker"> 
-            METADATOS DE MÚSICA 
-          </span> 
-
-          <h2> 
-            Información de la canción 
-          </h2> 
-
-        </div> 
-
-
-        <button 
-          type="button" 
-          class="music-metadata-close" 
-          aria-label="Cerrar" 
-          (click)="closeModal()" 
-        > 
-
-          <svg 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            stroke-width="2" 
-            stroke-linecap="round" 
-            aria-hidden="true" 
-          > 
-
-            <path d="M18 6 6 18"></path> 
-            <path d="m6 6 12 12"></path> 
-
-          </svg> 
-
-        </button> 
-
-      </header> 
-
-
-      <!-- ===================================================== 
-           TRACK PREVIEW 
-      ====================================================== --> 
-
-      <div class="music-metadata-preview"> 
-
-        <div class="music-metadata-cover-wrapper"> 
-
-          <div class="music-metadata-cover"> 
-
-            @if ( 
-              editingTrack()!.coverType === 'image' && 
-              editingTrack()!.image 
-            ) { 
-
-              <img 
-                [src]="editingTrack()!.image" 
-                [alt]="editingTrack()!.title" 
-                style="width:100%;height:100%;object-fit:cover;" 
-              /> 
-
-            } @else if ( 
-              editingTrack()!.coverType === 'icon' 
-            ) { 
-
-              <div 
-                style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;" 
-                [style.background]=" 
-                  (editingTrack()!.coverColor || 'var(--musex-accent)') + '1a' 
-                " 
-              > 
-
-                <svg 
-                  viewBox="0 0 24 24" 
-                  style="width:28px;height:28px;" 
-                  fill="none" 
-                  [attr.stroke]=" 
-                    editingTrack()!.coverColor || 
-                    'var(--musex-accent)' 
-                  " 
-                  stroke-width="2" 
-                  stroke-linecap="round" 
-                  stroke-linejoin="round" 
-                  aria-hidden="true" 
-                > 
-
-                  <path 
-                    [attr.d]=" 
-                      getCoverIconPath( 
-                        editingTrack()!.coverIcon 
-                      ) 
-                    " 
-                  ></path> 
-
-                </svg> 
-
-              </div> 
-
-            } @else { 
-
-              <svg 
-                class="bottom-default-disc" 
-                viewBox="0 0 100 100" 
-                role="img" 
-                aria-label="Disco Musex" 
-              > 
-
-                <circle 
-                  cx="50" 
-                  cy="50" 
-                  r="48" 
-                  fill="var(--musex-accent)" 
-                /> 
-
-                <circle 
-                  cx="50" 
-                  cy="50" 
-                  r="42" 
-                  fill="none" 
-                  stroke="#0d0e10" 
-                  stroke-width="1.5" 
-                  opacity="0.35" 
-                /> 
-
-                <circle 
-                  cx="50" 
-                  cy="50" 
-                  r="35" 
-                  fill="none" 
-                  stroke="#0d0e10" 
-                  stroke-width="1" 
-                  opacity="0.3" 
-                /> 
-
-                <circle 
-                  cx="50" 
-                  cy="50" 
-                  r="28" 
-                  fill="none" 
-                  stroke="#0d0e10" 
-                  stroke-width="1" 
-                  opacity="0.25" 
-                /> 
-
-                <circle 
-                  cx="50" 
-                  cy="50" 
-                  r="13" 
-                  fill="#0d0e10" 
-                /> 
-
-                <circle 
-                  cx="50" 
-                  cy="50" 
-                  r="4" 
-                  fill="var(--musex-accent)" 
-                /> 
-
-                <circle 
-                  cx="50" 
-                  cy="50" 
-                  r="44" 
-                  fill="none" 
-                  stroke="#ffffff" 
-                  stroke-width="0.8" 
-                  opacity="0.12" 
-                /> 
-
-              </svg> 
-
-            } 
-
-
-            <!-- ================================================= 
-                 CAMBIAR PORTADA 
-            ================================================== --> 
-
-            <input 
-              #coverInput 
-              type="file" 
-              accept="image/png,image/jpeg,image/webp" 
-              hidden 
-              (change)="onCoverImageSelected($event)" 
-            /> 
-
-
-            <button 
-              type="button" 
-              class="cover-action-button" 
-              aria-label="Cambiar portada" 
-              title="Cambiar portada" 
-              (click)="coverInput.click()" 
-            > 
-
-              <svg 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                stroke-width="2" 
-                width="15" 
-                height="15" 
-              > 
-
-                <path 
-                  d="M14.5 4h-5L8 6H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3l-1.5-2Z" 
-                /> 
-
-                <circle 
-                  cx="12" 
-                  cy="12" 
-                  r="3" 
-                /> 
-
-              </svg> 
-
-            </button> 
-
-          </div> 
-
-        </div> 
-
-
-        <div class="music-metadata-preview-info"> 
-
-          <span class="music-metadata-preview-label"> 
-            MÚSICA ACTUAL 
-          </span> 
-
-          <strong> 
-            {{ editingTrack()!.title }} 
-          </strong> 
-
-          <span> 
-            {{ editingTrack()!.artist }} 
-          </span> 
-
-        </div> 
-
-
-        <div class="cover-actions"> 
-
-          <button 
-            type="button" 
-            class="cover-remove-button" 
-            (click)="removeCover()" 
-          > 
-
-            <svg 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              stroke-width="2" 
-              width="14" 
-              height="14" 
-            > 
-
-              <path d="M3 6h18" /> 
-
-              <path 
-                d="M8 6V4h8v2" 
-              /> 
-
-              <path 
-                d="M19 6l-1 14H6L5 6" 
-              /> 
-
-            </svg> 
-
-            Quitar portada 
-
-          </button> 
-
-        </div> 
-
-      </div> 
-
-
-      <!-- ===================================================== 
-           EDITABLE INFORMATION 
-      ====================================================== --> 
-
-      <div class="music-metadata-fields"> 
-
-        <label class="music-metadata-field"> 
-
-          <span> 
-            TÍTULO 
-          </span> 
-
-          <input 
-            type="text" 
-            [value]="editingTrack()!.title" 
-            (input)=" 
-              updateEditingField( 
-                'title', 
-                $any($event.target).value 
-              ) 
-            " 
-          /> 
-
-        </label> 
-
-
-        <label class="music-metadata-field"> 
-
-          <span> 
-            ARTISTA 
-          </span> 
-
-          <input 
-            type="text" 
-            [value]="editingTrack()!.artist" 
-            (input)=" 
-              updateEditingField( 
-                'artist', 
-                $any($event.target).value 
-              ) 
-            " 
-          /> 
-
-        </label> 
-
-
-        <label class="music-metadata-field"> 
-
-          <span> 
-            ÁLBUM 
-          </span> 
-
-          <input 
-            type="text" 
-            [value]="editingTrack()!.album" 
-            (input)=" 
-              updateEditingField( 
-                'album', 
-                $any($event.target).value 
-              ) 
-            " 
-          /> 
-
-        </label> 
-
-
-        <label class="music-metadata-field"> 
-
-          <span> 
-            GÉNERO 
-          </span> 
-
-          <input 
-            type="text" 
-            [value]="editingTrack()!.genre ?? ''" 
-            (input)=" 
-              updateEditingField( 
-                'genre', 
-                $any($event.target).value 
-              ) 
-            " 
-            placeholder="Sin género" 
-          /> 
-
-        </label> 
-
-      </div> 
-
-
-      <!-- ===================================================== 
-           FILE INFORMATION 
-      ====================================================== --> 
-
-      <div class="music-metadata-technical"> 
-
-        <div> 
-
-          <span> 
-            DURACIÓN 
-          </span> 
-
-          <strong> 
-            {{ formatDuration(editingTrack()!.duration) }} 
-          </strong> 
-
-        </div> 
-
-
-        <div> 
-
-          <span> 
-            FUENTE 
-          </span> 
-
-          <strong> 
-            {{ editingTrack()!.source || 'LOCAL' }} 
-          </strong> 
-
-        </div> 
-
-
-        <div> 
-
-          <span> 
-            ARCHIVO 
-          </span> 
-
-          <strong [title]="editingTrack()!.path"> 
-            {{ editingTrack()!.path }} 
-          </strong> 
-
-        </div> 
-
-      </div> 
-
-
-      <!-- ===================================================== 
-           ACTIONS 
-      ====================================================== --> 
-
-      <footer class="music-metadata-actions"> 
-
-        <button 
-          type="button" 
-          class="music-metadata-cancel" 
-          (click)="closeModal()" 
-        > 
-          Cancelar 
-        </button> 
-
-        <button 
-          type="button" 
-          class="music-metadata-save" 
-          (click)="saveMetadata()" 
-        > 
-          Guardar cambios 
-        </button> 
-
-      </footer> 
-
-    </section> 
-
-  } 
-
-
-  <!-- ========================================================= 
-       ADD TO PLAYLIST MODAL 
-  ========================================================== --> 
 
   @if ( 
     modalService.is('add-to-playlist') && 
@@ -929,7 +320,7 @@
           <p style="color: #74787e; font-size: 13px;"> 
 
             Todavía no tienes playlists. 
-            Crea una desde el sidebar. 
+            Crea una desde el apartado "playlists". 
 
           </p> 
 
@@ -1282,6 +673,7 @@
 
             </div> 
 
+            <div class="eq-sense-orbit eq-sense-orbit-middle"></div> 
 
             <div class="eq-sense-core"> 
 
@@ -1291,6 +683,7 @@
 
             </div> 
 
+            </div> 
 
             <div class="eq-sense-icon"> 
 
@@ -1634,6 +1027,19 @@
               " 
             /> 
 
+            <input 
+              class="eq-seek-slider" 
+              type="range" 
+              min="0" 
+              [max]="track.duration || 0" 
+              step="0.01" 
+              [value]="eqService.currentTime()" 
+              [style.--eq-progress.%]=" 
+                track.duration 
+                  ? (eqService.currentTime() / track.duration) * 100 
+                  : 0 
+              " 
+              aria-label="Progreso del ecualizador" 
 
             <span class="eq-seek-time"> 
 
@@ -1816,6 +1222,9 @@
 
                     </div> 
 
+                      <label> 
+                        Frecuencia 
+                      </label> 
 
                     <div class="eq-band-field"> 
 
@@ -1904,6 +1313,7 @@
 
               </div> 
 
+                    </div> 
 
             } @else { 
 
@@ -1942,6 +1352,59 @@
 
 </app-modal> 
 
+<!-- Confirmación: olvidar equipo Android -->
+@if (connectionDialogs.toForget(); as device) {
+  <app-confirm-dialog
+    title="Olvidar equipo"
+    [message]="'Este teléfono dejará de recordar «' + device.name + '». Para volver a usarlo tendrás que escanear un código nuevo.'"
+    confirmLabel="Olvidar"
+    [danger]="true"
+    (confirmed)="connectionDialogs.confirmForget()"
+    (cancelled)="connectionDialogs.cancelForget()"
+  />
+}
+
+<!-- Confirmación: revocar acceso desde escritorio -->
+@if (connectionDialogs.toRevoke(); as device) {
+  <app-confirm-dialog
+    title="Quitar acceso"
+    [message]="'«' + device.name + '» ya no podrá ver tu música ni tus playlists hasta que lo vincules otra vez.'"
+    confirmLabel="Quitar acceso"
+    [danger]="true"
+    (confirmed)="connectionDialogs.confirmRevoke()"
+    (cancelled)="connectionDialogs.cancelRevoke()"
+  />
+}
+
+@if (connectionDialogs.error()) {
+  <div
+    class="fixed bottom-24 right-5 z-[200] max-w-sm rounded-xl border border-red-400/20 bg-[#17191b] p-4 text-sm text-red-300 shadow-xl"
+    role="alert"
+  >
+    <p>{{ connectionDialogs.error() }}</p>
+
+    <button
+      type="button"
+      class="mt-2 text-white/60 hover:text-white"
+      (click)="connectionDialogs.error.set('')"
+    >
+      Cerrar
+    </button>
+  </div>
+}
+
+@if (confirmDialog.current(); as dialog) {
+  <app-confirm-dialog
+    [title]="dialog.title"
+    [message]="dialog.message"
+    [confirmLabel]="dialog.confirmLabel ?? 'Continuar'"
+    [danger]="dialog.danger ?? false"
+    [warning]="dialog.warning ?? ''"
+    [itemList]="dialog.itemList ?? []"
+    (confirmed)="confirmDialog.confirm()"
+    (cancelled)="confirmDialog.cancel()"
+  />
+}
 
 <!-- ============================================================ 
      GLOBAL TOASTS 

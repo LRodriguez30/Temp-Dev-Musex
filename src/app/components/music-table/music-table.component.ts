@@ -9,6 +9,7 @@ import {
 import { Track } from '../../core/models/track.model'; 
 import { PlayerService } from '../../core/services/player.service'; 
 import { LibraryService } from '../../core/services/library.service'; 
+import { IS_ANDROID } from '@tauri-apps/api/core';
  
  
 /** 
@@ -33,6 +34,7 @@ import { LibraryService } from '../../core/services/library.service';
 }) 
 export class MusicTableComponent { 
  
+  readonly isAndroid = IS_ANDROID;
  
   /* ============================================================= 
      INPUTS 
@@ -286,18 +288,22 @@ export class MusicTableComponent {
     }); 
   } 
  
- 
-  isTrackPlaying(track: Track): boolean { 
- 
-    const state = this.playerService.state(); 
- 
-    return ( 
-      state.playing && 
-      state.currentTrackId === track.id 
-    ); 
-  } 
- 
- 
+  /** Indica si la canción está esperando a que comience la reproducción. */
+  isTrackLoading(track: Track): boolean {
+    return this.playerService.loadingTrackId() === track.id;
+  }
+
+  /** Indica si debe mostrarse el icono de detener para esta canción. */
+  isTrackPlaying(track: Track): boolean {
+    const state = this.playerService.state();
+
+    return (
+      !this.isTrackLoading(track) &&
+      state.playing &&
+      state.currentTrackId === track.id
+    );
+  }
+
   /* ============================================================= 
      MODAL — METADATA 
      ============================================================= */ 
@@ -354,4 +360,5 @@ export class MusicTableComponent {
       .toString() 
       .padStart(2, '0')}`; 
   } 
+
 }

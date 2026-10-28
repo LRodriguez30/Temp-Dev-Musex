@@ -1,0 +1,191 @@
+.local-storage-page {
+    animation:
+        local-storage-page-enter
+        350ms
+        ease
+        both;
+}
+
+@keyframes local-storage-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   SELECTORES MUSEX
+========================================================= */
+
+.musex-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  display: grid;
+  flex-shrink: 0;
+  place-content: center;
+  width: 19px;
+  height: 19px;
+  margin: 0;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 6px;
+  background: #17191b;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.musex-checkbox::before {
+  content: "";
+  width: 9px;
+  height: 5px;
+  border-bottom: 2px solid #0d0e10;
+  border-left: 2px solid #0d0e10;
+  transform: rotate(-45deg) scale(0);
+  transition: transform 140ms ease;
+}
+
+.musex-checkbox:checked {
+  border-color: var(--musex-accent);
+  background: var(--musex-accent);
+  box-shadow: 0 0 0 3px rgb(156 255 0 / 7%);
+}
+
+.musex-checkbox:checked::before {
+  transform: rotate(-45deg) scale(1);
+}
+
+.musex-checkbox:focus-visible {
+  outline: 2px solid var(--musex-accent);
+  outline-offset: 3px;
+}
+
+.musex-checkbox:active {
+  transform: scale(0.92);
+}
+
+.musex-checkbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+/* Filas seleccionables */
+
+.musex-selectable-row {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.musex-selectable-row.is-selected {
+  border-color: rgb(156 255 0 / 16%);
+  background: rgb(156 255 0 / 4%);
+}
+
+.musex-selectable-row:not(.is-selected):hover {
+  background: rgb(255 255 255 / 2.5%);
+}
+
+/* Controles de selección global */
+
+.musex-selection-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 0 11px;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 10px;
+  color: rgb(255 255 255 / 65%);
+  background: rgb(255 255 255 / 2%);
+  font-size: 12px;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.musex-selection-control:hover {
+  border-color: rgb(156 255 0 / 20%);
+  background: rgb(156 255 0 / 4%);
+  color: white;
+}
+
+.musex-selection-control:focus-visible {
+  outline: 2px solid var(--musex-accent);
+  outline-offset: 3px;
+}
+
+.musex-selection-control:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+/* Acción principal de importación */
+
+.musex-import-button {
+  box-shadow: 0 3px 12px rgb(156 255 0 / 8%);
+  transition:
+    filter 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.musex-import-button:not(:disabled):hover {
+  filter: brightness(1.06);
+  box-shadow: 0 4px 18px rgb(156 255 0 / 13%);
+}
+
+.musex-import-button:not(:disabled):active {
+  transform: scale(0.985);
+}
+
+.musex-import-button:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 3px;
+}
+
+/* Acción destructiva */
+
+.musex-delete-button {
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.musex-delete-button:not(:disabled):hover {
+  border-color: rgb(248 113 113 / 35%);
+  background: rgb(248 113 113 / 10%);
+}
+
+.musex-delete-button:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+.musex-delete-button:focus-visible {
+  outline: 2px solid rgb(248 113 113 / 80%);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .musex-checkbox,
+  .musex-checkbox::before,
+  .musex-selectable-row,
+  .musex-selection-control,
+  .musex-import-button,
+  .musex-delete-button {
+    transition: none;
+  }
+}

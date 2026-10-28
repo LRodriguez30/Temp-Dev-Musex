@@ -62,4 +62,10 @@ export interface Playlist {
    * como false o podrán omitirlo.
    */
   custom?: boolean;
+
+  /**
+   * Playlist recibida del Musex de escritorio (solo Android).
+   * Se reemplaza en cada sincronización.
+   */
+  remote?: boolean;
 }

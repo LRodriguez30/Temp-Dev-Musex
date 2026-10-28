@@ -1,5 +1,6 @@
 import {
   Component,
+  computed,
   DestroyRef,
   effect,
   inject,
@@ -17,6 +18,7 @@ import { ModalComponent } from '../../components/modal/modal.component';
 import { ToastContainerComponent } from '../../components/toast-container/toast-container.component';
 import { QueuePanelComponent } from '../../components/queue-panel/queue-panel.component';
 import { SearchModalComponent } from '../../components/search-modal/search-modal.component';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 import { PlayerService } from '../../core/services/player.service';
 import { LibraryService } from '../../core/services/library.service';
@@ -24,6 +26,10 @@ import { PlaylistService } from '../../core/services/playlist.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ModalService } from '../../core/services/modal.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { PlaylistSyncService } from '../../core/services/playlist-sync.service';
+import { AndroidMediaService } from '../../core/services/android-media.service';
+import { ConnectionDialogService } from '../../core/services/connection-dialog.service';
+import { ConfirmDialogService } from '../../core/services/confirm-dialog.service';
 
 import {
   EqualizerService,
@@ -32,7 +38,7 @@ import {
 
 import { Track } from '../../core/models/track.model';
 
-import { convertFileSrc } from '@tauri-apps/api/core';
+import { convertFileSrc, IS_ANDROID } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 
 
@@ -78,12 +84,15 @@ import { openUrl } from '@tauri-apps/plugin-opener';
     ModalComponent,
     ToastContainerComponent,
     QueuePanelComponent,
-    SearchModalComponent
+    SearchModalComponent,
+    ConfirmDialogComponent
   ],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css'
 })
 export class MainLayoutComponent {
+
+  readonly isAndroid = IS_ANDROID;
 
   // =============================================================
   // SERVICIOS
@@ -107,6 +116,24 @@ export class MainLayoutComponent {
   private readonly equalizerService =
     inject(EqualizerService);
 
+  /**
+   * Mantiene sincronizadas las playlists con el móvil / escritorio.
+   */
+  private readonly playlistSync =
+    inject(PlaylistSyncService);
+  
+  /**
+   * Controles multimedia de Android (notificación, bloqueo, audífonos).
+   */
+  private readonly androidMedia =
+    inject(AndroidMediaService);
+  
+  readonly connectionDialogs =
+    inject(ConnectionDialogService);
+  
+  readonly confirmDialog =
+    inject(ConfirmDialogService);
+  
   /**
    * Estado del ecualizador expuesto al template.
    *
@@ -190,8 +217,11 @@ export class MainLayoutComponent {
   // PLAYLISTS
   // =============================================================
 
-  readonly playlists =
-    this.playlistService.allPlaylists;
+  readonly playlists = computed(() =>
+    IS_ANDROID
+      ? this.playlistService.localPlaylists()
+      : this.playlistService.allPlaylists()
+  );
 
 
   // =============================================================

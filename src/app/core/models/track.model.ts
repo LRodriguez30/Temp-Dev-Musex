@@ -66,6 +66,12 @@ export interface Track {
    */
   favorite: boolean;
 
+  /** 'local' = guardada en el teléfono, 'remote' = del escritorio (solo Android). */
+  origin?: 'local' | 'remote';
+
+  /** Marcada como favorita en el escritorio (solo Android). */
+  remoteFavorite?: boolean;
+
   /**
    * Tipo de portada elegido por el usuario.
    *

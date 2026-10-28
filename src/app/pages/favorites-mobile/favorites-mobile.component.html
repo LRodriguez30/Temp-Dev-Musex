@@ -1,0 +1,217 @@
+
+<section class="favorites-mobile-page view h-full overflow-y-auto scroll-area">
+  <div
+    class="content-pad mx-auto w-full max-w-[1060px] px-4 pb-10 pt-6 sm:px-6 sm:pt-8 lg:px-7"
+  >
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header class="favorites-header">
+
+      <div class="favorites-heading">
+
+        <div class="favorites-eyebrow">
+          <span class="favorites-eyebrow-dot"></span>
+          COLECCIÓN
+        </div>
+
+        <h1 class="favorites-title">
+          Favoritos
+        </h1>
+
+        <p class="favorites-description">
+          Tus canciones guardadas en un solo lugar.
+        </p>
+
+      </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         DE ESTE TELÉFONO
+    ====================================================== -->
+
+    <section class="favorites-section mt-6">
+
+      <div class="favorites-toolbar">
+
+        <div class="favorites-count">
+          <span class="favorites-count-label">
+            DE ESTE TELÉFONO
+          </span>
+
+          <span class="favorites-count-dot"></span>
+
+          <span class="favorites-count-value">
+            {{ localFavoriteCount() }} canciones
+          </span>
+        </div>
+
+        @if (localFavoriteCount() > 0) {
+          <button
+            type="button"
+            class="favorites-play-button"
+            (click)="playFavorites('local')"
+          >
+            <span class="favorites-play-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path
+                  d="M8 5.5v13a1 1 0 0 0 1.53.85l10-6.5a1 1 0 0 0 0-1.7l-10-6.5A1 1 0 0 0 8 5.5Z"
+                />
+              </svg>
+            </span>
+            Reproducir
+          </button>
+        }
+
+      </div>
+
+      @if (localFavoriteCount() > 0) {
+
+        <div class="favorites-table">
+          <app-music-table
+            [tracks]="localFavorites()"
+            (play)="playTrack($event)"
+            (more)="openMore($event)"
+            (addToPlaylist)="openAddToPlaylist($event)"
+          />
+        </div>
+
+      } @else {
+
+        <section class="favorites-empty">
+          <div class="favorites-empty-content">
+
+            <div class="favorites-empty-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                />
+              </svg>
+            </div>
+
+            <span class="favorites-empty-code">
+              ESTE TELÉFONO
+            </span>
+
+            <h2>
+              Aún no tienes favoritos locales
+            </h2>
+
+            <p>
+              Marca una canción con la estrella y aparecerá aquí.
+            </p>
+
+          </div>
+        </section>
+
+      }
+
+    </section>
+
+
+    <!-- =====================================================
+         DEL ESCRITORIO
+    ====================================================== -->
+
+    <section class="favorites-section mt-8">
+
+      <div class="favorites-toolbar">
+
+        <div class="favorites-count">
+
+          <span class="favorites-count-label">
+            DEL ESCRITORIO
+          </span>
+
+          <span class="favorites-count-dot"></span>
+
+          <span class="favorites-count-value">
+            {{ remoteFavoriteCount() }} canciones
+          </span>
+
+        </div>
+
+        @if (remoteFavoriteCount() > 0) {
+          <button
+            type="button"
+            class="favorites-play-button"
+            (click)="playFavorites('remote')"
+          >
+            <span class="favorites-play-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path
+                  d="M8 5.5v13a1 1 0 0 0 1.53.85l10-6.5a1 1 0 0 0 0-1.7l-10-6.5A1 1 0 0 0 8 5.5Z"
+                />
+              </svg>
+            </span>
+            Reproducir
+          </button>
+        }
+
+      </div>
+
+      @if (remoteFavoriteCount() > 0) {
+
+        <div class="favorites-table">
+          <app-music-table
+            [tracks]="remoteFavorites()"
+            (play)="playTrack($event)"
+            (more)="openMore($event)"
+            (addToPlaylist)="openAddToPlaylist($event)"
+          />
+        </div>
+
+      } @else {
+
+        <section class="favorites-empty">
+          <div class="favorites-empty-content">
+
+            <div class="favorites-empty-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                />
+              </svg>
+            </div>
+
+            <span class="favorites-empty-code">
+              ESCRITORIO
+            </span>
+
+            <h2>
+              No hay favoritos del escritorio
+            </h2>
+
+            <p>
+              Aquí aparecerán los favoritos de Musex de escritorio cuando estés conectado.
+            </p>
+
+          </div>
+        </section>
+
+      }
+
+    </section>
+
+  </div>
+</section>

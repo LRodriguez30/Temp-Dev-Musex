@@ -128,7 +128,10 @@
      TABLE
 ========================================================= -->
 
-<div class="music-table-scroll">
+<div
+  class="music-table-scroll"
+  [class.music-table-scroll--android]="isAndroid"
+>
 
   <div class="music-table-content">
 
@@ -542,22 +545,54 @@
               }
 
 
+              
               <!-- =================================================
-                   PLAY OVERLAY
+                  PLAY OVERLAY
               ================================================== -->
 
               <button
                 type="button"
                 class="music-table-play"
+                [class.is-loading]="isTrackLoading(track)"
                 [attr.aria-label]="
-                  isTrackPlaying(track)
-                    ? 'Pausar ' + track.title
-                    : 'Reproducir ' + track.title
+                  isTrackLoading(track)
+                    ? 'Cargando ' + track.title
+                    : isTrackPlaying(track)
+                      ? 'Detener ' + track.title
+                      : 'Reproducir ' + track.title
                 "
+                [attr.aria-busy]="isTrackLoading(track)"
                 (click)="playTrack(track)"
               >
 
-                @if (isTrackPlaying(track)) {
+                @if (isTrackLoading(track)) {
+
+                  <svg
+                    class="music-table-play-spinner"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="9"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      opacity="0.25"
+                    />
+
+                    <path
+                      d="M12 3a9 9 0 0 1 9 9"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                    />
+
+                  </svg>
+
+                } @else if (isTrackPlaying(track)) {
 
                   <svg
                     viewBox="0 0 24 24"
@@ -565,20 +600,13 @@
                     aria-hidden="true"
                   >
 
+                    <!-- Icono de detener -->
                     <rect
                       x="6"
-                      y="5"
-                      width="4"
-                      height="14"
-                      rx="1"
-                    />
-
-                    <rect
-                      x="14"
-                      y="5"
-                      width="4"
-                      height="14"
-                      rx="1"
+                      y="6"
+                      width="12"
+                      height="12"
+                      rx="2"
                     />
 
                   </svg>
@@ -591,9 +619,8 @@
                     aria-hidden="true"
                   >
 
-                    <path
-                      d="M8 5.5v13l10-6.5z"
-                    ></path>
+                    <!-- Icono de reproducir -->
+                    <path d="M8 5.5v13l10-6.5z" />
 
                   </svg>
 
@@ -738,7 +765,7 @@
 
             <button
               type="button"
-              class="music-table-options"
+              class="music-table-options hide-on-android"
               [attr.aria-label]="
                 'Más opciones para ' +
                 track.title

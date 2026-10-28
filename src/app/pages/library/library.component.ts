@@ -38,6 +38,8 @@ import { DropZoneComponent } from '../../components/drop-zone/drop-zone.componen
 import { Track } from '../../core/models/track.model';
 import { ModalService } from '../../core/services/modal.service';
 
+import { IS_ANDROID } from '@tauri-apps/api/core';
+
 /**
  * Página principal de la biblioteca de Musex.
  */
@@ -53,6 +55,8 @@ import { ModalService } from '../../core/services/modal.service';
   styleUrl: './library.component.css'
 })
 export class LibraryComponent implements OnInit {
+
+  readonly isAndroid = IS_ANDROID;
 
   // ===========================================================
   // SERVICIOS

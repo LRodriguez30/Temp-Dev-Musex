@@ -43,7 +43,7 @@
 
         <button
           type="button"
-          class="library-import-button"
+          class="library-import-button hide-on-android"
           (click)="selectMusicFiles()"
           [disabled]="importing"
         >
@@ -384,46 +384,48 @@
 
       <!-- DOWNLOADS -->
 
-      <article class="library-stat">
-
-        <div class="library-stat-top">
-
-          <span class="library-stat-label">
-            DESCARGAS
-          </span>
-
-          <span class="library-stat-icon">
-
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M12 3v12"></path>
-
-              <path d="m7 10 5 5 5-5"></path>
-
-              <path d="M5 21h14"></path>
-
-            </svg>
-
-          </span>
-
-        </div>
-
-        <p class="library-stat-value">
-          {{ downloadCount }}
-        </p>
-
-        <p class="library-stat-description">
-          archivos descargados
-        </p>
-
-      </article>
+      @if (!isAndroid) {
+        <article class="library-stat">
+  
+          <div class="library-stat-top">
+  
+            <span class="library-stat-label">
+              DESCARGAS
+            </span>
+  
+            <span class="library-stat-icon">
+  
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 3v12"></path>
+  
+                <path d="m7 10 5 5 5-5"></path>
+  
+                <path d="M5 21h14"></path>
+  
+              </svg>
+  
+            </span>
+  
+          </div>
+  
+          <p class="library-stat-value">
+            {{ downloadCount }}
+          </p>
+  
+          <p class="library-stat-description">
+            archivos descargados
+          </p>
+  
+        </article>
+      }
 
     </section>
 
@@ -948,7 +950,7 @@
 
             <button
               type="button"
-              class="library-empty-button"
+              class="library-empty-button hide-on-android"
               (click)="selectMusicFiles()"
             >
 
@@ -983,34 +985,36 @@
          DROP ZONE
     ====================================================== -->
 
-    <section class="library-import-section">
-
-      <div class="library-import-header">
-
-        <div>
-
-          <div class="library-section-kicker">
-            LOCAL FILES
+    @if (!isAndroid) {
+      <section class="library-import-section">
+  
+        <div class="library-import-header">
+  
+          <div>
+  
+            <div class="library-section-kicker">
+              LOCAL FILES
+            </div>
+  
+            <h2>
+              Añadir música
+            </h2>
+  
+            <p>
+              Arrastra tus archivos de audio aquí o selecciónalos
+              desde tu dispositivo.
+            </p>
+  
           </div>
-
-          <h2>
-            Añadir música
-          </h2>
-
-          <p>
-            Arrastra tus archivos de audio aquí o selecciónalos
-            desde tu dispositivo.
-          </p>
-
+  
         </div>
-
-      </div>
-
-      <app-drop-zone
-        (filesSelected)="importFiles($event)"
-      ></app-drop-zone>
-
-    </section>
+  
+        <app-drop-zone class="hide-on-android"
+          (filesSelected)="importFiles($event)"
+        ></app-drop-zone>
+  
+      </section>
+    }
 
   </div>
 

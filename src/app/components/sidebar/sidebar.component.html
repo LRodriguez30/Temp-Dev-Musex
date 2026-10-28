@@ -537,6 +537,50 @@
 
     </nav>
 
+      <!-- CONECTAR MÓVIL -->
+
+      <a
+        routerLink="/connect"
+        routerLinkActive="active"
+        class="
+          sidebar-link
+          flex
+          h-11
+          w-full
+          items-center
+          gap-4
+          rounded-lg
+          px-3.5
+          text-[15px]
+          text-zinc-200
+          transition-ui
+
+          max-[820px]:justify-center
+          max-[820px]:gap-0
+          max-[820px]:px-0
+        "
+        title="Conectar móvil"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          class="h-5 w-5 shrink-0"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <rect x="5" y="2" width="14" height="20" rx="2"></rect>
+          <line x1="12" y1="18" x2="12.01" y2="18"></line>
+        </svg>
+
+        <span class="sidebar-label max-[820px]:hidden">
+          Conectar móvil
+        </span>
+
+      </a>
 
     <!-- ========================================================
          PLAYLISTS
@@ -1102,6 +1146,47 @@
   >
 
 
+    <a
+      routerLink="/connect"
+      routerLinkActive="mobile-navigation-active"
+      class="
+        mobile-navigation-item
+        group
+        relative
+        flex
+        h-14
+        min-w-0
+        flex-1
+        flex-col
+        items-center
+        justify-center
+        gap-1
+        rounded-xl
+        text-zinc-500
+        transition-all
+        duration-200
+      "
+      title="Conectar móvil"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        class="h-5 w-5"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <rect x="5" y="2" width="14" height="20" rx="2"></rect>
+        <line x1="12" y1="18" x2="12.01" y2="18"></line>
+      </svg>
+
+      <span class="text-[10px] font-medium">
+        Conectar
+      </span>
+    </a>
+
     <!-- ========================================================
          INICIO
     ========================================================= -->
@@ -1175,7 +1260,6 @@
       </span>
 
     </a>
-
 
     <!-- ========================================================
          EXPLORAR
@@ -1374,6 +1458,74 @@
 
       <span class="text-[10px] font-medium">
         Favoritos
+      </span>
+
+    </a>
+
+    <!-- =============================================================
+        PESTAÑA "PLAYLISTS" — NAVEGACIÓN INFERIOR (MÓVIL)
+        -------------------------------------------------------------
+        En sidebar.component.html, dentro del <nav class="mobile-navigation ...">,
+        pega este bloque DESPUÉS del enlace de "Favoritos"
+        (y antes del </div> que cierra la fila de pestañas).
+    ============================================================== -->
+
+    <a
+      routerLink="/playlists"
+      routerLinkActive="mobile-navigation-active"
+      class="
+        mobile-navigation-item
+        group
+        relative
+        flex
+        h-14
+        min-w-0
+        flex-1
+        flex-col
+        items-center
+        justify-center
+        gap-1
+        rounded-xl
+        text-zinc-500
+        transition-all
+        duration-200
+      "
+      title="Playlists"
+    >
+
+      <span
+        class="
+          mobile-navigation-glow
+          pointer-events-none
+          absolute
+          inset-x-3
+          top-1
+          h-1
+          rounded-full
+          opacity-0
+        "
+      ></span>
+
+      <svg
+        viewBox="0 0 24 24"
+        class="h-5 w-5 transition-all duration-200"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <line x1="8" y1="6" x2="21" y2="6"></line>
+        <line x1="8" y1="12" x2="21" y2="12"></line>
+        <line x1="8" y1="18" x2="21" y2="18"></line>
+        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+      </svg>
+
+      <span class="text-[10px] font-medium">
+        Playlists
       </span>
 
     </a>
@@ -2020,13 +2172,10 @@
 
       </a>
 
-
-      <!-- ======================================================
-           PLAYLIST
-      ======================================================= -->
-
-      <button
-        type="button"
+      <a
+        routerLink="/connect"
+        routerLinkActive="mobile-more-active"
+        (click)="mobileMenuService.close()"
         class="
           mobile-more-item
           group
@@ -2049,7 +2198,6 @@
           duration-200
           active:scale-95
         "
-        (click)="openCreatePlaylist(); mobileMenuService.close()"
       >
 
         <span
@@ -2079,30 +2227,167 @@
             stroke-linejoin="round"
             aria-hidden="true"
           >
-
-            <line
-              x1="12"
-              y1="5"
-              x2="12"
-              y2="19"
-            ></line>
-
-            <line
-              x1="5"
-              y1="12"
-              x2="19"
-              y2="12"
-            ></line>
-
+            <rect x="5" y="2" width="14" height="20" rx="2"></rect>
+            <line x1="12" y1="18" x2="12.01" y2="18"></line>
           </svg>
 
         </span>
 
         <span class="text-xs font-medium text-white">
-          Playlist
+          Conectar
         </span>
 
-      </button>
+      </a>
+
+      <a
+        routerLink="/local-storage"
+        routerLinkActive="mobile-more-active"
+        (click)="mobileMenuService.close()"
+        class="
+          mobile-more-item
+          group
+          flex
+          w-[112px]
+          min-w-[112px]
+          snap-start
+          flex-col
+          items-center
+          justify-center
+          gap-2
+          rounded-2xl
+          border
+          border-[#292b2f]
+          bg-[#151719]
+          px-3
+          py-4
+          text-zinc-400
+          transition-all
+          duration-200
+          active:scale-95
+        "
+      >
+        <span
+          class="
+            mobile-more-item-icon
+            flex
+            h-11
+            w-11
+            items-center
+            justify-center
+            rounded-xl
+            border
+            border-[#303236]
+            bg-[#111214]
+            transition-all
+            duration-200
+          "
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path>
+            <path d="M3 10h18"></path>
+          </svg>
+        </span>
+
+        <span class="text-xs font-medium text-white">
+          Archivos locales
+        </span>
+      </a>
+
+
+      <!-- ======================================================
+           PLAYLIST
+      ======================================================= -->
+
+      @if (!isAndroid) {
+
+        <button
+          type="button"
+          class="
+            mobile-more-item
+            group
+            flex
+            w-[112px]
+            min-w-[112px]
+            snap-start
+            flex-col
+            items-center
+            justify-center
+            gap-2
+            rounded-2xl
+            border
+            border-[#292b2f]
+            bg-[#151719]
+            px-3
+            py-4
+            text-zinc-400
+            transition-all
+            duration-200
+            active:scale-95
+          "
+          (click)="openCreatePlaylist(); mobileMenuService.close()"
+        >
+  
+          <span
+            class="
+              mobile-more-item-icon
+              flex
+              h-11
+              w-11
+              items-center
+              justify-center
+              rounded-xl
+              border
+              border-[#303236]
+              bg-[#111214]
+              transition-all
+              duration-200
+            "
+          >
+  
+            <svg
+              viewBox="0 0 24 24"
+              class="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+  
+              <line
+                x1="12"
+                y1="5"
+                x2="12"
+                y2="19"
+              ></line>
+  
+              <line
+                x1="5"
+                y1="12"
+                x2="19"
+                y2="12"
+              ></line>
+  
+            </svg>
+  
+          </span>
+  
+          <span class="text-xs font-medium text-white">
+            Playlist
+          </span>
+  
+        </button>
+      }
 
 
       <!-- ======================================================

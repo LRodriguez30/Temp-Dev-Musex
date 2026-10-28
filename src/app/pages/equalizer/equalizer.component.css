@@ -361,6 +361,8 @@ MUSIC TABLE
 }
 
 /* =========================================================
+MUSIC TABLE — DESKTOP SCROLL
+/* =========================================================
 TABLE STRUCTURE
 ========================================================= */
 
@@ -1521,6 +1523,19 @@ SEARCH
     var(--musex-accent) 36%,
     transparent
   );
+
+  background: #131518;
+
+  box-shadow:
+    0 0 0 2px color-mix(
+      in srgb,
+      var(--musex-accent) 5.5%,
+      transparent
+    );
+}
+
+/* =========================================================
+SEARCH ICON
 
   background: #131518;
 

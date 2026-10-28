@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icono de la barra de estado: logo de Musex en una sola tinta
+     (las notificaciones solo usan la forma; el sistema le pone el color). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.9"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M2.1,11.62 V12.73 M4.24,9.97 V14.38 M6.31,7.07 V17.28 M8.45,5.0 V19.28 M10.56,9.97 V14.38" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.9"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M10.0,3.55 L21.39,10.76 C22.42,11.42 22.42,12.69 21.39,13.35 L10.0,20.42 C9.28,20.87 8.45,20.35 8.45,19.49 V4.45 C8.45,3.58 9.28,3.1 10.0,3.55 Z" />
+</vector>

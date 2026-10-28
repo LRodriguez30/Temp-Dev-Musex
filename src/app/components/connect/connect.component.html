@@ -1,0 +1,390 @@
+
+<main
+  class="connect-page flex h-full min-h-0 w-full justify-center overflow-hidden bg-[#0d0e10] px-4 text-white sm:px-6"
+>
+    <section class="view h-full min-h-0 w-full overflow-x-hidden overflow-y-auto scroll-area">
+      
+      <div class="mx-auto w-full max-w-[720px] px-4 pb-12 pt-6 sm:px-6 sm:pt-8">
+
+        <header class="mb-6">
+
+          <p class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--musex-accent)]">
+            <span class="h-1.5 w-1.5 rounded-full bg-[var(--musex-accent)]"></span>
+            Conexión
+          </p>
+
+          <h1 class="mt-2 text-[28px] font-semibold leading-tight tracking-[-0.02em] text-white">
+            {{ isAndroid ? 'Escritorio' : 'Conectar móvil' }}
+          </h1>
+
+          <p class="mt-1 text-[13px] text-white/45">
+            {{ isAndroid
+              ? 'Escucha la música de tu PC y sincroniza tus playlists y favoritos.'
+              : 'Vincula tu teléfono escaneando el código. Cada teléfono recibe su propio acceso.' }}
+          </p>
+
+        </header>
+
+
+        @if (isAndroid) {
+
+          <!-- ==================================================
+               ANDROID — EQUIPO ACTIVO
+          =================================================== -->
+
+          @if (devices.activeDevice(); as active) {
+
+            <section class="rounded-2xl border p-4"
+              [class]="activeCardClass()">
+
+              <div class="flex items-start gap-3">
+
+                <span
+                  class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full"
+                  [class]="dotClass(devices.activeState())"
+                ></span>
+
+                <div class="min-w-0 flex-1">
+
+                  <p class="truncate text-[16px] font-semibold text-white">
+                    {{ active.name }}
+                  </p>
+
+                  <p class="mt-0.5 text-[12px] font-medium"
+                    [class]="textClass(devices.activeState())">
+                    {{ label(devices.activeState()) }}
+                  </p>
+
+                  <p class="mt-1 truncate font-mono text-[11px] text-white/35">
+                    {{ active.base }}
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              @switch (devices.activeState()) {
+
+                @case ('offline') {
+
+                  <p class="mt-3 text-[12px] leading-relaxed text-white/55">
+                    No se pudo llegar a este equipo. Revisa que Musex esté abierto
+                    en el PC y que ambos estén en la misma red Wi-Fi. Si el PC
+                    cambió de red, vincúlalo otra vez con un QR nuevo.
+                  </p>
+                }
+
+                @case ('revoked') {
+
+                  <p class="mt-3 text-[12px] leading-relaxed text-white/55">
+                    El escritorio quitó el acceso de este teléfono. Escanea un QR
+                    nuevo para volver a vincularlo.
+                  </p>
+                }
+              }
+
+
+              <div class="mt-4 flex flex-wrap gap-2">
+
+                <button
+                  type="button"
+                  class="h-10 rounded-xl bg-[var(--musex-accent)] px-4 text-[13px] font-semibold text-black transition active:scale-95 disabled:opacity-50"
+                  [disabled]="syncing() || devices.activeState() === 'revoked'"
+                  (click)="connectAndSync(active.hostId)"
+                >
+                  {{ syncing() ? 'Sincronizando…' : 'Sincronizar ahora' }}
+                </button>
+
+                <button
+                  type="button"
+                  class="h-10 rounded-xl border border-white/10 bg-white/[0.04] px-4 text-[13px] font-medium text-white/80 transition active:scale-95"
+                  (click)="devices.check(active.hostId)"
+                >
+                  Reintentar
+                </button>
+
+              </div>
+
+            </section>
+
+          } @else {
+
+            <section class="rounded-2xl border border-white/[0.07] bg-[#131517] p-5 text-center">
+
+              <p class="text-[15px] font-medium text-white">
+                Todavía no estás conectado
+              </p>
+
+              <p class="mx-auto mt-2 max-w-[340px] text-[13px] leading-relaxed text-white/45">
+                En Musex de escritorio abre «Conectar móvil» y escanea el código QR.
+              </p>
+
+            </section>
+
+          }
+
+
+          <!-- ==================================================
+               ANDROID — VINCULAR
+          =================================================== -->
+
+          <section class="mt-4 rounded-2xl border border-white/[0.07] bg-[#131517] p-4">
+
+            <h2 class="text-[14px] font-semibold text-white">
+              Vincular un equipo
+            </h2>
+
+            <button
+              type="button"
+              class="mt-3 h-11 w-full rounded-xl bg-white/[0.06] text-[13px] font-semibold text-white transition active:scale-[0.98] disabled:opacity-50"
+              [disabled]="devices.busy()"
+              (click)="scan()"
+            >
+              {{ devices.busy() ? 'Vinculando…' : 'Escanear código QR' }}
+            </button>
+
+            <input
+              #manual
+              class="mt-2.5 h-11 w-full rounded-xl border border-white/10 bg-black/20 px-3.5 text-[12px] text-white placeholder:text-white/30 focus:border-[var(--musex-accent)]/50 focus:outline-none"
+              placeholder="…o pega el enlace del código"
+              (keyup.enter)="pair(manual.value); manual.value = ''"
+            />
+
+            @if (devices.lastError()) {
+
+              <p class="mt-3 rounded-xl border border-red-400/20 bg-red-400/[0.06] px-3.5 py-3 text-[12px] leading-relaxed text-red-200/90">
+                {{ devices.lastError() }}
+              </p>
+
+            }
+
+          </section>
+
+
+          <!-- ==================================================
+               ANDROID — EQUIPOS RECORDADOS
+          =================================================== -->
+
+          @if (devices.devices().length > 0) {
+
+            <section class="mt-4 rounded-2xl border border-white/[0.07] bg-[#131517] p-4">
+
+              <h2 class="text-[14px] font-semibold text-white">
+                Equipos recordados
+              </h2>
+
+              <ul class="mt-3 space-y-2">
+
+                @for (device of devices.devices(); track device.hostId) {
+
+                  <li class="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-black/20 p-3">
+
+                    <span
+                      class="h-2 w-2 shrink-0 rounded-full"
+                      [class]="dotClass(stateOf(device))"
+                    ></span>
+
+                    <div class="min-w-0 flex-1">
+       
+                    <p class="truncate text-[13px] font-medium text-white">
+                      {{ device.name }}
+
+                      <span
+                        class="ml-1.5 inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide"
+                        [class]="device.hostId === devices.activeHostId()
+                          ? 'border-[var(--musex-accent)]/20 bg-[var(--musex-accent)]/10 text-[var(--musex-accent)]'
+                          : 'border-white/[0.08] bg-white/[0.04] text-white/40'"
+                      >
+                        <span
+                          class="h-1 w-1 rounded-full"
+                          [class]="device.hostId === devices.activeHostId()
+                            ? 'bg-[var(--musex-accent)]'
+                            : 'bg-white/30'"
+                        ></span>
+
+                        {{ device.hostId === devices.activeHostId() ? 'Activo' : 'Inactivo' }}
+                      </span>
+                    </p>
+
+                      <p class="mt-0.5 truncate text-[11px] text-white/40">
+                        {{ label(stateOf(device)) }}
+                        · {{ ago(device.lastConnectedAt) }}
+                      </p>
+
+                    </div>
+
+                    @if (device.hostId !== devices.activeHostId()) {
+
+                      <button
+                        type="button"
+                        class="h-9 shrink-0 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-[12px] font-medium text-white/85 transition active:scale-95"
+                        (click)="useDevice(device)"
+                      >
+                        Usar
+                      </button>
+
+                    }
+
+                    <button
+                      type="button"
+                      class="h-9 shrink-0 rounded-lg px-2.5 text-[12px] text-red-300/80 transition active:scale-95"
+                      (click)="forget(device)"
+                    >
+                      Olvidar
+                    </button>
+
+                  </li>
+
+                }
+
+              </ul>
+
+            </section>
+
+          }
+
+        } @else {
+
+          <!-- ==================================================
+               ESCRITORIO — QR
+          =================================================== -->
+
+          <section class="rounded-2xl border border-white/[0.07] bg-[#131517] p-5">
+
+            <div class="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:text-left">
+
+              @if (qr()) {
+
+                <img
+                  [src]="qr()"
+                  alt="Código QR de vinculación"
+                  class="h-[240px] w-[240px] shrink-0 rounded-xl bg-white p-2"
+                />
+
+              } @else {
+
+                <div class="flex h-[240px] w-[240px] shrink-0 items-center justify-center rounded-xl bg-white/[0.04] text-[12px] text-white/40">
+                  {{ error() ? 'Sin código' : 'Generando…' }}
+                </div>
+
+              }
+
+              <div class="min-w-0">
+
+                <h2 class="text-[15px] font-semibold text-white">
+                  Escanea desde Musex en tu teléfono
+                </h2>
+
+                <p class="mt-1.5 text-[12px] leading-relaxed text-white/50">
+                  El teléfono y este equipo deben estar en la misma red Wi-Fi.
+                  El código sirve para <span class="text-white/80">un solo teléfono</span>
+                  y vence en 5 minutos.
+                </p>
+
+                @if (qr()) {
+
+                  <p class="mt-3 text-[12px] font-medium"
+                    [class]="secondsLeft() > 30 ? 'text-[var(--musex-accent)]' : 'text-amber-300'">
+                    Vence en {{ countdown() }}
+                  </p>
+
+                }
+
+                <button
+                  type="button"
+                  class="mt-3 h-9 rounded-lg border border-white/10 bg-white/[0.04] px-3.5 text-[12px] font-medium text-white/80 transition hover:bg-white/[0.07]"
+                  (click)="generate()"
+                >
+                  Generar código nuevo
+                </button>
+
+                @if (hostInfo(); as host) {
+
+                  <p class="mt-3 truncate font-mono text-[11px] text-white/30">
+                    {{ host.hostName }} · {{ host.url }}
+                  </p>
+
+                }
+
+              </div>
+
+            </div>
+
+            @if (error()) {
+
+              <p class="mt-4 rounded-xl border border-red-400/20 bg-red-400/[0.06] px-3.5 py-3 text-[12px] text-red-200/90">
+                {{ error() }}
+              </p>
+
+            }
+
+          </section>
+
+
+          <!-- ==================================================
+               ESCRITORIO — TELÉFONOS VINCULADOS
+          =================================================== -->
+
+          <section class="mt-4 rounded-2xl border border-white/[0.07] bg-[#131517] p-4">
+
+            <h2 class="text-[14px] font-semibold text-white">
+              Teléfonos vinculados
+            </h2>
+
+            @if (paired().length > 0) {
+
+              <ul class="mt-3 space-y-2">
+
+                @for (device of paired(); track device.id) {
+
+                  <li class="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-black/20 p-3">
+
+                    <span
+                      class="h-2 w-2 shrink-0 rounded-full"
+                      [class]="device.online ? 'bg-[var(--musex-accent)]' : 'bg-white/20'"
+                    ></span>
+
+                    <div class="min-w-0 flex-1">
+
+                      <p class="truncate text-[13px] font-medium text-white">
+                        {{ device.name }}
+                      </p>
+
+                      <p class="mt-0.5 text-[11px] text-white/40">
+                        {{ device.online ? 'Conectado ahora' : 'Última actividad ' + agoSeconds(device.lastSeen) }}
+                      </p>
+
+                    </div>
+
+                    <button
+                      type="button"
+                      class="h-9 shrink-0 rounded-lg px-3 text-[12px] text-red-300/80 transition hover:bg-red-400/10"
+                      (click)="revoke(device)"
+                    >
+                      Quitar acceso
+                    </button>
+
+                  </li>
+
+                }
+
+              </ul>
+
+            } @else {
+
+              <p class="mt-2 text-[12px] text-white/40">
+                Todavía no hay teléfonos vinculados.
+              </p>
+
+            }
+
+          </section>
+
+        }
+
+      </div>
+
+    </section>
+
+</main>

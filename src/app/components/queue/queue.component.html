@@ -172,41 +172,41 @@
 
 
           <!-- =====================================================
-     INFORMACIÓN
-====================================================== -->
+              INFORMACIÓN
+          ====================================================== -->
 
-<button
-  type="button"
-  class="min-w-0 flex-1 text-left"
-  [attr.aria-label]="'Reproducir ' + track.title"
-  (click)="play(trackId)"
->
+          <button
+            type="button"
+            class="min-w-0 flex-1 text-left"
+            [attr.aria-label]="'Reproducir ' + track.title"
+            (click)="play(trackId)"
+          >
 
-  <!-- Título -->
+            <!-- Título -->
 
-  <p
-    class="truncate text-sm font-medium"
-    [class.text-[var(--musex-accent)]]="isPlaying(trackId)"
-  >
-    {{ track.title }}
-  </p>
+            <p
+              class="truncate text-sm font-medium"
+              [class.text-[var(--musex-accent)]]="isPlaying(trackId)"
+            >
+              {{ track.title }}
+            </p>
 
 
-  <!-- Artista + duración -->
+            <!-- Artista + duración -->
 
-  <div class="mt-1 flex min-w-0 items-center">
+            <div class="mt-1 flex min-w-0 items-center">
 
-    <p class="min-w-0 flex-1 truncate text-xs text-zinc-500">
-      {{ track.artist }}
-    </p>
+              <p class="min-w-0 flex-1 truncate text-xs text-zinc-500">
+                {{ track.artist }}
+              </p>
 
-    <span class="queue-duration">
-      {{ formatTime(track.duration) }}
-    </span>
+              <span class="queue-duration">
+                {{ formatTime(track.duration) }}
+              </span>
 
-  </div>
+            </div>
 
-</button>
+          </button>
 
 
           <!-- =====================================================
@@ -221,7 +221,7 @@
 
             <button
               type="button"
-              class="icon-btn rounded-lg p-1.5 text-zinc-500 opacity-0 transition-ui hover:bg-white/5 hover:text-white group-hover:opacity-100 focus:opacity-100 disabled:cursor-not-allowed disabled:opacity-20"
+              class="icon-btn rounded-lg p-1.5 text-[#9CFF00] bg-[#9CFF00]/[0.06] transition-ui hover:bg-[#9CFF00]/15 hover:text-[#C4F828] active:scale-90 focus:opacity-100 disabled:cursor-not-allowed disabled:opacity-20 disabled:bg-transparent disabled:text-zinc-600"
               [disabled]="index === 0"
               [attr.aria-label]="'Subir ' + track.title"
               [attr.title]="index === 0 ? null : 'Subir'"
@@ -247,7 +247,7 @@
 
             <button
               type="button"
-              class="icon-btn rounded-lg p-1.5 text-zinc-500 opacity-0 transition-ui hover:bg-white/5 hover:text-white group-hover:opacity-100 focus:opacity-100 disabled:cursor-not-allowed disabled:opacity-20"
+              class="icon-btn rounded-lg p-1.5 text-[#9CFF00] bg-[#9CFF00]/[0.06] transition-ui hover:bg-[#9CFF00]/15 hover:text-[#C4F828] active:scale-90 focus:opacity-100 disabled:cursor-not-allowed disabled:opacity-20 disabled:bg-transparent disabled:text-zinc-600"
               [disabled]="index === queue().length - 1"
               [attr.aria-label]="'Bajar ' + track.title"
               [attr.title]="

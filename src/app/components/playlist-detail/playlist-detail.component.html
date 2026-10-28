@@ -1,5 +1,5 @@
 <section
-  class="view h-full min-h-0 overflow-y-auto scroll-area"
+  class="playlist-detail-page view h-full min-h-0 overflow-y-auto scroll-area"
 >
 
   <div
@@ -154,7 +154,7 @@
 
           @if (p.custom) {
 
-            <button
+            <button [class.hide-on-android]="playlist()?.remote"
               type="button"
               class="playlist-delete-button"
               (click)="deletePlaylist()"
@@ -988,7 +988,7 @@
                    REORDER
               ================================================== -->
 
-              <button
+              <button [class.hide-on-android]="playlist()?.remote"
                 type="button"
                 class="playlist-reorder-button"
                 aria-label="Reordenar canciones"

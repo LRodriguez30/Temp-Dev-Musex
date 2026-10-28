@@ -56,6 +56,23 @@ export class PlayerService implements OnDestroy {
                 );
             });
         });
+
+        // Botones de la notificación de Android (anterior / play-pausa / siguiente)
+        window.__musexMediaCommand = (command: string) => {
+            switch (command) {
+                case 'toggle':
+                    void this.togglePlay();
+                    break;
+
+                case 'next':
+                    this.nextTrack();
+                    break;
+
+                case 'prev':
+                    this.previousTrack();
+                    break;
+            }
+        };
     }
 
     /**
@@ -84,6 +101,13 @@ export class PlayerService implements OnDestroy {
         rightPanel: false,
         queue: this.queueService.getQueue()
     });
+
+    /**
+     * ID de la canción que está iniciando su reproducción.
+     *
+     * null significa que no hay ninguna carga pendiente.
+     */
+    readonly loadingTrackId = signal<string | null>(null);
 
     /**
      * Track externo que se está reproduciendo temporalmente.
@@ -298,6 +322,8 @@ export class PlayerService implements OnDestroy {
             return;
         }
 
+        this.loadingTrackId.set(trackId);
+
         if (!this.queueService.getQueue().includes(track.id)) {
             this.queueService.add(track.id);
         }
@@ -352,6 +378,112 @@ export class PlayerService implements OnDestroy {
              * falle durante invoke('play_audio').
              */
             this.historyLoading.set(false);
+
+            // Solo la solicitud correspondiente puede limpiar su estado.
+            if (this.loadingTrackId() === trackId) {
+                this.loadingTrackId.set(null);
+            }
+        }
+    }
+
+    /**
+     * Registra en PlayerService una reproducción que utiliza
+     * el backend del ecualizador.
+     *
+     * Este método NO inicia el audio.
+     *
+     * EqualizerService ya se encarga de preparar las bandas
+     * y ejecutar play_eq_audio().
+     *
+     * PlayerService solamente incorpora esa reproducción
+     * al estado global del reproductor para que:
+     *
+     * - Bottom Player pueda mostrar la canción.
+     * - Full Player conozca la canción actual.
+     * - Play/Pause pueda controlar el audio EQ.
+     * - Seek pueda controlar el audio EQ.
+     * - La posición pueda sincronizarse.
+     */
+    startEqPlayback(
+        track: Track
+    ): void {
+
+        if (!track.path) {
+            console.warn(
+                `La canción "${track.title}" no tiene una ruta de audio.`
+            );
+
+            return;
+        }
+
+        if (!this.queueService.getQueue().includes(track.id)) {
+            this.queueService.add(track.id);
+        }
+
+        this.handlingTrackEnd = false;
+
+        this.eqPlayback = true;
+
+        this.playerState.update(state => ({
+            ...state,
+            playing: true,
+            currentTrackId: track.id,
+            currentTime: 0,
+            queue: this.queueService.getQueue()
+        }));
+
+        this.startPositionSync();
+    }
+
+    /**
+     * Indica si la reproducción actual pertenece al backend EQ.
+     *
+     * Se mantiene como API pública para que otros servicios
+     * puedan consultar el modo actual sin acceder al estado interno.
+     */
+    isEqPlayback(): boolean {
+
+        return this.eqPlayback;
+    }
+
+    /**
+     * Detiene únicamente la reproducción EQ registrada
+     * como reproducción global del PlayerService.
+     *
+     * El editor de EQ no utiliza este método porque su
+     * reproducción es independiente del Bottom Player.
+     */
+    async stopEqPlayback(): Promise<void> {
+
+        if (!this.eqPlayback) {
+            return;
+        }
+
+        try {
+
+            await invoke(
+                'stop_eq_audio'
+            );
+
+        } catch (error) {
+
+            console.error(
+                'Error al detener la reproducción EQ:',
+                error
+            );
+
+        } finally {
+
+            this.eqPlayback = false;
+
+            this.stopPositionSync();
+
+            this.playerState.update(state => ({
+                ...state,
+                playing: false,
+                currentTrackId: null,
+                currentTime: 0
+            }));
         }
     }
 
