@@ -3214,11 +3214,4 @@
 
 /* =============================================================
    ANDROID — ÁREAS SEGURAS (barra de estado / navegación)
-============================================================= */
-
-.full-player {
-  box-sizing: border-box;
-
-  padding-top: var(--safe-top);
-  padding-bottom: var(--safe-bottom);
 }
