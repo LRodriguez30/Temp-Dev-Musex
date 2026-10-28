@@ -8,9 +8,14 @@
 // Cada archivo representa un área funcional de la aplicación.
 // =============================================================
 
-pub mod audio;
-pub mod downloads;
 pub mod filesystem;
 pub mod library;
+
+#[cfg(desktop)]
+pub mod audio;
+#[cfg(desktop)]
+pub mod downloads;
+#[cfg(desktop)]
 pub mod equalizer;
+#[cfg(desktop)]
 pub mod sense;

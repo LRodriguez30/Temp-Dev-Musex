@@ -9,6 +9,10 @@
 // poder probarla directamente desde Rust.
 // =============================================================
 
-pub mod decoder;
-pub mod player;
 pub mod metadata;
+
+#[cfg(desktop)]
+pub mod decoder;
+
+#[cfg(desktop)]
+pub mod player;

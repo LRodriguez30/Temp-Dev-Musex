@@ -1,18 +1,45 @@
-<footer class="bottom-player">
+@if (isAndroid) {
 
-  <div class="bottom-player-content">
+  <!-- =========================================================
+       REPRODUCTOR ANDROID
+       ========================================================= -->
 
-    <!-- =========================================================
-         CURRENT TRACK
-    ========================================================== -->
-    <div class="bottom-current">
+  <footer class="bottom-player">
 
-      <div class="bottom-cover">
+    <div
+      class="mini-player"
+      role="button"
+      tabindex="0"
+      aria-label="Abrir controles del reproductor"
+      (click)="openMobileSheet()"
+      (keydown.enter)="openMobileSheet()"
+      (touchstart)="onSwipeStart($event)"
+      (touchend)="onMiniSwipeEnd($event)"
+    >
+
+      <!-- Asa: indica que se puede deslizar hacia arriba -->
+      <span class="mini-player-grabber" aria-hidden="true"></span>
+
+      <!-- Progreso fino en la parte superior -->
+      <div class="mini-player-progress">
+        <div
+          class="mini-player-progress-fill"
+          [style.width]="
+            (
+              (playerState().currentTime /
+                (currentTrack?.duration || 1)) * 100
+            ) + '%'
+          "
+        ></div>
+      </div>
+
+
+      <div class="mini-player-cover">
 
         @if (currentTrack?.coverType === 'image' && currentTrack.image) {
 
           <img
-            class="bottom-cover-image"
+            class="mini-player-cover-image"
             [src]="currentTrack.image"
             [alt]="currentTrack.title"
           />
@@ -20,7 +47,7 @@
         } @else if (currentTrack?.coverType === 'icon') {
 
           <div
-            class="bottom-cover-icon"
+            class="mini-player-cover-icon"
             [style.background]="
               (currentTrack.coverColor || 'var(--musex-accent)') + '1a'
             "
@@ -43,117 +70,428 @@
         } @else {
 
           <svg
-            class="bottom-default-disc"
+            class="music-table-default-disc"
             viewBox="0 0 100 100"
             role="img"
-            [attr.aria-label]="
-              currentTrack
-                ? 'Disco Musex para ' + currentTrack.title
-                : 'Disco Musex'
-            "
           >
-
-            <circle
-              cx="50"
-              cy="50"
-              r="48"
-              fill="var(--musex-accent)"
-            />
-
-            <circle
-              cx="50"
-              cy="50"
-              r="42"
-              fill="none"
-              stroke="#0d0e10"
-              stroke-width="1.5"
-              opacity="0.35"
-            />
-
-            <circle
-              cx="50"
-              cy="50"
-              r="35"
-              fill="none"
-              stroke="#0d0e10"
-              stroke-width="1"
-              opacity="0.3"
-            />
-
-            <circle
-              cx="50"
-              cy="50"
-              r="28"
-              fill="none"
-              stroke="#0d0e10"
-              stroke-width="1"
-              opacity="0.25"
-            />
-
-            <circle
-              cx="50"
-              cy="50"
-              r="13"
-              fill="#0d0e10"
-            />
-
-            <circle
-              cx="50"
-              cy="50"
-              r="4"
-              fill="var(--musex-accent)"
-            />
-
-            <circle
-              cx="50"
-              cy="50"
-              r="44"
-              fill="none"
-              stroke="#ffffff"
-              stroke-width="0.8"
-              opacity="0.12"
-            />
-
+            <circle cx="50" cy="50" r="47" fill="none" stroke="var(--musex-accent)" stroke-width="3" stroke-opacity="0.65" />
+            <circle cx="50" cy="50" r="43" fill="var(--musex-accent)" />
+            <circle cx="50" cy="50" r="38" fill="none" stroke="#0d0e10" stroke-width="1.5" opacity="0.35" />
+            <circle cx="50" cy="50" r="31" fill="none" stroke="#0d0e10" stroke-width="1" opacity="0.3" />
+            <circle cx="50" cy="50" r="24" fill="none" stroke="#0d0e10" stroke-width="1" opacity="0.25" />
+            <circle cx="50" cy="50" r="13" fill="#0d0e10" />
+            <circle cx="50" cy="50" r="4" fill="var(--musex-accent)" />
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#ffffff" stroke-width="0.8" opacity="0.12" />
           </svg>
-
-        }
-
-        @if (playerState().playing) {
-
-          <div class="bottom-playing-indicator">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
 
         }
 
       </div>
 
 
-      <div class="bottom-meta">
+      <div class="mini-player-meta">
 
-        <p class="bottom-title">
+        <p class="mini-player-title">
           {{ currentTrack?.title ?? 'Sin música' }}
         </p>
 
-        <p class="bottom-artist">
+        <p class="mini-player-artist">
           {{ currentTrack?.artist ?? '—' }}
         </p>
 
       </div>
 
 
+      @if (playerState().playing) {
+
+        <div
+          class="mini-player-playing"
+          aria-hidden="true"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+
+      }
+
+
+      <!-- Los botones detienen la propagación para no abrir
+          el panel de controles al usarlos -->
+
       <button
         type="button"
-        class="bottom-favorite"
-        [class.active]="currentTrackIsFavorite"
-        [attr.aria-label]="
-          currentTrackIsFavorite
-            ? 'Quitar de favoritos'
-            : 'Agregar a favoritos'
+        class="mini-player-control mini-player-prev"
+        [class.disabled]="!playerService.canGoPrevious"
+        [disabled]="!playerService.canGoPrevious"
+        aria-label="Canción anterior"
+        (click)="$event.stopPropagation(); previousTrack()"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6 5h2v14H6z" />
+          <path d="M18 5v14L8 12z" />
+        </svg>
+      </button>
+
+
+      <button
+        type="button"
+        class="mini-player-play"
+        [class.playing]="playerState().playing"
+        [attr.aria-label]="playerState().playing ? 'Pausar' : 'Reproducir'"
+        (click)="$event.stopPropagation(); togglePlay()"
+      >
+
+        @if (playerState().playing) {
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="5" width="4" height="14" rx="1" />
+            <rect x="14" y="5" width="4" height="14" rx="1" />
+          </svg>
+
+        } @else {
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+
+        }
+
+      </button>
+
+
+      <button
+        type="button"
+        class="mini-player-control"
+        [class.disabled]="!playerService.canGoNext"
+        [disabled]="!playerService.canGoNext"
+        aria-label="Siguiente canción"
+        (click)="$event.stopPropagation(); nextTrack()"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M16 5h2v14h-2z" />
+          <path d="M6 5v14l10-7z" />
+        </svg>
+      </button>
+
+    </div>
+    
+  </footer>
+  
+
+
+  <!-- =============================================================
+      PANEL DE CONTROLES — MÓVIL
+      -------------------------------------------------------------
+      Se abre tocando o deslizando hacia arriba el mini player.
+      Reúne todas las funciones del reproductor de escritorio:
+      favorito, progreso, aleatorio, anterior/siguiente, repetir,
+      volumen, cola y reproductor completo.
+
+      Vive fuera del <footer> a propósito: el footer tiene
+      backdrop-filter, que rompería position: fixed.
+  ============================================================== -->
+
+  <div
+    class="mobile-sheet-backdrop"
+    [class.open]="mobileSheetOpen()"
+    aria-hidden="true"
+    (click)="closeMobileSheet()"
+  ></div>
+
+
+  <section
+    class="mobile-sheet"
+    [class.open]="mobileSheetOpen()"
+    [attr.aria-hidden]="!mobileSheetOpen()"
+    aria-label="Controles del reproductor"
+    (touchstart)="onSwipeStart($event)"
+    (touchend)="onSheetSwipeEnd($event)"
+  >
+
+    <!-- Asa -->
+    <button
+      type="button"
+      class="mobile-sheet-grabber"
+      aria-label="Cerrar controles"
+      (click)="closeMobileSheet()"
+    >
+      <span></span>
+    </button>
+
+
+    <!-- Canción actual -->
+    <div class="sheet-track">
+
+      <div
+        class="sheet-cover"
+        [class.spinning]="playerState().playing"
+      >
+
+        @if (currentTrack?.coverType === 'image' && currentTrack.image) {
+
+          <img
+            class="sheet-cover-image"
+            [src]="currentTrack.image"
+            [alt]="currentTrack.title"
+          />
+
+        } @else if (currentTrack?.coverType === 'icon') {
+
+          <div
+            class="sheet-cover-icon"
+            [style.background]="
+              (currentTrack.coverColor || 'var(--musex-accent)') + '1a'
+            "
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              [attr.stroke]="currentTrack.coverColor || 'var(--musex-accent)'"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                [attr.d]="getCoverIconPath(currentTrack.coverIcon)"
+              ></path>
+            </svg>
+          </div>
+
+        } @else {
+
+          <svg
+            class="sheet-default-disc"
+            viewBox="0 0 100 100"
+            aria-hidden="true"
+          >
+            <circle cx="50" cy="50" r="48" fill="var(--musex-accent)" />
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#0d0e10" stroke-width="1.5" opacity="0.35" />
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#0d0e10" stroke-width="1" opacity="0.3" />
+            <circle cx="50" cy="50" r="28" fill="none" stroke="#0d0e10" stroke-width="1" opacity="0.25" />
+            <circle cx="50" cy="50" r="13" fill="#0d0e10" />
+            <circle cx="50" cy="50" r="4" fill="var(--musex-accent)" />
+          </svg>
+
+        }
+
+      </div>
+
+
+      <div class="sheet-meta">
+
+        <p class="sheet-title">
+          {{ currentTrack?.title ?? 'Sin música' }}
+        </p>
+
+        <p class="sheet-artist">
+          {{ currentTrack?.artist ?? '—' }}
+        </p>
+
+      </div>
+
+
+      @if (currentTrack?.source !== 'download') {
+
+        @if (!isAndroid) {
+          <button
+            type="button"
+            class="sheet-icon-button"
+            [class.active]="currentTrackIsFavorite"
+            [attr.aria-label]="
+              currentTrackIsFavorite
+                ? 'Quitar de favoritos'
+                : 'Agregar a favoritos'
+            "
+            (click)="toggleFavorite()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+              />
+            </svg>
+          </button>
+        }
+
+      }
+
+
+      <button
+        type="button"
+        class="sheet-icon-button"
+        aria-label="Abrir reproductor completo"
+        (click)="openFullPlayerFromSheet()"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="15 3 21 3 21 9" />
+          <polyline points="9 21 3 21 3 15" />
+          <line x1="21" y1="3" x2="14" y2="10" />
+          <line x1="3" y1="21" x2="10" y2="14" />
+        </svg>
+      </button>
+
+    </div>
+
+
+    <!-- Progreso -->
+    <div class="sheet-progress">
+
+      <span class="sheet-time sheet-time-current">
+        {{
+          formatTime(
+            seeking()
+              ? seekPosition()
+              : playerState().currentTime
+          )
+        }}
+      </span>
+
+      <input
+        type="range"
+        min="0"
+        [max]="currentTrack?.duration ?? 0"
+        [value]="
+          seeking()
+            ? seekPosition()
+            : playerState().currentTime
         "
-        (click)="toggleFavorite()"
+        class="sheet-range"
+        [style.--progress]="
+          (
+            (
+              (seeking()
+                ? seekPosition()
+                : playerState().currentTime)
+              / (currentTrack?.duration || 1)
+            ) * 100
+          ) + '%'
+        "
+        aria-label="Progreso de reproducción"
+        (pointerdown)="startSeek()"
+        (input)="updateSeekPosition(+$any($event.target).value)"
+        (pointerup)="finishSeek()"
+        (pointercancel)="finishSeek()"
+      />
+
+      <span class="sheet-time sheet-time-duration">
+        {{ formatTime(currentTrack?.duration ?? 0) }}
+      </span>
+
+    </div>
+
+
+    <!-- Controles principales -->
+    <div class="sheet-controls">
+
+      <button
+        type="button"
+        class="sheet-control"
+        [class.active]="playerState().shuffle"
+        aria-label="Activar reproducción aleatoria"
+        (click)="toggleShuffle()"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="16 3 21 3 21 8" />
+          <line x1="4" y1="20" x2="21" y2="3" />
+          <polyline points="21 16 21 21 16 21" />
+          <line x1="15" y1="15" x2="21" y2="21" />
+          <line x1="4" y1="4" x2="9" y2="9" />
+        </svg>
+      </button>
+
+
+      <button
+        type="button"
+        class="sheet-control"
+        [class.disabled]="!playerService.canGoPrevious"
+        [disabled]="!playerService.canGoPrevious"
+        aria-label="Canción anterior"
+        (click)="previousTrack()"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6 5h2v14H6z" />
+          <path d="M18 5v14L8 12z" />
+        </svg>
+      </button>
+
+
+      <button
+        type="button"
+        class="sheet-play"
+        [attr.aria-label]="playerState().playing ? 'Pausar' : 'Reproducir'"
+        (click)="togglePlay()"
+      >
+
+        @if (playerState().playing) {
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="5" width="4" height="14" rx="1" />
+            <rect x="14" y="5" width="4" height="14" rx="1" />
+          </svg>
+
+        } @else {
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+
+        }
+
+      </button>
+
+
+      <button
+        type="button"
+        class="sheet-control"
+        [class.disabled]="!playerService.canGoNext"
+        [disabled]="!playerService.canGoNext"
+        aria-label="Siguiente canción"
+        (click)="nextTrack()"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M16 5h2v14h-2z" />
+          <path d="M6 5v14l10-7z" />
+        </svg>
+      </button>
+
+
+      <button
+        type="button"
+        class="sheet-control"
+        [class.active]="playerState().repeat !== 'off'"
+        [attr.aria-label]="
+          playerState().repeat === 'off'
+            ? 'Activar repetición'
+            : playerState().repeat === 'track'
+              ? 'Repetir canción actual'
+              : 'Repetir cola'
+        "
+        (click)="toggleRepeat()"
       >
 
         <svg
@@ -165,306 +503,32 @@
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <polygon
-            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
-          />
+          <polyline points="17 1 21 5 17 9" />
+          <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+          <polyline points="7 23 3 19 7 15" />
+          <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+
+          @if (playerState().repeat === 'track') {
+            <path d="M12 9v6" stroke-width="2" />
+            <path d="M10.5 10.5 12 9l1.5 1.5" stroke-width="1.6" />
+          }
         </svg>
+
+        @if (playerState().repeat === 'queue') {
+          <span class="repeat-queue-badge">Q</span>
+        }
 
       </button>
 
     </div>
 
 
-    <!-- =========================================================
-         CENTER PLAYER
-    ========================================================== -->
-    <div class="bottom-center">
+    <!-- Volumen y cola -->
+    <div class="sheet-extra">
 
-      <div class="bottom-controls">
-
-        <!-- Shuffle -->
-        <button
-          type="button"
-          class="bottom-control mobile-secondary-control"
-          [class.active]="playerState().shuffle"
-          title="Reproducción aleatoria"
-          aria-label="Activar reproducción aleatoria"
-          (click)="toggleShuffle()"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <polyline points="16 3 21 3 21 8" />
-            <line x1="4" y1="20" x2="21" y2="3" />
-            <polyline points="21 16 21 21 16 21" />
-            <line x1="15" y1="15" x2="21" y2="21" />
-            <line x1="4" y1="4" x2="9" y2="9" />
-          </svg>
-        </button>
-
-
-        <!-- Previous -->
-        <button
-          type="button"
-          class="bottom-control mobile-previous-control"
-          [class.disabled]="!playerService.canGoPrevious"
-          [disabled]="!playerService.canGoPrevious"
-          title="Anterior"
-          aria-label="Canción anterior"
-          (click)="previousTrack()"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
-            <path d="M6 5h2v14H6z" />
-            <path d="M18 5v14L8 12z" />
-          </svg>
-        </button>
-
-
-        <!-- Play -->
-        <button
-          type="button"
-          class="bottom-play"
-          [class.playing]="playerState().playing"
-          [attr.aria-label]="
-            playerState().playing
-              ? 'Pausar'
-              : 'Reproducir'
-          "
-          (click)="togglePlay()"
-        >
-
-          @if (playerState().playing) {
-
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <rect
-                x="6"
-                y="5"
-                width="4"
-                height="14"
-                rx="1"
-              />
-              <rect
-                x="14"
-                y="5"
-                width="4"
-                height="14"
-                rx="1"
-              />
-            </svg>
-
-          } @else {
-
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M8 5v14l11-7z" />
-            </svg>
-
-          }
-
-        </button>
-
-
-        <!-- Next -->
-        <button
-          type="button"
-          class="bottom-control mobile-next-control"
-          [class.disabled]="!playerService.canGoNext"
-          [disabled]="!playerService.canGoNext"
-          title="Siguiente"
-          aria-label="Siguiente canción"
-          (click)="nextTrack()"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
-            <path d="M16 5h2v14h-2z" />
-            <path d="M6 5v14l10-7z" />
-          </svg>
-        </button>
-
-
-        <!-- Repeat -->
-        <button
-          type="button"
-          class="bottom-control repeat-control mobile-secondary-control"
-          [class.active]="playerState().repeat !== 'off'"
-          [class.repeat-track]="playerState().repeat === 'track'"
-          [class.repeat-queue]="playerState().repeat === 'queue'"
-          [attr.title]="
-            playerState().repeat === 'off'
-              ? 'Repetición desactivada'
-              : playerState().repeat === 'track'
-                ? 'Repetir canción'
-                : 'Repetir cola'
-          "
-          [attr.aria-label]="
-            playerState().repeat === 'off'
-              ? 'Activar repetición'
-              : playerState().repeat === 'track'
-                ? 'Repetir canción actual'
-                : 'Repetir cola'
-          "
-          (click)="toggleRepeat()"
-        >
-
-          @if (playerState().repeat === 'track') {
-
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <polyline points="17 1 21 5 17 9" />
-              <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-              <polyline points="7 23 3 19 7 15" />
-              <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-
-              <path d="M12 9v6" stroke-width="2" />
-
-              <path
-                d="M10.5 10.5 12 9l1.5 1.5"
-                stroke-width="1.6"
-              />
-            </svg>
-
-          } @else {
-
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <polyline points="17 1 21 5 17 9" />
-              <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-              <polyline points="7 23 3 19 7 15" />
-              <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-            </svg>
-
-          }
-
-          @if (playerState().repeat === 'queue') {
-            <span class="repeat-queue-badge">Q</span>
-          }
-
-        </button>
-
-      </div>
-
-
-      @if (playerState().playing) {
-
-        <div
-          class="bottom-visualizer"
-          aria-hidden="true"
-        >
-          @for (
-            bar of visualizerBars;
-            track $index
-          ) {
-
-            <span
-              class="visualizer-bar"
-              [style.--bar-height]="bar.height"
-              [style.--bar-delay]="bar.delay"
-              [style.--bar-duration]="bar.duration"
-            ></span>
-
-          }
-        </div>
-
-      }
-
-
-      <!-- Progress -->
-      <div class="bottom-progress">
-
-        <span class="player-time player-time-current">
-          {{
-            formatTime(
-              seeking()
-                ? seekPosition()
-                : playerState().currentTime
-            )
-          }}
-        </span>
-
-        <input
-          type="range"
-          min="0"
-          [max]="currentTrack?.duration ?? 0"
-          [value]="
-            seeking()
-              ? seekPosition()
-              : playerState().currentTime
-          "
-          class="player-progress"
-          [style.--progress]="
-            (
-              (
-                (seeking()
-                  ? seekPosition()
-                  : playerState().currentTime)
-                / (currentTrack?.duration || 1)
-              ) * 100
-            ) + '%'
-          "
-          aria-label="Progreso de reproducción"
-          (pointerdown)="startSeek()"
-          (input)="
-            updateSeekPosition(
-              +$any($event.target).value
-            )
-          "
-          (pointerup)="finishSeek()"
-          (pointercancel)="finishSeek()"
-        />
-
-        <span class="player-time player-time-duration">
-          {{ formatTime(currentTrack?.duration ?? 0) }}
-        </span>
-
-      </div>
-
-    </div>
-
-
-    <!-- =========================================================
-         EXTRA CONTROLS
-    ========================================================== -->
-    <div class="bottom-extra">
-
-      <!-- Volume -->
       <button
         type="button"
-        class="bottom-control mobile-secondary-control"
-        title="Silenciar"
+        class="sheet-icon-button"
         aria-label="Silenciar"
         (click)="toggleMute()"
       >
@@ -510,58 +574,22 @@
 
 
       <input
-        id="volumeRange"
         type="range"
         min="0"
         max="100"
         [value]="playerState().volume"
-        class="volume-range mobile-secondary-control"
+        class="sheet-range sheet-volume"
         [style.--volume]="playerState().volume + '%'"
         aria-label="Volumen"
         (input)="setVolume(+$any($event.target).value)"
       />
 
 
-      <!-- Queue -->
       <button
         type="button"
-        class="bottom-control mobile-secondary-control"
-        [class.active]="playerState().rightPanel"
-        title="Mostrar cola"
-        aria-label="Mostrar u ocultar panel lateral"
-        (click)="toggleQueue()"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-        >
-          <rect
-            x="3"
-            y="4"
-            width="18"
-            height="16"
-            rx="2"
-          />
-          <line
-            x1="15"
-            y1="4"
-            x2="15"
-            y2="20"
-          />
-        </svg>
-      </button>
-
-
-      <!-- Expand -->
-      <button
-        type="button"
-        class="bottom-control mobile-expand-control"
-        title="Expandir reproductor"
-        aria-label="Expandir reproductor"
-        (click)="toggleFullPlayer()"
+        class="sheet-icon-button"
+        aria-label="Mostrar cola de reproducción"
+        (click)="openQueueFromSheet()"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -572,281 +600,884 @@
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <polyline points="15 3 21 3 21 9" />
-          <polyline points="9 21 3 21 3 15" />
-          <line x1="21" y1="3" x2="14" y2="10" />
-          <line x1="3" y1="21" x2="10" y2="14" />
+          <line x1="8" y1="6" x2="21" y2="6" />
+          <line x1="8" y1="12" x2="21" y2="12" />
+          <line x1="8" y1="18" x2="21" y2="18" />
+          <line x1="3" y1="6" x2="3.01" y2="6" />
+          <line x1="3" y1="12" x2="3.01" y2="12" />
+          <line x1="3" y1="18" x2="3.01" y2="18" />
         </svg>
       </button>
 
     </div>
 
-  </div>
+  </section>
 
-    <!-- =========================================================
-       MINI PLAYER — MOBILE
-       ----------------------------------------------------------
-       Versión compacta para móvil, inspirada en apps como
-       Spotify / Apple Music.
+} @else {
 
-       Solo muestra lo esencial: portada, título/artista,
-       play/pause y siguiente. El resto de controles
-       (shuffle, repeat, volumen, cola, favorito) viven en el
-       Full Player, al que se accede tocando el mini-player.
+  <!-- =========================================================
+       REPRODUCTOR DE ESCRITORIO
+       ========================================================= -->
 
-       Se oculta en desktop/tablet vía CSS (max-width: 620px).
-  ========================================================== -->
+  <footer class="bottom-player">
 
-  <div
-    class="mini-player"
-    role="button"
-    tabindex="0"
-    aria-label="Abrir reproductor completo"
-    (click)="toggleFullPlayer()"
-    (keydown.enter)="toggleFullPlayer()"
-  >
+    <footer class="bottom-player">
 
-    <!-- Progreso fino en la parte superior -->
-    <div class="mini-player-progress">
-      <div
-        class="mini-player-progress-fill"
-        [style.width]="
-          (
-            (playerState().currentTime /
-              (currentTrack?.duration || 1)) * 100
-          ) + '%'
-        "
-      ></div>
-    </div>
+      <div class="bottom-player-content">
+
+        <!-- =========================================================
+            CURRENT TRACK
+        ========================================================== -->
+        <div class="bottom-current">
+
+          <div class="bottom-cover">
+
+            @if (currentTrack?.coverType === 'image' && currentTrack.image) {
+
+              <img
+                class="bottom-cover-image"
+                [src]="currentTrack.image"
+                [alt]="currentTrack.title"
+              />
+
+            } @else if (currentTrack?.coverType === 'icon') {
+
+              <div
+                class="bottom-cover-icon"
+                [style.background]="
+                  (currentTrack.coverColor || 'var(--musex-accent)') + '1a'
+                "
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  [attr.stroke]="currentTrack.coverColor || 'var(--musex-accent)'"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path
+                    [attr.d]="getCoverIconPath(currentTrack.coverIcon)"
+                  ></path>
+                </svg>
+              </div>
+
+            } @else {
+
+              <svg
+                class="bottom-default-disc"
+                viewBox="0 0 100 100"
+                role="img"
+                [attr.aria-label]="
+                  currentTrack
+                    ? 'Disco Musex para ' + currentTrack.title
+                    : 'Disco Musex'
+                "
+              >
+
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="48"
+                  fill="var(--musex-accent)"
+                />
+
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="42"
+                  fill="none"
+                  stroke="#0d0e10"
+                  stroke-width="1.5"
+                  opacity="0.35"
+                />
+
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="35"
+                  fill="none"
+                  stroke="#0d0e10"
+                  stroke-width="1"
+                  opacity="0.3"
+                />
+
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="28"
+                  fill="none"
+                  stroke="#0d0e10"
+                  stroke-width="1"
+                  opacity="0.25"
+                />
+
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="13"
+                  fill="#0d0e10"
+                />
+
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="4"
+                  fill="var(--musex-accent)"
+                />
+
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="44"
+                  fill="none"
+                  stroke="#ffffff"
+                  stroke-width="0.8"
+                  opacity="0.12"
+                />
+
+              </svg>
+
+            }
+
+            @if (playerState().playing) {
+
+              <div class="bottom-playing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+
+            }
+
+          </div>
 
 
-    <div class="mini-player-cover">
+          <div class="bottom-meta">
 
-      @if (currentTrack?.coverType === 'image' && currentTrack.image) {
+            <p class="bottom-title">
+              {{ currentTrack?.title ?? 'Sin música' }}
+            </p>
 
-        <img
-          class="mini-player-cover-image"
-          [src]="currentTrack.image"
-          [alt]="currentTrack.title"
-        />
+            <p class="bottom-artist">
+              {{ currentTrack?.artist ?? '—' }}
+            </p>
 
-      } @else if (currentTrack?.coverType === 'icon') {
+          </div>
 
-        <div
-          class="mini-player-cover-icon"
-          [style.background]="
-            (currentTrack.coverColor || 'var(--musex-accent)') + '1a'
-          "
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            [attr.stroke]="currentTrack.coverColor || 'var(--musex-accent)'"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path
-              [attr.d]="getCoverIconPath(currentTrack.coverIcon)"
-            ></path>
-          </svg>
+
+          @if (currentTrack?.source !== 'download') {
+
+            <button
+              type="button"
+              class="bottom-favorite"
+              [class.active]="currentTrackIsFavorite"
+              [attr.aria-label]="
+                currentTrackIsFavorite
+                  ? 'Quitar de favoritos'
+                  : 'Agregar a favoritos'
+              "
+              (click)="toggleFavorite()"
+            >
+
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                />
+              </svg>
+
+            </button>
+
+          }
+
         </div>
 
-      } @else {
 
-        <svg
-          class="music-table-default-disc"
-          viewBox="0 0 100 100"
-          role="img"
-        >
+        <!-- =========================================================
+            CENTER PLAYER
+        ========================================================== -->
+        <div class="bottom-center">
 
-          <!-- Borde exterior -->
+          <div class="bottom-controls">
 
-          <circle
-            cx="50"
-            cy="50"
-            r="47"
-            fill="none"
-            stroke="var(--musex-accent)"
-            stroke-width="3"
-            stroke-opacity="0.65"
+            <!-- Shuffle -->
+            <button
+              type="button"
+              class="bottom-control mobile-secondary-control"
+              [class.active]="playerState().shuffle"
+              title="Reproducción aleatoria"
+              aria-label="Activar reproducción aleatoria"
+              (click)="toggleShuffle()"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="16 3 21 3 21 8" />
+                <line x1="4" y1="20" x2="21" y2="3" />
+                <polyline points="21 16 21 21 16 21" />
+                <line x1="15" y1="15" x2="21" y2="21" />
+                <line x1="4" y1="4" x2="9" y2="9" />
+              </svg>
+            </button>
+
+
+            <!-- Previous -->
+            <button
+              type="button"
+              class="bottom-control mobile-previous-control"
+              [class.disabled]="!playerService.canGoPrevious"
+              [disabled]="!playerService.canGoPrevious"
+              title="Anterior"
+              aria-label="Canción anterior"
+              (click)="previousTrack()"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M6 5h2v14H6z" />
+                <path d="M18 5v14L8 12z" />
+              </svg>
+            </button>
+
+
+            <!-- Play -->
+            <button
+              type="button"
+              class="bottom-play"
+              [class.playing]="playerState().playing"
+              [attr.aria-label]="
+                playerState().playing
+                  ? 'Pausar'
+                  : 'Reproducir'
+              "
+              (click)="togglePlay()"
+            >
+
+              @if (playerState().playing) {
+
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <rect
+                    x="6"
+                    y="5"
+                    width="4"
+                    height="14"
+                    rx="1"
+                  />
+                  <rect
+                    x="14"
+                    y="5"
+                    width="4"
+                    height="14"
+                    rx="1"
+                  />
+                </svg>
+
+              } @else {
+
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+
+              }
+
+            </button>
+
+
+            <!-- Next -->
+            <button
+              type="button"
+              class="bottom-control mobile-next-control"
+              [class.disabled]="!playerService.canGoNext"
+              [disabled]="!playerService.canGoNext"
+              title="Siguiente"
+              aria-label="Siguiente canción"
+              (click)="nextTrack()"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M16 5h2v14h-2z" />
+                <path d="M6 5v14l10-7z" />
+              </svg>
+            </button>
+
+
+            <!-- Repeat -->
+            <button
+              type="button"
+              class="bottom-control repeat-control mobile-secondary-control"
+              [class.active]="playerState().repeat !== 'off'"
+              [class.repeat-track]="playerState().repeat === 'track'"
+              [class.repeat-queue]="playerState().repeat === 'queue'"
+              [attr.title]="
+                playerState().repeat === 'off'
+                  ? 'Repetición desactivada'
+                  : playerState().repeat === 'track'
+                    ? 'Repetir canción'
+                    : 'Repetir cola'
+              "
+              [attr.aria-label]="
+                playerState().repeat === 'off'
+                  ? 'Activar repetición'
+                  : playerState().repeat === 'track'
+                    ? 'Repetir canción actual'
+                    : 'Repetir cola'
+              "
+              (click)="toggleRepeat()"
+            >
+
+              @if (playerState().repeat === 'track') {
+
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="17 1 21 5 17 9" />
+                  <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                  <polyline points="7 23 3 19 7 15" />
+                  <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+
+                  <path d="M12 9v6" stroke-width="2" />
+
+                  <path
+                    d="M10.5 10.5 12 9l1.5 1.5"
+                    stroke-width="1.6"
+                  />
+                </svg>
+
+              } @else {
+
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="17 1 21 5 17 9" />
+                  <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                  <polyline points="7 23 3 19 7 15" />
+                  <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                </svg>
+
+              }
+
+              @if (playerState().repeat === 'queue') {
+                <span class="repeat-queue-badge">Q</span>
+              }
+
+            </button>
+
+          </div>
+
+
+          @if (playerState().playing) {
+
+            <div
+              class="bottom-visualizer"
+              aria-hidden="true"
+            >
+              @for (
+                bar of visualizerBars;
+                track $index
+              ) {
+
+                <span
+                  class="visualizer-bar"
+                  [style.--bar-height]="bar.height"
+                  [style.--bar-delay]="bar.delay"
+                  [style.--bar-duration]="bar.duration"
+                ></span>
+
+              }
+            </div>
+
+          }
+
+
+          <!-- Progress -->
+          <div class="bottom-progress">
+
+            <span class="player-time player-time-current">
+              {{
+                formatTime(
+                  seeking()
+                    ? seekPosition()
+                    : playerState().currentTime
+                )
+              }}
+            </span>
+
+            <input
+              type="range"
+              min="0"
+              [max]="currentTrack?.duration ?? 0"
+              [value]="
+                seeking()
+                  ? seekPosition()
+                  : playerState().currentTime
+              "
+              class="player-progress"
+              [style.--progress]="
+                (
+                  (
+                    (seeking()
+                      ? seekPosition()
+                      : playerState().currentTime)
+                    / (currentTrack?.duration || 1)
+                  ) * 100
+                ) + '%'
+              "
+              aria-label="Progreso de reproducción"
+              (pointerdown)="startSeek()"
+              (input)="
+                updateSeekPosition(
+                  +$any($event.target).value
+                )
+              "
+              (pointerup)="finishSeek()"
+              (pointercancel)="finishSeek()"
+            />
+
+            <span class="player-time player-time-duration">
+              {{ formatTime(currentTrack?.duration ?? 0) }}
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <!-- =========================================================
+            EXTRA CONTROLS
+        ========================================================== -->
+        <div class="bottom-extra">
+
+          <!-- Volume -->
+          <button
+            type="button"
+            class="bottom-control mobile-secondary-control"
+            title="Silenciar"
+            aria-label="Silenciar"
+            (click)="toggleMute()"
+          >
+
+            @if (
+              playerState().muted ||
+              playerState().volume === 0
+            ) {
+
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                <line x1="23" y1="9" x2="17" y2="15" />
+                <line x1="17" y1="9" x2="23" y2="15" />
+              </svg>
+
+            } @else {
+
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+              </svg>
+
+            }
+
+          </button>
+
+
+          <input
+            id="volumeRange"
+            type="range"
+            min="0"
+            max="100"
+            [value]="playerState().volume"
+            class="volume-range mobile-secondary-control"
+            [style.--volume]="playerState().volume + '%'"
+            aria-label="Volumen"
+            (input)="setVolume(+$any($event.target).value)"
           />
 
-          <!-- Disco -->
 
-          <circle
-            cx="50"
-            cy="50"
-            r="43"
-            fill="var(--musex-accent)"
-          />
-
-          <!-- Surcos del vinilo -->
-
-          <circle
-            cx="50"
-            cy="50"
-            r="38"
-            fill="none"
-            stroke="#0d0e10"
-            stroke-width="1.5"
-            opacity="0.35"
-          />
-
-          <circle
-            cx="50"
-            cy="50"
-            r="31"
-            fill="none"
-            stroke="#0d0e10"
-            stroke-width="1"
-            opacity="0.3"
-          />
-
-          <circle
-            cx="50"
-            cy="50"
-            r="24"
-            fill="none"
-            stroke="#0d0e10"
-            stroke-width="1"
-            opacity="0.25"
-          />
-
-          <!-- Etiqueta central -->
-
-          <circle
-            cx="50"
-            cy="50"
-            r="13"
-            fill="#0d0e10"
-          />
-
-          <!-- Centro Musex -->
-
-          <circle
-            cx="50"
-            cy="50"
-            r="4"
-            fill="var(--musex-accent)"
-          />
-
-          <!-- Brillo -->
-
-          <circle
-            cx="50"
-            cy="50"
-            r="40"
-            fill="none"
-            stroke="#ffffff"
-            stroke-width="0.8"
-            opacity="0.12"
-          />
-
-        </svg>
-
-      }
-
-    </div>
+          <!-- Queue -->
+          <button
+            type="button"
+            class="bottom-control mobile-secondary-control"
+            [class.active]="playerState().rightPanel"
+            title="Mostrar cola"
+            aria-label="Mostrar u ocultar panel lateral"
+            (click)="toggleQueue()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            >
+              <rect
+                x="3"
+                y="4"
+                width="18"
+                height="16"
+                rx="2"
+              />
+              <line
+                x1="15"
+                y1="4"
+                x2="15"
+                y2="20"
+              />
+            </svg>
+          </button>
 
 
-    <div class="mini-player-meta">
+          <!-- Expand -->
+          <button
+            type="button"
+            class="bottom-control mobile-expand-control"
+            title="Expandir reproductor"
+            aria-label="Expandir reproductor"
+            (click)="toggleFullPlayer()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="15 3 21 3 21 9" />
+              <polyline points="9 21 3 21 3 15" />
+              <line x1="21" y1="3" x2="14" y2="10" />
+              <line x1="3" y1="21" x2="10" y2="14" />
+            </svg>
+          </button>
 
-      <p class="mini-player-title">
-        {{ currentTrack?.title ?? 'Sin música' }}
-      </p>
+        </div>
 
-      <p class="mini-player-artist">
-        {{ currentTrack?.artist ?? '—' }}
-      </p>
-
-    </div>
-
-
-    <!-- Indicador de reproducción -->
-    @if (playerState().playing) {
-
-      <div
-        class="mini-player-playing"
-        aria-hidden="true"
-      >
-        <span></span>
-        <span></span>
-        <span></span>
       </div>
 
-    }
+        <!-- =========================================================
+          MINI PLAYER — MOBILE
+          ----------------------------------------------------------
+          Versión compacta para móvil, inspirada en apps como
+          Spotify / Apple Music.
 
+          Solo muestra lo esencial: portada, título/artista,
+          play/pause y siguiente. El resto de controles
+          (shuffle, repeat, volumen, cola, favorito) viven en el
+          Full Player, al que se accede tocando el mini-player.
 
-    <!-- Los botones detienen la propagación para no abrir
-         el Full Player al usarlos -->
+          Se oculta en desktop/tablet vía CSS (max-width: 620px).
+      ========================================================== -->
 
-    <button
-      type="button"
-      class="mini-player-control"
-      [class.disabled]="!playerService.canGoPrevious"
-      [disabled]="!playerService.canGoPrevious"
-      aria-label="Canción anterior"
-      (click)="$event.stopPropagation(); previousTrack()"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="currentColor"
+      <div
+        class="mini-player"
+        role="button"
+        tabindex="0"
+        aria-label="Abrir reproductor completo"
+        (click)="toggleFullPlayer()"
+        (keydown.enter)="toggleFullPlayer()"
       >
-        <path d="M6 5h2v14H6z" />
-        <path d="M18 5v14L8 12z" />
-      </svg>
-    </button>
+
+        <!-- Progreso fino en la parte superior -->
+        <div class="mini-player-progress">
+          <div
+            class="mini-player-progress-fill"
+            [style.width]="
+              (
+                (playerState().currentTime /
+                  (currentTrack?.duration || 1)) * 100
+              ) + '%'
+            "
+          ></div>
+        </div>
 
 
-    <button
-      type="button"
-      class="mini-player-play"
-      [class.playing]="playerState().playing"
-      [attr.aria-label]="
-        playerState().playing ? 'Pausar' : 'Reproducir'
-      "
-      (click)="$event.stopPropagation(); togglePlay()"
-    >
+        <div class="mini-player-cover">
 
-      @if (playerState().playing) {
+          @if (currentTrack?.coverType === 'image' && currentTrack.image) {
 
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="6" y="5" width="4" height="14" rx="1" />
-          <rect x="14" y="5" width="4" height="14" rx="1" />
-        </svg>
+            <img
+              class="mini-player-cover-image"
+              [src]="currentTrack.image"
+              [alt]="currentTrack.title"
+            />
 
-      } @else {
+          } @else if (currentTrack?.coverType === 'icon') {
 
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8 5v14l11-7z" />
-        </svg>
+            <div
+              class="mini-player-cover-icon"
+              [style.background]="
+                (currentTrack.coverColor || 'var(--musex-accent)') + '1a'
+              "
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                [attr.stroke]="currentTrack.coverColor || 'var(--musex-accent)'"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path
+                  [attr.d]="getCoverIconPath(currentTrack.coverIcon)"
+                ></path>
+              </svg>
+            </div>
 
-      }
+          } @else {
 
-    </button>
+            <svg
+              class="music-table-default-disc"
+              viewBox="0 0 100 100"
+              role="img"
+            >
+
+              <!-- Borde exterior -->
+
+              <circle
+                cx="50"
+                cy="50"
+                r="47"
+                fill="none"
+                stroke="var(--musex-accent)"
+                stroke-width="3"
+                stroke-opacity="0.65"
+              />
+
+              <!-- Disco -->
+
+              <circle
+                cx="50"
+                cy="50"
+                r="43"
+                fill="var(--musex-accent)"
+              />
+
+              <!-- Surcos del vinilo -->
+
+              <circle
+                cx="50"
+                cy="50"
+                r="38"
+                fill="none"
+                stroke="#0d0e10"
+                stroke-width="1.5"
+                opacity="0.35"
+              />
+
+              <circle
+                cx="50"
+                cy="50"
+                r="31"
+                fill="none"
+                stroke="#0d0e10"
+                stroke-width="1"
+                opacity="0.3"
+              />
+
+              <circle
+                cx="50"
+                cy="50"
+                r="24"
+                fill="none"
+                stroke="#0d0e10"
+                stroke-width="1"
+                opacity="0.25"
+              />
+
+              <!-- Etiqueta central -->
+
+              <circle
+                cx="50"
+                cy="50"
+                r="13"
+                fill="#0d0e10"
+              />
+
+              <!-- Centro Musex -->
+
+              <circle
+                cx="50"
+                cy="50"
+                r="4"
+                fill="var(--musex-accent)"
+              />
+
+              <!-- Brillo -->
+
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                fill="none"
+                stroke="#ffffff"
+                stroke-width="0.8"
+                opacity="0.12"
+              />
+
+            </svg>
+
+          }
+
+        </div>
 
 
-    <button
-      type="button"
-      class="mini-player-control"
-      [class.disabled]="!playerService.canGoNext"
-      [disabled]="!playerService.canGoNext"
-      aria-label="Siguiente canción"
-      (click)="$event.stopPropagation(); nextTrack()"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-      >
-        <path d="M16 5h2v14h-2z" />
-        <path d="M6 5v14l10-7z" />
-      </svg>
-    </button>
+        <div class="mini-player-meta">
 
-  </div>
+          <p class="mini-player-title">
+            {{ currentTrack?.title ?? 'Sin música' }}
+          </p>
 
-</footer>
+          <p class="mini-player-artist">
+            {{ currentTrack?.artist ?? '—' }}
+          </p>
+
+        </div>
+
+
+        <!-- Indicador de reproducción -->
+        @if (playerState().playing) {
+
+          <div
+            class="mini-player-playing"
+            aria-hidden="true"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+
+        }
+
+
+        <!-- Los botones detienen la propagación para no abrir
+            el Full Player al usarlos -->
+
+        <button
+          type="button"
+          class="mini-player-control"
+          [class.disabled]="!playerService.canGoPrevious"
+          [disabled]="!playerService.canGoPrevious"
+          aria-label="Canción anterior"
+          (click)="$event.stopPropagation(); previousTrack()"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path d="M6 5h2v14H6z" />
+            <path d="M18 5v14L8 12z" />
+          </svg>
+        </button>
+
+
+        <button
+          type="button"
+          class="mini-player-play"
+          [class.playing]="playerState().playing"
+          [attr.aria-label]="
+            playerState().playing ? 'Pausar' : 'Reproducir'
+          "
+          (click)="$event.stopPropagation(); togglePlay()"
+        >
+
+          @if (playerState().playing) {
+
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="5" width="4" height="14" rx="1" />
+              <rect x="14" y="5" width="4" height="14" rx="1" />
+            </svg>
+
+          } @else {
+
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+
+          }
+
+        </button>
+
+
+        <button
+          type="button"
+          class="mini-player-control"
+          [class.disabled]="!playerService.canGoNext"
+          [disabled]="!playerService.canGoNext"
+          aria-label="Siguiente canción"
+          (click)="$event.stopPropagation(); nextTrack()"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path d="M16 5h2v14h-2z" />
+            <path d="M6 5v14l10-7z" />
+          </svg>
+        </button>
+
+      </div>
+
+    </footer>
+
+  </footer>
+
+}

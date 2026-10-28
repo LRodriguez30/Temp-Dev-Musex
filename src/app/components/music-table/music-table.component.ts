@@ -9,6 +9,7 @@ import {
 import { Track } from '../../core/models/track.model'; 
 import { PlayerService } from '../../core/services/player.service'; 
 import { LibraryService } from '../../core/services/library.service'; 
+import { IS_ANDROID } from '@tauri-apps/api/core';
  
  
 /** 
@@ -33,6 +34,7 @@ import { LibraryService } from '../../core/services/library.service';
 }) 
 export class MusicTableComponent { 
  
+  readonly isAndroid = IS_ANDROID;
  
   /* ============================================================= 
      INPUTS 
@@ -73,13 +75,23 @@ export class MusicTableComponent {
  
   /** 
    * Evento emitido cuando el usuario solicita agregar 
-   * una canción a una playlist. 
+   * una sola canción a una playlist. 
    * 
-   * MainLayout utiliza este evento para abrir el modal 
-   * global de playlists. 
+   * Se mantiene para conservar el comportamiento actual. 
    */ 
   @Output() 
   addToPlaylist = new EventEmitter<Track>(); 
+ 
+ 
+  /** 
+   * Evento emitido cuando el usuario solicita agregar 
+   * varias canciones a una playlist. 
+   * 
+   * El componente padre recibe todas las canciones 
+   * seleccionadas para abrir el selector de playlists. 
+   */ 
+  @Output() 
+  addSelectedToPlaylist = new EventEmitter<Track[]>(); 
  
  
   /* ============================================================= 
@@ -96,6 +108,123 @@ export class MusicTableComponent {
    * Servicio encargado de gestionar la biblioteca y favoritos. 
    */ 
   private readonly libraryService = inject(LibraryService); 
+ 
+ 
+  /* ============================================================= 
+     SELECCIÓN 
+     ============================================================= */ 
+ 
+  /** 
+   * IDs de las canciones seleccionadas. 
+   * 
+   * Se utilizan IDs para evitar depender de referencias 
+   * de objetos Track. 
+   */ 
+  private selectedTrackIds = new Set<string>(); 
+ 
+ 
+  /** 
+   * Cantidad de canciones seleccionadas. 
+   */ 
+  get selectedCount(): number { 
+    return this.selectedTrackIds.size; 
+  } 
+ 
+ 
+  /** 
+   * Indica si existe al menos una canción seleccionada. 
+   */ 
+  get hasSelection(): boolean { 
+    return this.selectedTrackIds.size > 0; 
+  } 
+ 
+ 
+  /** 
+   * Indica si todas las canciones visibles están seleccionadas. 
+   */ 
+  get allTracksSelected(): boolean { 
+ 
+    if (this.tracks.length === 0) { 
+      return false; 
+    } 
+ 
+    return this.tracks.every(track => 
+      this.selectedTrackIds.has(track.id) 
+    ); 
+  } 
+ 
+ 
+  /** 
+   * Indica si una canción está seleccionada. 
+   */ 
+  isTrackSelected(track: Track): boolean { 
+    return this.selectedTrackIds.has(track.id); 
+  } 
+ 
+ 
+  /** 
+   * Alterna la selección de una canción. 
+   */ 
+  toggleTrackSelection(track: Track): void { 
+ 
+    if (this.selectedTrackIds.has(track.id)) { 
+ 
+      this.selectedTrackIds.delete(track.id); 
+ 
+    } else { 
+ 
+      this.selectedTrackIds.add(track.id); 
+ 
+    } 
+  } 
+ 
+ 
+  /** 
+   * Selecciona o deselecciona todas las canciones visibles. 
+   */ 
+  toggleSelectAll(): void { 
+ 
+    if (this.allTracksSelected) { 
+ 
+      for (const track of this.tracks) { 
+        this.selectedTrackIds.delete(track.id); 
+      } 
+ 
+      return; 
+    } 
+ 
+    for (const track of this.tracks) { 
+      this.selectedTrackIds.add(track.id); 
+    } 
+  } 
+ 
+ 
+  /** 
+   * Limpia toda la selección. 
+   */ 
+  clearSelection(): void { 
+    this.selectedTrackIds.clear(); 
+  } 
+ 
+ 
+  /** 
+   * Emite las canciones seleccionadas para agregarlas 
+   * a una playlist. 
+   */ 
+  addSelectedTracksToPlaylist(): void { 
+ 
+    const selectedTracks = this.tracks.filter(track => 
+      this.selectedTrackIds.has(track.id) 
+    ); 
+ 
+    if (selectedTracks.length === 0) { 
+      return; 
+    } 
+ 
+    this.addSelectedToPlaylist.emit( 
+      selectedTracks 
+    ); 
+  } 
  
  
   /* ============================================================= 
@@ -159,17 +288,22 @@ export class MusicTableComponent {
     }); 
   } 
  
- 
-  isTrackPlaying(track: Track): boolean { 
-    const state = this.playerService.state(); 
- 
-    return ( 
-      state.playing && 
-      state.currentTrackId === track.id 
-    ); 
-  } 
- 
- 
+  /** Indica si la canción está esperando a que comience la reproducción. */
+  isTrackLoading(track: Track): boolean {
+    return this.playerService.loadingTrackId() === track.id;
+  }
+
+  /** Indica si debe mostrarse el icono de detener para esta canción. */
+  isTrackPlaying(track: Track): boolean {
+    const state = this.playerService.state();
+
+    return (
+      !this.isTrackLoading(track) &&
+      state.playing &&
+      state.currentTrackId === track.id
+    );
+  }
+
   /* ============================================================= 
      MODAL — METADATA 
      ============================================================= */ 
@@ -192,8 +326,6 @@ export class MusicTableComponent {
  
   /** 
    * Solicita abrir el selector de playlists para una canción. 
-   * 
-   * MainLayout recibe el evento y controla el modal global. 
    */ 
   openAddToPlaylist(track: Track): void { 
  
@@ -201,7 +333,10 @@ export class MusicTableComponent {
   } 
  
  
-  formatDuration(duration: number | undefined | null): string { 
+  formatDuration( 
+    duration: number | undefined | null 
+  ): string { 
+ 
     if ( 
       duration === undefined || 
       duration === null || 
@@ -225,4 +360,5 @@ export class MusicTableComponent {
       .toString() 
       .padStart(2, '0')}`; 
   } 
+
 }

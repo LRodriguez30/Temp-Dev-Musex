@@ -15,10 +15,32 @@
    GLOBAL RESET
 ============================================================= */
 
+html.is-android a[href="/history"],
+html.is-android a[href="/explore"],
+html.is-android a[href="/downloads"],
+html.is-android a[href="/equalizer"],
+html.is-android a[href="/sense"] { display: none !important; }
+
+/* =============================================================
+   MUSEX — ANDROID SOLO LECTURA
+   -------------------------------------------------------------
+   PEGAR EN src/styles.css (global, no en un componente).
+
+   Oculta en Android todo lo que crea, edita, elimina o importa.
+   Los elementos se marcan con la clase `hide-on-android`
+   (ver android-solo-lectura.mjs).
+============================================================= */
+
+html.is-android .hide-on-android {
+  display: none !important;
+}
+
 :root {
   --musex-accent: #9CFF00;
   --musex-green: var(--musex-accent);
   --musex-accent-soft: color-mix(in srgb, var(--musex-accent) 10%, transparent);
+  --safe-top: 0px;
+  --safe-bottom: 0px;
 }
 
 * {
@@ -396,3 +418,76 @@ input[type="range"]::-moz-range-thumb {
   }
 }
 
+
+/* ============================================================
+   MOBILE ACCESSIBILITY — MUSEX
+============================================================= */
+
+:root {
+    --touch-target-min: 44px;
+}
+
+/* Evita que los controles queden por debajo del tamaño táctil recomendado. */
+@media (max-width: 620px) {
+    button,
+    select {
+        min-height: var(--touch-target-min);
+    }
+
+    button {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    }
+
+    /* Mantiene visible el foco para navegación por teclado. */
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+        outline: 2px solid var(--musex-accent);
+        outline-offset: 3px;
+    }
+
+    /* Los controles deslizantes necesitan un área táctil más cómoda. */
+    input[type="range"] {
+        height: 6px;
+        min-height: 6px;
+        cursor: pointer;
+        touch-action: pan-y;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+        width: 18px;
+        height: 18px;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* Evita que las áreas desplazables compitan por el gesto vertical. */
+    .scroll-area {
+        overscroll-behavior-y: contain;
+        scrollbar-gutter: auto;
+    }
+}
+
+/* Android: respetar las áreas seguras del dispositivo. */
+html.is-android body {
+    padding-top: var(--safe-top, 0px);
+    padding-bottom: var(--safe-bottom, 0px);
+}
+
+/* El sistema operativo puede solicitar menos movimiento. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

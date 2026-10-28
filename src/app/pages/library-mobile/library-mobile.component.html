@@ -1,0 +1,1104 @@
+<!-- =========================================================
+     LIBRARY VIEW
+     ---------------------------------------------------------
+     Biblioteca local de Musex.
+========================================================== -->
+
+<section class="view h-full overflow-y-auto scroll-area">
+
+  <div class="library-mobile-page mx-auto max-w-[1320px]">
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header class="library-header">
+
+      <div class="library-heading">
+
+        <div class="library-eyebrow">
+
+          <span class="library-eyebrow-dot"></span>
+
+          <span>
+            {{ isAndroid
+                ? (selectedCollection() === 'local'
+                    ? 'COLECCIÓN LOCAL'
+                    : 'BIBLIOTECA REMOTA')
+                : 'COLECCIÓN LOCAL' }}
+          </span>
+
+        </div>
+
+        <h1 class="library-title">
+          Biblioteca
+        </h1>
+
+        <p class="library-description">
+          Tu colección musical, organizada en un solo lugar.
+        </p>
+
+      </div>
+
+
+      <!-- IMPORT -->
+
+      <div class="library-import">
+
+        <button
+          type="button"
+          class="library-import-button hide-on-android"
+          (click)="selectMusicFiles()"
+          [disabled]="importing"
+        >
+
+          <span class="library-import-icon">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 3v12"></path>
+              <path d="m7 8 5-5 5 5"></path>
+              <path d="M5 21h14"></path>
+              <path d="M5 17v4"></path>
+              <path d="M19 17v4"></path>
+            </svg>
+
+          </span>
+
+          <span>
+            {{ importing ? 'Importando...' : 'Importar música' }}
+          </span>
+
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         ERROR DE ESCANEO
+    ====================================================== -->
+
+    @if (scanError) {
+
+      <div class="library-error">
+
+        <div class="library-error-icon">
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="9"
+            ></circle>
+
+            <path d="M12 8v4"></path>
+
+            <path d="M12 16h.01"></path>
+
+          </svg>
+
+        </div>
+
+        <div class="library-error-content">
+
+          <strong>
+            No se pudo actualizar la biblioteca
+          </strong>
+
+          <span>
+            {{ scanError }}
+          </span>
+
+        </div>
+
+        <button
+          type="button"
+          class="library-error-button"
+          (click)="scanLibrary()"
+          [disabled]="scanning()"
+        >
+          {{ scanning() ? 'Actualizando...' : 'Reintentar' }}
+        </button>
+
+      </div>
+
+    }
+
+
+    <!-- =====================================================
+         ERROR DE IMPORTACIÓN
+    ====================================================== -->
+
+    @if (importError) {
+
+      <div class="library-error">
+
+        <div class="library-error-icon">
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="9"
+            ></circle>
+
+            <path d="M12 8v4"></path>
+
+            <path d="M12 16h.01"></path>
+
+          </svg>
+
+        </div>
+
+        <div class="library-error-content">
+
+          <strong>
+            No se pudieron importar los archivos
+          </strong>
+
+          <span>
+            {{ importError }}
+          </span>
+
+        </div>
+
+      </div>
+
+    }
+
+
+    <!-- =====================================================
+         LIBRARY OVERVIEW
+    ====================================================== -->
+
+    <section class="library-overview">
+
+
+      <!-- SONGS -->
+
+      <article
+        class="
+          library-stat
+          library-stat-featured
+        "
+      >
+
+        <div class="library-stat-top">
+
+          <span class="library-stat-label">
+            CANCIONES
+          </span>
+
+          <span class="library-stat-icon">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 18V5l10-2v13"></path>
+
+              <circle
+                cx="6"
+                cy="18"
+                r="3"
+              ></circle>
+
+              <circle
+                cx="16"
+                cy="16"
+                r="3"
+              ></circle>
+
+            </svg>
+
+          </span>
+
+        </div>
+
+        <p class="library-stat-value">
+          {{ libraryCount }}
+        </p>
+
+        <p class="library-stat-description">
+          pistas en tu biblioteca
+        </p>
+
+      </article>
+
+
+      <!-- FAVORITES -->
+
+      <article class="library-stat">
+
+        <div class="library-stat-top">
+
+          <span class="library-stat-label">
+            FAVORITOS
+          </span>
+
+          <span class="library-stat-icon">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                d="
+                  M12 2.5
+                  l2.94 5.95
+                  6.56.95
+                  -4.75 4.63
+                  1.12 6.54
+                  L12 17.48
+                  6.13 20.57
+                  7.25 14.03
+                  2.5 9.4
+                  9.06 8.45
+                  12 2.5Z
+                "
+              ></path>
+
+            </svg>
+
+          </span>
+
+        </div>
+
+        <p class="library-stat-value">
+          {{ favoriteCount }}
+        </p>
+
+        <p class="library-stat-description">
+          canciones marcadas
+        </p>
+
+      </article>
+
+
+      <!-- PLAYLISTS -->
+
+      <article class="library-stat">
+
+        <div class="library-stat-top">
+
+          <span class="library-stat-label">
+            PLAYLISTS
+          </span>
+
+          <span class="library-stat-icon">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <line
+                x1="8"
+                y1="6"
+                x2="21"
+                y2="6"
+              ></line>
+
+              <line
+                x1="8"
+                y1="12"
+                x2="21"
+                y2="12"
+              ></line>
+
+              <line
+                x1="8"
+                y1="18"
+                x2="21"
+                y2="18"
+              ></line>
+
+              <line
+                x1="3"
+                y1="6"
+                x2="3.01"
+                y2="6"
+              ></line>
+
+              <line
+                x1="3"
+                y1="12"
+                x2="3.01"
+                y2="12"
+              ></line>
+
+              <line
+                x1="3"
+                y1="18"
+                x2="3.01"
+                y2="18"
+              ></line>
+
+            </svg>
+
+          </span>
+
+        </div>
+
+        <p class="library-stat-value">
+          {{ playlistCount }}
+        </p>
+
+        <p class="library-stat-description">
+          colecciones creadas
+        </p>
+
+      </article>
+
+
+      <!-- DOWNLOADS -->
+
+      @if (!isAndroid) {
+        <article class="library-stat">
+  
+          <div class="library-stat-top">
+  
+            <span class="library-stat-label">
+              DESCARGAS
+            </span>
+  
+            <span class="library-stat-icon">
+  
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 3v12"></path>
+  
+                <path d="m7 10 5 5 5-5"></path>
+  
+                <path d="M5 21h14"></path>
+  
+              </svg>
+  
+            </span>
+  
+          </div>
+  
+          <p class="library-stat-value">
+            {{ downloadCount }}
+          </p>
+  
+          <p class="library-stat-description">
+            archivos descargados
+          </p>
+  
+        </article>
+      }
+
+    </section>
+
+
+    <!-- =====================================================
+         SONG LIBRARY
+    ====================================================== -->
+
+    <section class="library-section">
+
+      <!-- SELECTOR DE COLECCIÓN: SOLO ANDROID -->
+      @if (isAndroid) {
+        <div
+          class="library-collection-switch"
+          role="group"
+          aria-label="Seleccionar biblioteca"
+        >
+          <button
+            type="button"
+            class="library-collection-option"
+            [class.is-active]="selectedCollection() === 'local'"
+            [attr.aria-pressed]="selectedCollection() === 'local'"
+            (click)="selectCollection('local')"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+              <path d="M7 8h10M7 12h6"></path>
+            </svg>
+
+            <span>Local</span>
+
+            <span class="library-collection-count">
+              {{ libraryService.getLocalTracks().length }}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="library-collection-option"
+            [class.is-active]="selectedCollection() === 'remote'"
+            [attr.aria-pressed]="selectedCollection() === 'remote'"
+            (click)="selectCollection('remote')"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="3" y="4" width="18" height="13" rx="2"></rect>
+              <path d="M8 21h8M12 17v4M7 9h10M7 12h6"></path>
+            </svg>
+
+            <span>Remoto</span>
+
+            <span class="library-collection-count">
+              {{ libraryService.getRemoteTracks().length }}
+            </span>
+          </button>
+        </div>
+      }
+
+      <!-- SECTION HEADER -->
+
+      <div class="library-section-header">
+
+        <div class="library-section-heading">
+          <div class="library-section-kicker">
+            {{ isAndroid
+                ? (selectedCollection() === 'local'
+                    ? 'DISPOSITIVO'
+                    : 'EQUIPO CONECTADO')
+                : 'TU COLECCIÓN' }}
+          </div>
+
+          <h2 class="library-section-title">
+            {{ isAndroid
+                ? (selectedCollection() === 'local'
+                    ? 'Música local'
+                    : 'Música remota')
+                : 'Todas las canciones' }}
+          </h2>
+
+          <p class="library-section-description">
+            {{ isAndroid
+                ? (selectedCollection() === 'local'
+                    ? 'Canciones almacenadas en este dispositivo.'
+                    : 'Canciones disponibles desde tu equipo conectado.')
+                : 'Explora y reproduce tu colección local.' }}
+          </p>
+        </div>
+
+
+        <!-- =================================================
+             LIBRARY TOOLS
+        ================================================== -->
+
+        <div class="library-tools">
+
+          <!-- PLAY ALL -->
+
+          <button
+            type="button"
+            class="library-play-all-button"
+            [disabled]="scanning() || tracks.length === 0"
+            (click)="playAll()"
+            aria-label="Reproducir todas las canciones"
+            title="Reproducir todas las canciones"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M8 5.5v13l10-6.5-10-6.5Z"></path>
+            </svg>
+
+            <span>
+              Reproducir todo
+            </span>
+
+          </button>
+
+
+          <!-- REFRESH -->
+
+          <button
+            type="button"
+            class="library-refresh-button"
+            [class.is-refreshing]="scanning()"
+            [disabled]="scanning()"
+            (click)="scanLibrary()"
+            aria-label="Actualizar biblioteca"
+            title="Actualizar biblioteca"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M20 11a8.1 8.1 0 0 0-14.8-4.5L4 8"
+              ></path>
+
+              <path d="M4 4v4h4"></path>
+
+              <path
+                d="M4 13a8.1 8.1 0 0 0 14.8 4.5L20 16"
+              ></path>
+
+              <path d="M20 20v-4h-4"></path>
+
+            </svg>
+
+          </button>
+
+
+          <!-- SEARCH -->
+
+          <div class="library-search">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle
+                cx="11"
+                cy="11"
+                r="7"
+              ></circle>
+
+              <path d="m20 20-4-4"></path>
+
+            </svg>
+
+
+            <input
+              type="search"
+              [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event)"
+              placeholder="Buscar en tu biblioteca..."
+              aria-label="Buscar en tu biblioteca"
+            />
+
+
+            @if (searchQuery()) {
+
+              <button
+                type="button"
+                class="library-search-clear"
+                aria-label="Limpiar búsqueda"
+                (click)="searchQuery.set('')"
+              >
+
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M6 6l12 12"></path>
+                  <path d="M18 6 6 18"></path>
+                </svg>
+
+              </button>
+
+            }
+
+          </div>
+
+
+          <!-- SORT -->
+
+          <div class="library-sort">
+
+            <span class="library-sort-label">
+              ORDENAR
+            </span>
+
+            <div class="library-sort-control">
+
+              <button
+                type="button"
+                class="library-sort-button"
+                [class.is-open]="sortMenuOpen"
+                [attr.aria-expanded]="sortMenuOpen"
+                aria-haspopup="listbox"
+                aria-label="Ordenar biblioteca"
+                (click)="sortMenuOpen = !sortMenuOpen"
+              >
+
+                <span class="library-sort-icon">
+
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M8 6h13"></path>
+                    <path d="M8 12h10"></path>
+                    <path d="M8 18h7"></path>
+
+                    <path d="M3 6h.01"></path>
+                    <path d="M3 12h.01"></path>
+                    <path d="M3 18h.01"></path>
+                  </svg>
+
+                </span>
+
+                <span class="library-sort-value">
+
+                  @if (sortBy === 'title') {
+                    Título
+                  } @else if (sortBy === 'artist') {
+                    Artista
+                  } @else {
+                    Más recientes
+                  }
+
+                </span>
+
+                <span
+                  class="library-sort-chevron"
+                  [class.is-open]="sortMenuOpen"
+                >
+
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+
+                </span>
+
+              </button>
+
+
+              @if (sortMenuOpen) {
+
+                <div
+                  class="library-sort-menu"
+                  role="listbox"
+                  aria-label="Opciones de orden"
+                >
+
+                  <!-- TITLE -->
+
+                  <button
+                    type="button"
+                    class="library-sort-option"
+                    [class.is-selected]="sortBy === 'title'"
+                    (click)="sortBy = 'title'; sortMenuOpen = false"
+                  >
+
+                    <span>
+                      Título
+                    </span>
+
+                    @if (sortBy === 'title') {
+
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+
+                    }
+
+                  </button>
+
+
+                  <!-- ARTIST -->
+
+                  <button
+                    type="button"
+                    class="library-sort-option"
+                    [class.is-selected]="sortBy === 'artist'"
+                    (click)="sortBy = 'artist'; sortMenuOpen = false"
+                  >
+
+                    <span>
+                      Artista
+                    </span>
+
+                    @if (sortBy === 'artist') {
+
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+
+                    }
+
+                  </button>
+
+
+                  <!-- RECENT -->
+
+                  <button
+                    type="button"
+                    class="library-sort-option"
+                    [class.is-selected]="sortBy === 'recent'"
+                    (click)="sortBy = 'recent'; sortMenuOpen = false"
+                  >
+
+                    <span>
+                      Más recientes
+                    </span>
+
+                    @if (sortBy === 'recent') {
+
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+
+                    }
+
+                  </button>
+
+                </div>
+
+              }
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ===================================================
+           MUSIC TABLE
+      ==================================================== -->
+
+      <div class="library-table">
+
+        <!-- =================================================
+             LOADING
+        ================================================== -->
+
+        @if (scanning()) {
+
+          <div class="library-loading">
+
+            <div class="library-loading-spinner"></div>
+
+            <div class="library-loading-content">
+
+              <span class="library-loading-title">
+                Actualizando biblioteca
+              </span>
+
+              <span class="library-loading-subtitle">
+                {{ isAndroid && selectedCollection() === 'remote'
+                    ? 'Consultando la biblioteca del equipo...'
+                    : 'Escaneando tus canciones locales...' }}
+              </span>
+
+            </div>
+
+          </div>
+
+
+        } @else if (tracks.length > 0) {
+
+          <!-- =================================================
+               MUSIC TABLE
+          ================================================== -->
+
+          <app-music-table
+            [tracks]="tracks"
+            (play)="playTrack($event)"
+            (more)="openMore($event)"
+            (addToPlaylist)="openAddToPlaylist($event)"
+            (addSelectedToPlaylist)="openAddSelectedToPlaylist($event)"
+          ></app-music-table>
+
+
+        } @else if (searchQuery().trim()) {
+
+          <!-- =================================================
+               NO SEARCH RESULTS
+          ================================================== -->
+
+          <div class="library-empty">
+
+            <div class="library-empty-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle
+                  cx="11"
+                  cy="11"
+                  r="7"
+                ></circle>
+
+                <path d="m20 20-4-4"></path>
+
+              </svg>
+
+            </div>
+
+            <div class="library-empty-code">
+              SIN RESULTADOS
+            </div>
+
+            <h3>
+              No encontramos esa canción
+            </h3>
+
+            <p>
+              No hay canciones que coincidan con
+              "{{ searchQuery() }}".
+            </p>
+
+            <button
+              type="button"
+              class="library-empty-button"
+              (click)="searchQuery.set('')"
+            >
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M6 6l12 12"></path>
+                <path d="M18 6 6 18"></path>
+              </svg>
+
+              Limpiar búsqueda
+
+            </button>
+
+          </div>
+
+
+        } @else {
+
+          <!-- =================================================
+               EMPTY LIBRARY
+          ================================================== -->
+
+          <div class="library-empty">
+
+            <div class="library-empty-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M9 18V5l10-2v13"></path>
+
+                <circle
+                  cx="6"
+                  cy="18"
+                  r="3"
+                ></circle>
+
+                <circle
+                  cx="16"
+                  cy="16"
+                  r="3"
+                ></circle>
+
+              </svg>
+
+            </div>
+
+            <div class="library-empty-code">
+              {{ isAndroid && selectedCollection() === 'remote'
+                  ? 'SIN MÚSICA REMOTA'
+                  : 'SIN CANCIONES' }}
+            </div>
+
+            <h3>
+              {{ isAndroid && selectedCollection() === 'remote'
+                  ? 'No hay canciones remotas'
+                  : 'Tu biblioteca está vacía' }}
+            </h3>
+
+            <p>
+              {{ isAndroid && selectedCollection() === 'remote'
+                  ? 'Comprueba que tu equipo esté conectado y que Musex esté compartiendo su biblioteca.'
+                  : 'Importa algunos archivos de audio para comenzar a construir tu colección local.' }}
+            </p>
+
+            <button
+              type="button"
+              class="library-empty-button hide-on-android"
+              (click)="selectMusicFiles()"
+            >
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 3v12"></path>
+                <path d="m7 8 5-5 5 5"></path>
+                <path d="M5 21h14"></path>
+              </svg>
+
+              Importar música
+
+            </button>
+
+          </div>
+
+        }
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         DROP ZONE
+    ====================================================== -->
+
+    @if (!isAndroid) {
+      <section class="library-import-section">
+  
+        <div class="library-import-header">
+  
+          <div>
+  
+            <div class="library-section-kicker">
+              LOCAL FILES
+            </div>
+  
+            <h2>
+              Añadir música
+            </h2>
+  
+            <p>
+              Arrastra tus archivos de audio aquí o selecciónalos
+              desde tu dispositivo.
+            </p>
+  
+          </div>
+  
+        </div>
+  
+        <app-drop-zone class="hide-on-android"
+          (filesSelected)="importFiles($event)"
+        ></app-drop-zone>
+  
+      </section>
+    }
+
+  </div>
+
+</section>

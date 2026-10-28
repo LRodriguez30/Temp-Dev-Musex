@@ -32,10 +32,26 @@ pub struct HistoryEntryPayload {
 // =============================================================
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RecommendedTrack {
     pub title: String,
     pub artist: String,
     pub reason: String,
+
+    // Fuente preferida para buscar posteriormente la canción.
+    //
+    // IMPORTANTE:
+    // Esto NO significa que la canción esté disponible allí.
+    // Solamente indica qué fuente debería intentar primero Musex.
+    pub preferred_source: PreferredSource,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum PreferredSource {
+    Youtube,
+    Newgrounds,
+    Either,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

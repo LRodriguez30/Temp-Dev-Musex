@@ -23,33 +23,39 @@
    TOP BAR 
 ============================================================= */ 
  
-.top-bar { 
-  position: fixed; 
- 
-  top: 0; 
-  left: 0; 
-  right: 0; 
- 
-  z-index: 100; 
- 
-  height: var(--topbar-height); 
- 
-  display: flex; 
-  align-items: center; 
- 
-  min-width: 0; 
- 
-  background: 
-    linear-gradient( 
-      180deg, 
-      rgba(13, 14, 16, 0.98), 
-      rgba(13, 14, 16, 0.94) 
-    ); 
- 
-  border-bottom: 1px solid var(--topbar-border); 
- 
-  backdrop-filter: blur(16px); 
-} 
+.top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  z-index: 100;
+
+  height: var(--topbar-height);
+
+  display: flex;
+  align-items: center;
+  min-width: 0;
+
+  background: linear-gradient(
+    180deg,
+    rgba(13, 14, 16, 0.98),
+    rgba(13, 14, 16, 0.94)
+  );
+
+  border-bottom: 1px solid var(--topbar-border);
+  backdrop-filter: blur(16px);
+}
+
+/* Espacio para la barra de estado de Android */
+:host-context(html.is-android) .top-bar {
+  height: calc(
+    var(--topbar-height) + env(safe-area-inset-top, 0px)
+  );
+
+  padding-top: env(safe-area-inset-top, 0px);
+  box-sizing: border-box;
+}
  
  
 /* ============================================================= 
@@ -1851,4 +1857,10 @@
     transform: translateY(0) scale(1); 
   } 
  
+}
+
+.top-bar {
+  box-sizing: border-box;
+  height: calc(var(--topbar-height) + var(--safe-top));
+  padding-top: var(--safe-top);
 }

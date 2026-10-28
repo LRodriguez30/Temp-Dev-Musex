@@ -18,7 +18,11 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use cpal::traits::{DeviceTrait, HostTrait};
-use rodio::{DeviceSinkBuilder, Player};
+use rodio::{
+    DeviceSinkBuilder,
+    Player,
+    Source,
+};
 
 use super::decoder::decode_file;
 
@@ -378,6 +382,28 @@ impl AudioPlayer {
             })? = Some(path.to_path_buf());
 
         Ok(())
+    }
+
+    /// Obtiene la duración total de un archivo de audio.
+    ///
+    /// El archivo se decodifica únicamente para consultar
+    /// la duración. No se inicia ninguna reproducción.
+    ///
+    /// La duración se devuelve en segundos como `f64`,
+    /// que puede ser consumido directamente desde Angular.
+    pub fn duration(
+        &self,
+        path: impl AsRef<Path>,
+    ) -> Result<f64, Box<dyn std::error::Error>> {
+        let source = decode_file(path)?;
+
+        let duration = source
+            .total_duration()
+            .ok_or(
+                "No se pudo determinar la duración del archivo de audio."
+            )?;
+
+        Ok(duration.as_secs_f64())
     }
 
 

@@ -71,122 +71,177 @@ impl YouTubeDownloader {
         YouTubeVideo::from_url(url)
     }
 
-    // =========================================================
+    // =============================================================
     // FFMPEG
-    // =========================================================
+    // =============================================================
 
-    /// Busca el ejecutable donde Musex tiene empaquetado FFmpeg.
+    /// Busca el ejecutable FFmpeg incluido con Musex.
     ///
-    /// Durante desarrollo:
+    /// Desarrollo:
     ///
-    ///     src-tauri/
-    ///         binaries/
-    ///             ffmpeg-x86_64-pc-windows-msvc.exe
+    ///     src-tauri/binaries/
+    ///         ffmpeg-x86_64-pc-windows-msvc.exe
     ///
-    /// Durante producción Tauri puede colocar los recursos
-    /// empaquetados dentro del directorio de recursos de la
-    /// aplicación.
+    /// Producción:
     ///
-    /// Por ello se prueban varias ubicaciones válidas.
+    ///     <directorio de Musex.exe>/
+    ///         ffmpeg.exe
+    ///
+    /// Tauri elimina el sufijo del target triple al preparar
+    /// el sidecar para runtime.
+    ///
+    /// Por ello no debemos buscar en producción:
+    //
+    //     ffmpeg-x86_64-pc-windows-msvc.exe
+    ///
+    /// sino:
+    //
+    //     ffmpeg.exe
     fn find_ffmpeg_executable(
         &self,
         app: &AppHandle,
     ) -> Result<PathBuf, DownloadError> {
-        // -----------------------------------------------------
-        // Nombre esperado del ejecutable
-        // -----------------------------------------------------
+
+        // =========================================================
+        // NOMBRE DEL EJECUTABLE
+        // =========================================================
 
         let ffmpeg_name =
             if cfg!(target_os = "windows") {
-                "ffmpeg-x86_64-pc-windows-msvc.exe"
+                "ffmpeg.exe"
             } else {
                 "ffmpeg"
             };
 
-        // -----------------------------------------------------
-        // Posibles ubicaciones
-        // -----------------------------------------------------
-        //
-        // La primera ubicación se utiliza específicamente para
-        // desarrollo con `tauri dev`.
-        //
-        // `CARGO_MANIFEST_DIR` apunta a:
-        //
-        //     src-tauri/
-        //
-        // por lo que:
-        //
-        //     CARGO_MANIFEST_DIR/binaries
-        //
-        // corresponde directamente a:
-        //
-        //     src-tauri/binaries
-        // -----------------------------------------------------
+        // =========================================================
+        // DESARROLLO
+        // =========================================================
+
+        // Durante `tauri dev` el sidecar todavía vive en
+        // src-tauri/binaries/ con su target triple.
 
         let development_directory =
             PathBuf::from(env!("CARGO_MANIFEST_DIR"))
                 .join("binaries");
 
-        // -----------------------------------------------------
-        // Directorio de recursos de Tauri
-        // -----------------------------------------------------
+        let development_ffmpeg =
+            development_directory
+                .join(
+                    if cfg!(target_os = "windows") {
+                        "ffmpeg-x86_64-pc-windows-msvc.exe"
+                    } else {
+                        "ffmpeg"
+                    }
+                );
 
-        let resource_dir =
-            app.path()
-                .resource_dir()
+        println!(
+            "[YOUTUBE] Comprobando FFmpeg de desarrollo: {}",
+            development_ffmpeg.display()
+        );
+
+        if development_ffmpeg.is_file() {
+            println!(
+                "[YOUTUBE] FFmpeg encontrado en desarrollo: {}",
+                development_ffmpeg.display()
+            );
+
+            return Ok(development_ffmpeg);
+        }
+
+        // =========================================================
+        // PRODUCCIÓN
+        // =========================================================
+
+        // Obtiene la ubicación real del ejecutable de Musex.
+        //
+        // Ejemplo:
+        //
+        // C:\Program Files\Musex\Musex.exe
+        //
+        // parent():
+        //
+        // C:\Program Files\Musex
+        let executable_directory =
+            std::env::current_exe()
                 .map_err(|error| {
                     DownloadError::Other(
                         Box::new(
                             std::io::Error::new(
                                 std::io::ErrorKind::NotFound,
                                 format!(
-                                    "No se pudo obtener el directorio de recursos de Musex: {}",
+                                    "No se pudo obtener la ubicación del ejecutable de Musex: {}",
                                     error
                                 ),
                             )
                         )
                     )
+                })?
+                .parent()
+                .map(PathBuf::from)
+                .ok_or_else(|| {
+                    DownloadError::Other(
+                        Box::new(
+                            std::io::Error::new(
+                                std::io::ErrorKind::NotFound,
+                                "No se pudo determinar el directorio del ejecutable de Musex.",
+                            )
+                        )
+                    )
                 })?;
 
-        // -----------------------------------------------------
-        // Posibles ubicaciones en producción
-        // -----------------------------------------------------
+        let production_ffmpeg =
+            executable_directory
+                .join(ffmpeg_name);
 
-        let resource_binaries_directory =
-            resource_dir.join("binaries");
+        println!(
+            "[YOUTUBE] Comprobando FFmpeg empaquetado: {}",
+            production_ffmpeg.display()
+        );
 
-        let possible_directories = [
-            development_directory.clone(),
-            resource_binaries_directory.clone(),
-            resource_dir.clone(),
-        ];
-
-        // -----------------------------------------------------
-        // Buscar FFmpeg
-        // -----------------------------------------------------
-
-        for directory in possible_directories {
-            let executable =
-                directory.join(ffmpeg_name);
-
+        if production_ffmpeg.is_file() {
             println!(
-                "[YOUTUBE] Comprobando FFmpeg: {}",
-                executable.display()
+                "[YOUTUBE] FFmpeg encontrado en producción: {}",
+                production_ffmpeg.display()
             );
 
-            if executable.is_file() {
+            return Ok(production_ffmpeg);
+        }
+
+        // =========================================================
+        // FALLBACK RESOURCE_DIR
+        // =========================================================
+        //
+        // Lo dejamos como respaldo para configuraciones de bundle
+        // donde el recurso pueda terminar dentro del directorio
+        // de recursos de Tauri.
+        //
+        // No dependemos de esta ruta como mecanismo principal.
+
+        if let Ok(resource_dir) =
+            app.path().resource_dir()
+        {
+            let resource_ffmpeg =
+                resource_dir
+                    .join(ffmpeg_name);
+
+            println!(
+                "[YOUTUBE] Comprobando FFmpeg en resources: {}",
+                resource_ffmpeg.display()
+            );
+
+            if resource_ffmpeg.is_file() {
                 println!(
-                    "[YOUTUBE] FFmpeg encontrado en: {}",
-                    executable.display()
+                    "[YOUTUBE] FFmpeg encontrado en resources: {}",
+                    resource_ffmpeg.display()
                 );
 
-                return Ok(executable);
+                return Ok(resource_ffmpeg);
             }
         }
 
-        // -----------------------------------------------------
-        // FFmpeg no encontrado
-        // -----------------------------------------------------
+        // =========================================================
+        // ERROR
+        // =========================================================
 
         Err(
             DownloadError::Other(
@@ -194,11 +249,11 @@ impl YouTubeDownloader {
                     std::io::Error::new(
                         std::io::ErrorKind::NotFound,
                         format!(
-                            "No se encontró el FFmpeg empaquetado con Musex. \
-                             Se buscó en desarrollo: {} \
-                             y en los recursos de Tauri: {}.",
-                            development_directory.display(),
-                            resource_dir.display()
+                            "No se encontró el FFmpeg incluido con Musex.\n\
+                            Desarrollo: {}\n\
+                            Producción: {}",
+                            development_ffmpeg.display(),
+                            production_ffmpeg.display()
                         ),
                     )
                 )

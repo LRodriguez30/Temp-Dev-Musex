@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 
 // import { DEMO_PLAYLISTS } from '../data/demo-playlists';
 import { Playlist } from '../models/playlist.model';
@@ -30,6 +30,14 @@ export class PlaylistService {
    */
   readonly allPlaylists = this.playlists.asReadonly();
 
+  readonly remotePlaylists = computed(() =>
+    this.playlists().filter(playlist => playlist.remote)
+  );
+
+  readonly localPlaylists = computed(() =>
+    this.playlists().filter(playlist => !playlist.remote)
+  );
+
   /**
    * Carga las playlists guardadas en localStorage.
    */
@@ -37,15 +45,29 @@ export class PlaylistService {
     if (typeof window === 'undefined') {
       return [];
     }
-    const saved = localStorage.getItem('musex_playlists');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
+
+    try {
+      const saved = localStorage.getItem('musex_playlists');
+
+      if (!saved) {
         return [];
       }
+
+      const playlists: unknown = JSON.parse(saved);
+
+      if (!Array.isArray(playlists)) {
+        return [];
+      }
+
+      return playlists as Playlist[];
+    } catch (error) {
+      console.error(
+        '[Musex] Error al cargar las playlists locales:',
+        error
+      );
+
+      return [];
     }
-    return [];
   }
 
   /**
@@ -55,6 +77,41 @@ export class PlaylistService {
     if (typeof window !== 'undefined') {
       localStorage.setItem('musex_playlists', JSON.stringify(playlists));
     }
+  }
+
+  /**
+   * Reemplaza las playlists recibidas del escritorio (Android).
+   *
+   * Conserva las playlists creadas en el teléfono y sustituye por
+   * completo las que venían del escritorio, de modo que lo que se
+   * borre o cambie allí también se refleje aquí.
+   */
+  replaceRemotePlaylists(remote: Playlist[]): void {
+
+    this.playlists.update(current => {
+
+      const local = current.filter(
+        playlist => !playlist.remote
+      );
+
+      const localIds = new Set(
+        local.map(playlist => playlist.id)
+      );
+
+      const incoming = remote
+        .filter(playlist => !localIds.has(playlist.id))
+        .map(playlist => ({
+          ...playlist,
+          remote: true,
+          count: playlist.trackIds?.length ?? playlist.count ?? 0
+        }));
+
+      const merged = [...incoming, ...local];
+
+      this.saveToStorage(merged);
+
+      return merged;
+    });
   }
 
   /**
@@ -202,6 +259,57 @@ export class PlaylistService {
         };
       });
       this.saveToStorage(updated);
+      return updated;
+    });
+  }
+
+  /**
+   * Agrega varias canciones a una playlist.
+   *
+   * Las canciones que ya pertenecen a la playlist se ignoran.
+   * El contador se actualiza con la cantidad final de canciones.
+   */
+  addTracks(
+    playlistId: string,
+    trackIds: string[]
+  ): void {
+
+    if (trackIds.length === 0) {
+      return;
+    }
+
+    this.playlists.update(playlists => {
+
+      const updated = playlists.map(playlist => {
+
+        if (playlist.id !== playlistId) {
+          return playlist;
+        }
+
+        const currentTrackIds = playlist.trackIds ?? [];
+
+        const newTrackIds = trackIds.filter(
+          trackId => !currentTrackIds.includes(trackId)
+        );
+
+        if (newTrackIds.length === 0) {
+          return playlist;
+        }
+
+        const updatedTrackIds = [
+          ...currentTrackIds,
+          ...newTrackIds
+        ];
+
+        return {
+          ...playlist,
+          trackIds: updatedTrackIds,
+          count: updatedTrackIds.length
+        };
+      });
+
+      this.saveToStorage(updated);
+
       return updated;
     });
   }

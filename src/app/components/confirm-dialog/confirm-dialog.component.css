@@ -1,0 +1,56 @@
+.confirm-dialog-backdrop {
+  animation: confirm-backdrop-in 200ms ease-out both;
+}
+
+.confirm-dialog-backdrop.is-closing {
+  animation: confirm-backdrop-out 200ms ease-in both;
+}
+
+.confirm-dialog-backdrop .modal-panel {
+  animation: confirm-panel-in 200ms ease-out both;
+}
+
+.confirm-dialog-backdrop .modal-panel.is-closing {
+  animation: confirm-panel-out 200ms ease-in both;
+}
+
+@keyframes confirm-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes confirm-backdrop-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes confirm-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes confirm-panel-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confirm-dialog-backdrop,
+  .confirm-dialog-backdrop.is-closing,
+  .confirm-dialog-backdrop .modal-panel,
+  .confirm-dialog-backdrop .modal-panel.is-closing {
+    animation-duration: 1ms;
+  }
+}

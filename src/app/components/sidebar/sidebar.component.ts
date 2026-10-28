@@ -26,6 +26,7 @@ import { getCoverIconPath } from '../../core/data/playlist-icons';
 import { ThemeSettingsModalComponent } from '../theme-settings-modal/theme-settings-modal.component';
 import { PlayerService } from '../../core/services/player.service';
 import { MobileMenuService } from '../../core/services/mobile-menu.service';
+import { IS_ANDROID } from '@tauri-apps/api/core';
 
 /**
  * Barra lateral principal de Musex.
@@ -48,6 +49,8 @@ import { MobileMenuService } from '../../core/services/mobile-menu.service';
   styleUrl: './sidebar.component.css'
 })
 export class SidebarComponent implements OnInit {
+
+  readonly isAndroid = IS_ANDROID;
 
   private readonly router = inject(Router);
 

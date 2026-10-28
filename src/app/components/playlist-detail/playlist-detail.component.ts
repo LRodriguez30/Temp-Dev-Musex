@@ -163,6 +163,14 @@ export class PlaylistDetailComponent {
 
 
   // =========================================================
+  // SEARCH
+  // =========================================================
+
+  readonly searchQuery =
+    signal('');
+
+
+  // =========================================================
   // TRACKS
   // =========================================================
 
@@ -231,6 +239,56 @@ export class PlaylistDetailComponent {
         return originalTracks;
 
     }
+
+  });
+
+
+  // =========================================================
+  // FILTERED TRACKS
+  // =========================================================
+
+  readonly filteredTracks = computed(() => {
+
+    const query =
+      this.searchQuery()
+        .trim()
+        .toLocaleLowerCase();
+
+
+    const currentTracks =
+      this.tracks();
+
+
+    if (!query) {
+      return currentTracks;
+    }
+
+
+    return currentTracks.filter(
+      track => {
+
+        const title =
+          track.title?.toLocaleLowerCase() ?? '';
+
+        const artist =
+          track.artist?.toLocaleLowerCase() ?? '';
+
+        const album =
+          track.album?.toLocaleLowerCase() ?? '';
+
+        const genre =
+          track.genre?.toLocaleLowerCase() ?? '';
+
+
+        return (
+          title.includes(query) ||
+          artist.includes(query) ||
+          album.includes(query) ||
+          genre.includes(query)
+        );
+
+      }
+    );
 
   });
 

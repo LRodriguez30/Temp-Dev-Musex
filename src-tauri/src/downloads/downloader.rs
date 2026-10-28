@@ -127,20 +127,47 @@ impl DownloadProgress {
 
 /// Resultado de una descarga completada.
 ///
-/// Contiene la ubicación del archivo generado.
+/// Contiene la ubicación del archivo generado y los datos
+/// básicos obtenidos a partir del nombre del archivo.
 #[derive(Debug, Clone)]
 pub struct DownloadResult {
     /// Ruta del archivo generado.
     pub output_path: PathBuf,
+
+    /// Artista detectado desde el nombre del archivo.
+    pub artist: Option<String>,
+
+    /// Título detectado desde el nombre del archivo.
+    pub title: String,
 }
 
 impl DownloadResult {
     /// Crea un nuevo resultado a partir de una ruta.
+    ///
+    /// Ejemplo:
+    ///
+    ///     JVKE_-_this_is_what_autumn_feels_like.mp3
+    ///
+    /// produce:
+    ///
+    ///     artist = "JVKE"
+    ///     title  = "this is what autumn feels like"
     pub fn new(
         output_path: impl Into<PathBuf>,
     ) -> Self {
+
+        let output_path =
+            output_path.into();
+
+        let (artist, title) =
+            Self::parse_filename(
+                &output_path
+            );
+
         Self {
-            output_path: output_path.into(),
+            output_path,
+            artist,
+            title,
         }
     }
 
@@ -152,6 +179,98 @@ impl DownloadResult {
     /// Obtiene la ruta del archivo como `Path`.
     pub fn path(&self) -> &Path {
         &self.output_path
+    }
+
+    /// Convierte el nombre físico del archivo en
+    /// información legible para Musex.
+    ///
+    /// Primero convierte:
+    ///
+    ///     _-_
+    ///
+    /// en:
+    ///
+    ///     " - "
+    ///
+    /// Después convierte los `_` restantes en espacios.
+    ///
+    /// Finalmente intenta separar artista y título.
+    fn parse_filename(
+        output_path: &Path,
+    ) -> (Option<String>, String) {
+
+        let file_stem =
+            output_path
+                .file_stem()
+                .and_then(|name| name.to_str())
+                .unwrap_or("")
+                .trim();
+
+
+        // -----------------------------------------------------
+        // NORMALIZAR NOMBRE
+        // -----------------------------------------------------
+
+        let normalized_name =
+            file_stem
+                .replace("_-_", " - ")
+                .replace('_', " ")
+                .split_whitespace()
+                .collect::<Vec<_>>()
+                .join(" ");
+
+
+        // -----------------------------------------------------
+        // NOMBRE VACÍO
+        // -----------------------------------------------------
+
+        if normalized_name.is_empty() {
+
+            return (
+                None,
+                "Descarga".to_string()
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // ARTISTA + TÍTULO
+        // -----------------------------------------------------
+
+        if let Some(
+            (artist, title)
+        ) = normalized_name
+            .split_once(" - ")
+        {
+
+            let artist =
+                artist.trim();
+
+            let title =
+                title.trim();
+
+
+            if !artist.is_empty()
+                && !title.is_empty()
+            {
+                return (
+                    Some(
+                        artist.to_string()
+                    ),
+                    title.to_string()
+                );
+            }
+        }
+
+
+        // -----------------------------------------------------
+        // SOLO TÍTULO
+        // -----------------------------------------------------
+
+        (
+            None,
+            normalized_name
+        )
     }
 }
 

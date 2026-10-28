@@ -15,6 +15,8 @@ import { getCoverIconPath } from '../../core/data/playlist-icons';
 
 import { QueueComponent } from '../queue/queue.component';
 
+import { IS_ANDROID } from '@tauri-apps/api/core';
+
 @Component({
     selector: 'app-full-player',
     standalone: true,
@@ -24,6 +26,8 @@ import { QueueComponent } from '../queue/queue.component';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FullPlayerComponent {
+
+    readonly isAndroid = IS_ANDROID;
 
     readonly playerService = inject(PlayerService);
 

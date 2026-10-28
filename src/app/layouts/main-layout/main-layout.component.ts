@@ -1,5 +1,6 @@
 import {
   Component,
+  computed,
   DestroyRef,
   effect,
   inject,
@@ -17,6 +18,7 @@ import { ModalComponent } from '../../components/modal/modal.component';
 import { ToastContainerComponent } from '../../components/toast-container/toast-container.component';
 import { QueuePanelComponent } from '../../components/queue-panel/queue-panel.component';
 import { SearchModalComponent } from '../../components/search-modal/search-modal.component';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 import { PlayerService } from '../../core/services/player.service';
 import { LibraryService } from '../../core/services/library.service';
@@ -24,6 +26,10 @@ import { PlaylistService } from '../../core/services/playlist.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ModalService } from '../../core/services/modal.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { PlaylistSyncService } from '../../core/services/playlist-sync.service';
+import { AndroidMediaService } from '../../core/services/android-media.service';
+import { ConnectionDialogService } from '../../core/services/connection-dialog.service';
+import { ConfirmDialogService } from '../../core/services/confirm-dialog.service';
 
 import {
   EqualizerService,
@@ -32,7 +38,7 @@ import {
 
 import { Track } from '../../core/models/track.model';
 
-import { convertFileSrc } from '@tauri-apps/api/core';
+import { convertFileSrc, IS_ANDROID } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 
 
@@ -78,12 +84,15 @@ import { openUrl } from '@tauri-apps/plugin-opener';
     ModalComponent,
     ToastContainerComponent,
     QueuePanelComponent,
-    SearchModalComponent
+    SearchModalComponent,
+    ConfirmDialogComponent
   ],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css'
 })
 export class MainLayoutComponent {
+
+  readonly isAndroid = IS_ANDROID;
 
   // =============================================================
   // SERVICIOS
@@ -107,6 +116,24 @@ export class MainLayoutComponent {
   private readonly equalizerService =
     inject(EqualizerService);
 
+  /**
+   * Mantiene sincronizadas las playlists con el móvil / escritorio.
+   */
+  private readonly playlistSync =
+    inject(PlaylistSyncService);
+  
+  /**
+   * Controles multimedia de Android (notificación, bloqueo, audífonos).
+   */
+  private readonly androidMedia =
+    inject(AndroidMediaService);
+  
+  readonly connectionDialogs =
+    inject(ConnectionDialogService);
+  
+  readonly confirmDialog =
+    inject(ConfirmDialogService);
+  
   /**
    * Estado del ecualizador expuesto al template.
    *
@@ -190,8 +217,11 @@ export class MainLayoutComponent {
   // PLAYLISTS
   // =============================================================
 
-  readonly playlists =
-    this.playlistService.allPlaylists;
+  readonly playlists = computed(() =>
+    IS_ANDROID
+      ? this.playlistService.localPlaylists()
+      : this.playlistService.allPlaylists()
+  );
 
 
   // =============================================================
@@ -537,9 +567,88 @@ export class MainLayoutComponent {
   // ADD TO PLAYLIST
   // =============================================================
 
+  /**
+   * Abre el selector de playlists para varias canciones
+   * seleccionadas desde MusicTable.
+   */
+  openAddSelectedToPlaylist(
+    tracks: Track[]
+  ): void {
+
+    if (tracks.length === 0) {
+      return;
+    }
+
+
+    this.modalService.openAddSelectedToPlaylist(
+      tracks.map(track => track.id)
+    );
+  }
+
+
+  /**
+   * Agrega la canción o canciones asociadas al modal
+   * a la playlist seleccionada.
+   *
+   * El flujo individual continúa utilizando addTrack().
+   * El flujo múltiple utiliza addTracks().
+   */
   addTrackToPlaylist(
     playlistId: string
   ): void {
+
+    const modalState =
+      this.modalService.state();
+
+
+    // -----------------------------------------------------------
+    // MULTIPLE TRACKS
+    // -----------------------------------------------------------
+
+    if (modalState.trackIds.length > 0) {
+
+      try {
+
+        this.playlistService.addTracks(
+          playlistId,
+          modalState.trackIds
+        );
+
+
+        const addedCount =
+          modalState.trackIds.length;
+
+
+        this.notificationService.success(
+          addedCount === 1
+            ? 'La canción se agregó a la playlist.'
+            : `${addedCount} canciones se agregaron a la playlist.`
+        );
+
+
+        this.modalService.close();
+
+      } catch (error) {
+
+        console.error(
+          'Error al agregar las canciones a la playlist:',
+          error
+        );
+
+
+        this.notificationService.error(
+          'No se pudieron agregar las canciones a la playlist.'
+        );
+      }
+
+
+      return;
+    }
+
+
+    // -----------------------------------------------------------
+    // SINGLE TRACK
+    // -----------------------------------------------------------
 
     const track =
       this.modalTrack;
@@ -1028,37 +1137,11 @@ export class MainLayoutComponent {
   // =============================================================
   // EQUALIZER — OPEN EDITOR
   // =============================================================
-  //
-  // IMPORTANTE:
-  //
-  // El modal se abre ANTES de llamar a openEditor().
-  //
-  // Esto permite que Angular renderice inmediatamente el modal
-  // y que el template pueda reaccionar a:
-  //
-  //     eqService.isSenseLoading()
-  //
-  // Mientras EqualizerService genera el preset.
-  //
-  // EqualizerService se encarga de:
-  //
-  // - obtener el preset de Sense
-  // - usar caché si existe
-  // - hacer fallback al preset local
-  // - cargar las bandas en Rust
-  // - iniciar la reproducción
-  //
-  // MainLayout únicamente controla la apertura visual.
-  // =============================================================
 
   async openEqualizerEditor(
     track: EqTrack
   ): Promise<void> {
 
-    /**
-     * Si Sense ya está procesando otro preset,
-     * no iniciamos otra apertura simultánea.
-     */
     if (
       this.equalizerService.isSenseLoading()
     ) {
@@ -1072,10 +1155,6 @@ export class MainLayoutComponent {
 
     try {
 
-      // ---------------------------------------------------------
-      // ABRIR MODAL INMEDIATAMENTE
-      // ---------------------------------------------------------
-
       this.modalService.open(
         'equalizer-editor',
         {
@@ -1085,18 +1164,10 @@ export class MainLayoutComponent {
       );
 
 
-      // ---------------------------------------------------------
-      // PREPARAR EDITOR
-      // ---------------------------------------------------------
-
       await this.equalizerService.openEditor(
         track
       );
 
-
-      // ---------------------------------------------------------
-      // COMPROBAR QUE LA PETICIÓN SIGUE SIENDO VÁLIDA
-      // ---------------------------------------------------------
 
       if (
         requestId !==
@@ -1114,10 +1185,6 @@ export class MainLayoutComponent {
       );
 
 
-      /**
-       * Si el editor falla y esta sigue siendo
-       * la petición activa, cerramos el modal.
-       */
       if (
         requestId ===
         this.eqEditorOpenRequestId
@@ -1140,9 +1207,6 @@ export class MainLayoutComponent {
 
   closeEqualizerEditor(): void {
 
-    /**
-     * Invalida cualquier apertura pendiente.
-     */
     this.eqEditorOpenRequestId++;
 
 

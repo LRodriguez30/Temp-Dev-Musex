@@ -61,9 +61,33 @@ export interface Download {
   url: string;
 
   /**
-   * Nombre del contenido que se está descargando.
+   * Título musical del contenido.
+   *
+   * Cuando la descarga termina, este valor debe representar
+   * el título real de la canción y no necesariamente el nombre
+   * físico del archivo.
    */
   title: string;
+
+  /**
+   * Artista asociado al contenido.
+   */
+  artist?: string;
+
+  /**
+   * Álbum asociado al contenido.
+   */
+  album?: string;
+
+  /**
+   * Género musical asociado al contenido.
+   */
+  genre?: string;
+
+  /**
+   * Duración del audio en segundos.
+   */
+  duration?: number;
 
   /**
    * Proveedor desde el que se obtiene el contenido.

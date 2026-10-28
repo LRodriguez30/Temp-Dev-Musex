@@ -1,0 +1,14 @@
+{
+  "identifier": "desktop-shell",
+  "description": "Sidecars (yt-dlp) solo en desktop",
+  "windows": ["main"],
+  "platforms": ["windows", "linux", "macOS"],
+  "permissions": [
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        { "name": "binaries/yt-dlp", "sidecar": true, "args": true }
+      ]
+    }
+  ]
+}

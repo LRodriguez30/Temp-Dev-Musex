@@ -695,6 +695,299 @@
 
 
 /* =============================================================
+   LIBRARY TOOLS
+============================================================= */
+
+.library-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  flex-shrink: 0;
+
+  margin-left: auto;
+}
+
+
+/* =============================================================
+   REFRESH BUTTON
+============================================================= */
+
+.library-refresh-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 37px;
+  height: 37px;
+
+  flex-shrink: 0;
+
+  padding: 0;
+
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 8px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.035),
+      rgba(255, 255, 255, 0.018)
+    );
+
+  color: rgba(255, 255, 255, 0.42);
+
+  cursor: pointer;
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.025);
+
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.library-refresh-button:hover {
+  color: rgba(255, 255, 255, 0.82);
+
+  border-color: rgba(255, 255, 255, 0.09);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.022)
+    );
+}
+
+.library-refresh-button:active {
+  transform: scale(0.95);
+}
+
+.library-refresh-button:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.library-refresh-button svg {
+  width: 15px;
+  height: 15px;
+}
+
+.library-refresh-button.is-refreshing svg {
+  animation:
+    library-refresh-spin
+    700ms
+    linear
+    infinite;
+}
+
+@keyframes library-refresh-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* =============================================================
+   LIBRARY SEARCH
+============================================================= */
+
+.library-search {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  width: 230px;
+  height: 37px;
+
+  box-sizing: border-box;
+
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 8px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.035),
+      rgba(255, 255, 255, 0.018)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.025);
+
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.library-search:hover {
+  border-color: rgba(255, 255, 255, 0.09);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.022)
+    );
+}
+
+.library-search:focus-within {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--musex-accent) 28%,
+      rgba(255, 255, 255, 0.08)
+    );
+
+  box-shadow:
+    0 0 0 3px
+      color-mix(
+        in srgb,
+        var(--musex-accent) 5%,
+        transparent
+      ),
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.025);
+}
+
+
+/* -------------------------------------------------------------
+   Search icon
+------------------------------------------------------------- */
+
+.library-search > svg {
+  width: 14px;
+  height: 14px;
+
+  flex-shrink: 0;
+
+  margin-left: 11px;
+
+  color: rgba(255, 255, 255, 0.34);
+
+  pointer-events: none;
+
+  transition: color 160ms ease;
+}
+
+.library-search:focus-within > svg {
+  color:
+    color-mix(
+      in srgb,
+      var(--musex-accent) 70%,
+      white
+    );
+}
+
+
+/* -------------------------------------------------------------
+   Search input
+------------------------------------------------------------- */
+
+.library-search input {
+  width: 100%;
+  height: 100%;
+
+  min-width: 0;
+
+  padding: 0 34px 0 9px;
+
+  border: 0;
+  outline: none;
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.82);
+
+  font-family: inherit;
+
+  font-size: 11px;
+  font-weight: 520;
+}
+
+.library-search input::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.library-search input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+
+/* =============================================================
+   SEARCH CLEAR
+============================================================= */
+
+.library-search-clear {
+  position: absolute;
+
+  top: 50%;
+  right: 7px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 23px;
+  height: 23px;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 6px;
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.34);
+
+  transform: translateY(-50%);
+
+  cursor: pointer;
+
+  transition:
+    color 140ms ease,
+    background 140ms ease;
+}
+
+.library-search-clear:hover {
+  color: rgba(255, 255, 255, 0.78);
+
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.library-search-clear:focus-visible {
+  outline: none;
+
+  color: var(--musex-green);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--musex-accent) 7%,
+      transparent
+    );
+}
+
+.library-search-clear svg {
+  width: 12px;
+  height: 12px;
+}
+
+
+/* =============================================================
    SORT
 ============================================================= */
 
@@ -708,8 +1001,6 @@
   gap: 10px;
 
   flex-shrink: 0;
-
-  margin-left: auto;
 }
 
 .library-sort-label {
@@ -1097,6 +1388,226 @@
 
 
 /* =============================================================
+   LIBRARY LOADING
+============================================================= */
+
+.library-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 330px;
+
+  gap: 13px;
+
+  padding: 45px 20px;
+
+  box-sizing: border-box;
+
+  background: var(--library-panel);
+
+  animation:
+    library-loading-enter
+    180ms
+    ease
+    both;
+}
+
+.library-loading-spinner {
+  width: 18px;
+  height: 18px;
+
+  flex: 0 0 18px;
+
+  border: 2px solid #292b30;
+
+  border-top-color: var(--musex-green);
+
+  border-radius: 50%;
+
+  animation:
+    library-loading-spin
+    750ms
+    linear
+    infinite;
+}
+
+.library-loading-content {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.library-loading-title {
+  color: #d9dadc;
+
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.library-loading-subtitle {
+  color: #686b72;
+
+  font-size: 10px;
+}
+
+/* =============================================================
+   PLAY ALL BUTTON
+============================================================= */
+
+.library-play-all-button {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 7px;
+
+  width: max-content;
+
+  min-width: 136px;
+
+  height: 37px;
+
+  flex-shrink: 0;
+
+  padding: 0 14px;
+
+  border:
+    1px solid var(--musex-accent);
+
+  border-radius: 8px;
+
+  background:
+    var(--musex-accent);
+
+  color: #0d0e10;
+
+  font-family:
+    "Courier New",
+    "Lucida Console",
+    monospace;
+
+  font-size: 9px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+
+  line-height: 1;
+
+  text-transform: uppercase;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 120ms ease;
+
+}
+
+.library-play-all-button svg {
+
+  width: 13px;
+
+  height: 13px;
+
+  flex-shrink: 0;
+
+  transition:
+    transform 160ms ease;
+
+}
+
+.library-play-all-button:hover:not(:disabled) {
+
+  background:
+    color-mix(in srgb, var(--musex-accent) 80%, white);
+
+  border-color:
+    color-mix(in srgb, var(--musex-accent) 80%, white);
+
+  box-shadow:
+
+    0 0 0 1px
+    color-mix(in srgb, var(--musex-accent) 8%, transparent),
+
+    0 4px 14px
+    color-mix(in srgb, var(--musex-accent) 10%, transparent);
+
+}
+
+.library-play-all-button:hover:not(:disabled) svg {
+
+  transform: translateX(1px);
+
+}
+
+.library-play-all-button:focus-visible {
+
+  outline: none;
+
+  box-shadow:
+
+    0 0 0 2px #0d0e10,
+
+    0 0 0 3px var(--musex-accent);
+
+}
+
+.library-play-all-button:active:not(:disabled) {
+
+  transform: translateY(1px);
+
+}
+
+.library-play-all-button:disabled {
+
+  opacity: 0.35;
+
+  cursor: not-allowed;
+
+  box-shadow: none;
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .library-play-all-button,
+  .library-play-all-button svg {
+    transition: none;
+  }
+}
+
+@keyframes library-loading-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes library-loading-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+
+/* =============================================================
    EMPTY STATE
 ============================================================= */
 
@@ -1307,6 +1818,7 @@
 ============================================================= */
 
 @media (max-width: 1000px) {
+
   .library-page {
     padding-inline: 24px;
   }
@@ -1330,6 +1842,10 @@
   .library-stat {
     min-height: 140px;
   }
+
+  .library-search {
+    width: 205px;
+  }
 }
 
 
@@ -1338,6 +1854,7 @@
 ============================================================= */
 
 @media (max-width: 750px) {
+
   .library-section-header {
     flex-direction: column;
     align-items: stretch;
@@ -1345,15 +1862,23 @@
     gap: 14px;
   }
 
-  /*
-   * El encabezado pasa a columna,
-   * pero el control permanece alineado a la derecha.
-   */
-
-  .library-sort {
+  .library-tools {
     width: 100%;
 
     justify-content: flex-end;
+
+    margin-left: 0;
+  }
+
+  .library-search {
+    flex: 1;
+
+    width: auto;
+    max-width: none;
+  }
+
+  .library-sort {
+    flex-shrink: 0;
 
     margin-left: 0;
   }
@@ -1378,6 +1903,7 @@
 ============================================================= */
 
 @media (max-width: 650px) {
+
   .library-page {
     padding: 28px 16px 56px;
   }
@@ -1439,16 +1965,12 @@
     font-size: 11px;
   }
 
-  /*
-   * Siempre a la derecha.
-   */
+  .library-tools {
+    gap: 8px;
+  }
 
-  .library-sort {
-    width: 100%;
-
-    justify-content: flex-end;
-
-    margin-left: 0;
+  .library-search {
+    height: 36px;
   }
 
   .library-sort-button {
@@ -1468,22 +1990,23 @@
 ============================================================= */
 
 @media (max-width: 500px) {
+
   .library-page {
     padding-inline: 14px;
   }
 
-  /*
-   * En pantallas pequeñas eliminamos la palabra
-   * ORDENAR para dejar solamente el control.
-   */
+  .library-tools {
+    flex-direction: column;
+    align-items: stretch;
 
-  .library-sort-label {
-    display: none;
+    gap: 9px;
   }
 
-  /*
-   * El botón continúa pegado a la derecha.
-   */
+  .library-search {
+    width: 100%;
+
+    flex: none;
+  }
 
   .library-sort {
     width: 100%;
@@ -1491,6 +2014,10 @@
     justify-content: flex-end;
 
     margin-left: 0;
+  }
+
+  .library-sort-label {
+    display: none;
   }
 
   .library-sort-button {
@@ -1512,6 +2039,7 @@
 ============================================================= */
 
 @media (max-width: 430px) {
+
   .library-page {
     padding: 24px 12px 48px;
   }
@@ -1570,10 +2098,13 @@
     font-size: 10px;
   }
 
-  /*
-   * El botón permanece compacto
-   * y alineado a la derecha.
-   */
+  .library-search {
+    height: 35px;
+  }
+
+  .library-search input {
+    font-size: 10.5px;
+  }
 
   .library-sort {
     width: 100%;
@@ -1615,6 +2146,7 @@
 ============================================================= */
 
 @media (max-width: 360px) {
+
   .library-page {
     padding-inline: 10px;
   }
@@ -1639,10 +2171,13 @@
     font-size: 8px;
   }
 
-  /*
-   * Incluso en pantallas muy pequeñas
-   * el botón sigue compacto y a la derecha.
-   */
+  .library-search input {
+    font-size: 10px;
+  }
+
+  .library-search > svg {
+    margin-left: 9px;
+  }
 
   .library-sort {
     width: 100%;
@@ -1676,17 +2211,26 @@
 ============================================================= */
 
 @media (prefers-reduced-motion: reduce) {
+
   .library-page,
   .library-stat,
   .library-import-button,
   .library-empty-button,
   .library-eyebrow-dot,
+  .library-search,
+  .library-search-clear,
+  .library-refresh-button,
   .library-sort-button,
   .library-sort-icon,
   .library-sort-chevron,
   .library-sort-option,
-  .library-sort-menu {
+  .library-sort-menu,
+  .library-loading {
     animation: none;
     transition: none;
+  }
+
+  .library-loading-spinner {
+    animation: none;
   }
 }

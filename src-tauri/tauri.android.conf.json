@@ -1,0 +1,17 @@
+{
+  "build": {
+    "beforeDevCommand": "ng serve --host 0.0.0.0 --port 1420"
+  },
+  "app": {
+    "security": {
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": [
+          "/storage/emulated/0/Musex/**",
+          "$APPDATA/**"
+        ]
+      }
+    }
+  }
+}

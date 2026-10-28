@@ -3,31 +3,27 @@
     class="right-panel"
   >
 
+    <button
+      type="button"
+      class="vinyl-panel-trigger"
+      aria-label="Ocultar reproductor"
+      title="Ocultar reproductor"
+      (click)="playerService.toggleRightPanel()"
+    >
+      <span class="vinyl-panel-disc" aria-hidden="true">
+        <span class="vinyl-panel-groove vinyl-panel-groove-outer"></span>
+        <span class="vinyl-panel-groove vinyl-panel-groove-middle"></span>
+        <span class="vinyl-panel-groove vinyl-panel-groove-inner"></span>
+        <span class="vinyl-panel-center"></span>
+      </span>
+    </button>
+
+    <div class="right-panel-content">
+
     <!-- =========================================================
          TABS
     ========================================================== -->
     <div class="now-playing-tabs">
-
-      <button
-        type="button"
-        class="now-playing-close"
-        aria-label="Ocultar reproductor"
-        title="Ocultar"
-        (click)="playerService.toggleRightPanel()"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M15 18l-6-6 6-6" />
-        </svg>
-      </button>
-
 
       <!-- Reproduciendo -->
 
@@ -85,6 +81,7 @@
 
               <img
                 id="sideCover"
+                [class.is-playing]="playerState().playing"
                 [src]="currentTrack.image"
                 [alt]="currentTrack.title"
                 class="cover-image"
@@ -132,6 +129,7 @@
               <svg
                 id="sideCover"
                 class="cover-image musex-default-cover"
+                [class.is-playing]="playerState().playing"
                 viewBox="0 0 400 400"
                 role="img"
                 [attr.aria-label]="
@@ -280,51 +278,55 @@
           </div>
 
 
-          <button
-            id="sideFavorite"
-            type="button"
-            class="favorite-button"
-            [class.active]="currentTrackIsFavorite"
-            [attr.aria-label]="
-              currentTrackIsFavorite
-                ? 'Quitar de favoritos'
-                : 'Agregar a favoritos'
-            "
-            [attr.title]="
-              currentTrackIsFavorite
-                ? 'Quitar de favoritos'
-                : 'Agregar a favoritos'
-            "
-            (click)="toggleFavorite()"
-          >
+          @if (currentTrack?.source !== 'download') {
 
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+            <button
+              id="sideFavorite"
+              type="button"
+              class="favorite-button"
+              [class.active]="currentTrackIsFavorite"
+              [attr.aria-label]="
+                currentTrackIsFavorite
+                  ? 'Quitar de favoritos'
+                  : 'Agregar a favoritos'
+              "
+              [attr.title]="
+                currentTrackIsFavorite
+                  ? 'Quitar de favoritos'
+                  : 'Agregar a favoritos'
+              "
+              (click)="toggleFavorite()"
             >
-              <polygon
-                points="
-                  12 2
-                  15.09 8.26
-                  22 9.27
-                  17 14.14
-                  18.18 21.02
-                  12 17.77
-                  5.82 21.02
-                  7 14.14
-                  2 9.27
-                  8.91 8.26
-                  12 2
-                "
-              />
-            </svg>
 
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polygon
+                  points="
+                    12 2
+                    15.09 8.26
+                    22 9.27
+                    17 14.14
+                    18.18 21.02
+                    12 17.77
+                    5.82 21.02
+                    7 14.14
+                    2 9.27
+                    8.91 8.26
+                    12 2
+                  "
+                />
+              </svg>
+
+            </button>
+
+          }
 
         </div>
 
@@ -616,7 +618,7 @@
             <button
               id="clearQueue"
               type="button"
-              class="clear-queue"
+              class="clear-queue hide-on-android"
               (click)="clearQueue()"
             >
               Limpiar
@@ -690,5 +692,6 @@
 
     }
 
+    </div>
   </aside>
 }

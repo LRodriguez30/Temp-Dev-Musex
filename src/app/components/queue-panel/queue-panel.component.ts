@@ -3,11 +3,16 @@ import {
   DestroyRef,
   effect,
   inject,
+  OnInit,
   signal
 } from '@angular/core';
 
 import { QueueComponent } from '../queue/queue.component';
 import { QueuePanelService } from '../../core/services/queue-panel.service';
+import { IS_ANDROID } from '@tauri-apps/api/core';
+import { NavigationStart, Router } from '@angular/router';
+import { filter } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 /**
  * Contenedor responsive para la cola de reproducción.
@@ -28,11 +33,29 @@ import { QueuePanelService } from '../../core/services/queue-panel.service';
   templateUrl: './queue-panel.component.html',
   styleUrl: './queue-panel.component.css'
 })
-export class QueuePanelComponent {
+export class QueuePanelComponent implements OnInit {
+
+  readonly isAndroid = IS_ANDROID;
 
   readonly queuePanelService = inject(QueuePanelService);
 
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+
+  // El resto de tus propiedades y métodos permanece igual.
+
+  ngOnInit(): void {
+    this.router.events
+      .pipe(
+        filter(event => event instanceof NavigationStart),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        if (this.isAndroid && this.queuePanelService.open()) {
+          this.close();
+        }
+      });
+  }
 
   /**
    * Mantiene el panel montado durante la animación de salida.
@@ -45,6 +68,25 @@ export class QueuePanelComponent {
   readonly queuePanelExiting = signal(false);
 
   private queuePanelExitTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  // ===========================================================
+  // GESTO MÓVIL — deslizar hacia abajo desde el encabezado
+  // ===========================================================
+
+  private swipeStartY = 0;
+
+  onSwipeStart(event: TouchEvent): void {
+    this.swipeStartY = event.touches[0].clientY;
+  }
+
+  onSwipeEnd(event: TouchEvent): void {
+    const deltaY =
+      event.changedTouches[0].clientY - this.swipeStartY;
+
+    if (deltaY > 70) {
+      this.close();
+    }
+  }
 
   constructor() {
 

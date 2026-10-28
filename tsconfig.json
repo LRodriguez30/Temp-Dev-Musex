@@ -12,6 +12,10 @@
     "isolatedModules": true,
     "experimentalDecorators": true,
     "importHelpers": true,
+    "paths": {
+      "@tauri-apps/api/core": ["./src/app/core/platform/invoke.ts"],
+      "@tauri-real/core": ["./node_modules/@tauri-apps/api/core"]
+    },
     "target": "ES2022",
     "module": "preserve"
   },
