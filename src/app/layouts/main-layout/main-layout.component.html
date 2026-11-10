@@ -147,20 +147,10 @@
       playerService.hasPlayableContent() &&
       !isAndroid
     ) {
-      <button
-        type="button"
-        class="vinyl-player-trigger"
-        aria-label="Abrir reproductor"
-        title="Abrir reproductor"
-        (click)="playerService.toggleRightPanel()"
-      >
-        <span class="vinyl-disc" aria-hidden="true">
-          <span class="vinyl-groove vinyl-groove-outer"></span>
-          <span class="vinyl-groove vinyl-groove-middle"></span>
-          <span class="vinyl-groove vinyl-groove-inner"></span>
-          <span class="vinyl-center"></span>
-        </span>
-      </button>
+      <app-player-handle
+        [playing]="playerService.state().playing"
+        (open)="playerService.toggleRightPanel()"
+      />
     }
 
   </main> 
@@ -178,6 +168,8 @@
 <!-- ============================================================ 
      BOTTOM PLAYER — GLOBAL 
 ============================================================= --> 
+
+<app-auto-pick-banner></app-auto-pick-banner>
 
 @if (bottomPlayerMounted()) { 
 
@@ -220,7 +212,6 @@
   (animationFinished)="onModalAnimationFinished()" 
 > 
 
-
   <!-- ========================================================= 
        SEARCH 
   ========================================================== --> 
@@ -231,6 +222,15 @@
 
   } 
 
+  <!-- =========================================================
+      THEME SETTINGS
+  ========================================================== -->
+
+  @if (modalService.is('settings')) {
+    <app-theme-settings-modal
+      (closed)="closeModal()"
+    />
+  }
 
   <!-- ========================================================= 
        TRACK MENU 
@@ -774,6 +774,18 @@
       ====================================================== --> 
 
       <footer class="music-metadata-actions"> 
+
+        @if (metadataEdited().has(editingTrack()!.id)) { 
+
+          <button 
+            type="button" 
+            class="music-metadata-cancel music-metadata-restore" 
+            (click)="restoreMetadata()" 
+          > 
+            Restaurar original 
+          </button> 
+
+        } 
 
         <button 
           type="button" 
@@ -1638,6 +1650,16 @@
                BANDS 
           ================================================== --> 
 
+          <!-- Curva de respuesta -->
+          @if (eqService.hasBands()) {
+            <app-eq-curve
+              class="eq-curve-host"
+              [bands]="eqService.bands()"
+              (bandMove)="eqService.updateBand($event.id, { frequency: $event.frequency, gainDb: $event.gainDb })"
+              (bandQ)="eqService.updateBand($event.id, { q: $event.q })"
+            />
+          }
+
           <div class="eq-bands-section"> 
 
             <div class="eq-bands-header"> 
@@ -1731,7 +1753,21 @@
             </div> 
 
 
-            @if (eqService.hasBands()) { 
+            <!-- Presets integrados -->
+              <div class="eq-presets" role="group" aria-label="Presets">
+                @for (preset of eqService.presets; track preset.id) {
+                  <button
+                    type="button"
+                    class="eq-preset-chip"
+                    [disabled]="eqService.isSavingPreset()"
+                    (click)="eqService.applyPreset(preset.id)"
+                  >
+                    {{ preset.name }}
+                  </button>
+                }
+              </div>
+
+              @if (eqService.hasBands()) { 
 
               <div class="eq-bands-list"> 
 

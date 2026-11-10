@@ -45,6 +45,25 @@ const REMOTE_FAVORITES_STORAGE_KEY =
 const COVERS_STORAGE_KEY =
   'musex_track_covers';
 
+const METADATA_STORAGE_KEY =
+  'musex_track_metadata';
+
+interface EditableMetadata {
+  title: string;
+  artist: string;
+  album: string;
+  genre?: string;
+}
+
+/**
+ * Edición del usuario sobre una canción. Se guarda aparte del
+ * archivo (que no se toca) junto con los valores originales,
+ * para poder restaurarlos.
+ */
+interface MetadataOverride extends EditableMetadata {
+  original: EditableMetadata;
+}
+
 // =============================================================
 // RESPUESTA DE RUST
 // =============================================================
@@ -282,6 +301,9 @@ export class LibraryService {
       const scanned =
         await invoke<RustTrack[]>(command);
 
+      const metadataOverrides =
+        this.readMetadataOverrides();
+
       return scanned.map(track => {
 
         const coverOverrides =
@@ -291,18 +313,23 @@ export class LibraryService {
           id: track.id,
 
           title:
+            metadataOverrides[track.id]?.title ??
             track.title,
 
           artist:
+            metadataOverrides[track.id]?.artist ??
             track.artist ??
             'Artista desconocido',
 
           album:
+            metadataOverrides[track.id]?.album ??
             track.album ??
             'Youtube',
 
           genre:
-            track.genre ??
+            (metadataOverrides[track.id]
+              ? metadataOverrides[track.id].genre
+              : track.genre) ??
             undefined,
 
           duration:
@@ -413,6 +440,9 @@ export class LibraryService {
           'scan_temp'
         );
 
+      const metadataOverrides =
+        this.readMetadataOverrides();
+
       const tracks: Track[] =
         scannedTracks.map(track => {
 
@@ -423,18 +453,23 @@ export class LibraryService {
             id: track.id,
 
             title:
+              metadataOverrides[track.id]?.title ??
               track.title,
 
             artist:
+              metadataOverrides[track.id]?.artist ??
               track.artist ??
               'Artista desconocido',
 
             album:
+              metadataOverrides[track.id]?.album ??
               track.album ??
               'Youtube',
 
             genre:
-              track.genre ??
+              (metadataOverrides[track.id]
+                ? metadataOverrides[track.id].genre
+                : track.genre) ??
               undefined,
 
             duration:
@@ -970,31 +1005,154 @@ export class LibraryService {
     }
   ): void {
 
+    const current =
+      this.tracks().find(
+        track => track.id === trackId
+      );
+
+    if (!current) {
+      return;
+    }
+
+    const next: EditableMetadata = {
+      title: metadata.title.trim(),
+      artist: metadata.artist.trim(),
+      album: metadata.album.trim(),
+      genre: metadata.genre?.trim() || undefined
+    };
+
+    this.applyMetadata(trackId, next);
+
+    // Se conservan los valores originales de la primera edición.
+    const overrides = this.readMetadataOverrides();
+
+    const original: EditableMetadata =
+      overrides[trackId]?.original ?? {
+        title: current.title,
+        artist: current.artist,
+        album: current.album,
+        genre: current.genre
+      };
+
+    const unchanged =
+      next.title === original.title &&
+      next.artist === original.artist &&
+      next.album === original.album &&
+      (next.genre ?? '') === (original.genre ?? '');
+
+    if (unchanged) {
+      delete overrides[trackId];
+    } else {
+      overrides[trackId] = { ...next, original };
+    }
+
+    this.writeMetadataOverrides(overrides);
+  }
+
+  /**
+   * Devuelve la canción a los metadatos que tenía el archivo
+   * antes de que el usuario los editara.
+   */
+  restoreMetadata(
+    trackId: string
+  ): EditableMetadata | undefined {
+
+    const overrides = this.readMetadataOverrides();
+
+    const original = overrides[trackId]?.original;
+
+    if (!original) {
+      return undefined;
+    }
+
+    this.applyMetadata(trackId, original);
+
+    delete overrides[trackId];
+
+    this.writeMetadataOverrides(overrides);
+
+    return original;
+  }
+
+  private applyMetadata(
+    trackId: string,
+    metadata: EditableMetadata
+  ): void {
+
     this.tracks.update(
       tracks =>
-        tracks.map(track => {
+        tracks.map(track =>
+          track.id === trackId
+            ? {
+              ...track,
+              title: metadata.title,
+              artist: metadata.artist,
+              album: metadata.album,
+              genre: metadata.genre
+            }
+            : track
+        )
+    );
+  }
 
-          if (track.id !== trackId) {
-            return track;
-          }
+  // ===========================================================
+  // METADATA OVERRIDES
+  // ===========================================================
 
-          return {
-            ...track,
+  /** Ids de canciones cuyos metadatos fueron editados. */
+  readonly metadataEdited = signal<ReadonlySet<string>>(
+    new Set<string>(
+      Object.keys(this.readMetadataOverrides())
+    )
+  );
 
-            title:
-              metadata.title.trim(),
+  private readMetadataOverrides():
+    Record<string, MetadataOverride> {
 
-            artist:
-              metadata.artist.trim(),
+    try {
 
-            album:
-              metadata.album.trim(),
+      const stored =
+        localStorage.getItem(
+          METADATA_STORAGE_KEY
+        );
 
-            genre:
-              metadata.genre?.trim() ||
-              undefined
-          };
-        })
+      if (!stored) {
+        return {};
+      }
+
+      const parsed: unknown = JSON.parse(stored);
+
+      return parsed && typeof parsed === 'object'
+        ? parsed as Record<string, MetadataOverride>
+        : {};
+
+    } catch {
+
+      return {};
+    }
+  }
+
+  private writeMetadataOverrides(
+    overrides: Record<string, MetadataOverride>
+  ): void {
+
+    try {
+
+      localStorage.setItem(
+        METADATA_STORAGE_KEY,
+        JSON.stringify(overrides)
+      );
+
+    } catch (error) {
+
+      console.error(
+        'No se pudieron guardar los metadatos editados:',
+        error
+      );
+    }
+
+    this.metadataEdited.set(
+      new Set(Object.keys(overrides))
     );
   }
 

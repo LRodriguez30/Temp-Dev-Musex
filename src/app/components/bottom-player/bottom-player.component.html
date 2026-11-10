@@ -1188,6 +1188,7 @@
             class="bottom-control mobile-expand-control"
             title="Expandir reproductor"
             aria-label="Expandir reproductor"
+            [disabled]="queuePanelService.open()"
             (click)="toggleFullPlayer()"
           >
             <svg

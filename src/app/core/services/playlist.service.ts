@@ -73,9 +73,23 @@ export class PlaylistService {
   /**
    * Guarda el estado actual de las playlists en localStorage.
    */
-  private saveToStorage(playlists: Playlist[]): void {
-    if (typeof window !== 'undefined') {
+  private saveToStorage(playlists: Playlist[]): boolean {
+    if (typeof window === 'undefined') {
+      return true;
+    }
+
+    try {
       localStorage.setItem('musex_playlists', JSON.stringify(playlists));
+      return true;
+    } catch (error) {
+      // Típicamente QuotaExceededError por portadas en base64.
+      // Se registra, pero el estado en memoria no se pierde.
+      console.error(
+        '[Musex] No se pudieron guardar las playlists:',
+        error
+      );
+
+      return false;
     }
   }
 
@@ -234,7 +248,9 @@ export class PlaylistService {
   addTrack(
     playlistId: string,
     trackId: string
-  ): void {
+  ): boolean {
+    let added = false;
+
     this.playlists.update(playlists => {
       const updated = playlists.map(playlist => {
         if (playlist.id !== playlistId) {
@@ -246,6 +262,8 @@ export class PlaylistService {
         if (trackIds.includes(trackId)) {
           return playlist;
         }
+
+        added = true;
 
         const updatedTrackIds = [
           ...trackIds,
@@ -261,6 +279,8 @@ export class PlaylistService {
       this.saveToStorage(updated);
       return updated;
     });
+
+    return added;
   }
 
   /**
@@ -272,11 +292,13 @@ export class PlaylistService {
   addTracks(
     playlistId: string,
     trackIds: string[]
-  ): void {
+  ): number {
 
     if (trackIds.length === 0) {
-      return;
+      return 0;
     }
+
+    let addedCount = 0;
 
     this.playlists.update(playlists => {
 
@@ -287,14 +309,18 @@ export class PlaylistService {
         }
 
         const currentTrackIds = playlist.trackIds ?? [];
+        const existing = new Set(currentTrackIds);
 
-        const newTrackIds = trackIds.filter(
-          trackId => !currentTrackIds.includes(trackId)
+        // Quita los ya incluidos y también los repetidos de la entrada.
+        const newTrackIds = [...new Set(trackIds)].filter(
+          trackId => !existing.has(trackId)
         );
 
         if (newTrackIds.length === 0) {
           return playlist;
         }
+
+        addedCount = newTrackIds.length;
 
         const updatedTrackIds = [
           ...currentTrackIds,
@@ -312,6 +338,8 @@ export class PlaylistService {
 
       return updated;
     });
+
+    return addedCount;
   }
 
   /**
@@ -338,6 +366,47 @@ export class PlaylistService {
         };
       });
       this.saveToStorage(updated);
+      return updated;
+    });
+  }
+
+  /**
+   * Elimina varias canciones de una playlist en una sola
+   * actualización (una escritura a storage, un solo cambio
+   * de señal).
+   */
+  removeTracks(
+    playlistId: string,
+    trackIds: string[]
+  ): void {
+
+    if (trackIds.length === 0) {
+      return;
+    }
+
+    const toRemove = new Set(trackIds);
+
+    this.playlists.update(playlists => {
+
+      const updated = playlists.map(playlist => {
+
+        if (playlist.id !== playlistId) {
+          return playlist;
+        }
+
+        const updatedTrackIds = (
+          playlist.trackIds ?? []
+        ).filter(id => !toRemove.has(id));
+
+        return {
+          ...playlist,
+          trackIds: updatedTrackIds,
+          count: updatedTrackIds.length
+        };
+      });
+
+      this.saveToStorage(updated);
+
       return updated;
     });
   }

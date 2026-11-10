@@ -37,4 +37,18 @@ export interface Settings {
    * la ubicación predeterminada del sistema.
    */
   downloadDirectory: string;
+
+  /**
+   * Cuando está activo, al terminar una canción (solo si llega
+   * al final) Musex elige por ti la siguiente según tu cola y tu
+   * historial, y la reproduce con prioridad sobre la cola sin
+   * agregarla a ella.
+   */
+  autoPick: boolean;
+
+  /**
+   * Segundos de gracia antes de reproducir la canción elegida.
+   * Durante ese tiempo se puede cancelar o adelantar.
+   */
+  autoPickGraceSeconds: number;
 }

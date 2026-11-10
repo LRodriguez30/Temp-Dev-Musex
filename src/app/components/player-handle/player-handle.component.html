@@ -1,0 +1,19 @@
+<button
+  type="button"
+  class="player-handle"
+  [class.is-tucked]="tucked()"
+  [class.is-playing]="playing()"
+  aria-label="Abrir reproductor"
+  title="Abrir reproductor"
+  (click)="open.emit()"
+>
+  <span class="handle-label" aria-hidden="true">Reproductor</span>
+
+  <span class="handle-disc" aria-hidden="true">
+    <span class="handle-groove handle-groove-outer"></span>
+    <span class="handle-groove handle-groove-middle"></span>
+    <span class="handle-groove handle-groove-inner"></span>
+    <span class="handle-sheen"></span>
+    <span class="handle-center"></span>
+  </span>
+</button>

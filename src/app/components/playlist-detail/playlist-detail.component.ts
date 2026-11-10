@@ -315,6 +315,24 @@ export class PlaylistDetailComponent {
   }
 
 
+  /**
+   * Agrega las canciones seleccionadas (selector múltiple)
+   * a otra playlist. Sin este handler, el evento
+   * addSelectedToPlaylist de la tabla se perdía.
+   */
+  openAddSelectedToPlaylist(tracks: Track[]): void {
+
+    if (tracks.length === 0) {
+      return;
+    }
+
+    this.modalService.openAddSelectedToPlaylist(
+      tracks.map(track => track.id)
+    );
+
+  }
+
+
   // =========================================================
   // REORDER STATE
   // =========================================================
@@ -1046,6 +1064,15 @@ export class PlaylistDetailComponent {
   // REMOVE TRACK
   // =========================================================
 
+  /**
+   * Las playlists recibidas del escritorio (remote) son de
+   * solo lectura en el teléfono.
+   */
+  get canEditTracks(): boolean {
+    return !this.playlist()?.remote;
+  }
+
+
   removeTrack(
     trackId: string
   ): void {
@@ -1054,7 +1081,7 @@ export class PlaylistDetailComponent {
       this.playlistId();
 
 
-    if (!id) {
+    if (!id || !this.canEditTracks) {
       return;
     }
 
@@ -1067,6 +1094,34 @@ export class PlaylistDetailComponent {
 
     this.notificationService.info(
       'Canción eliminada de la playlist.'
+    );
+
+  }
+
+
+  removeTracks(
+    tracks: Track[]
+  ): void {
+
+    const id =
+      this.playlistId();
+
+
+    if (!id || !this.canEditTracks || tracks.length === 0) {
+      return;
+    }
+
+
+    this.playlistService.removeTracks(
+      id,
+      tracks.map(track => track.id)
+    );
+
+
+    this.notificationService.info(
+      tracks.length === 1
+        ? 'Canción eliminada de la playlist.'
+        : `${tracks.length} canciones eliminadas de la playlist.`
     );
 
   }

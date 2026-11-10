@@ -45,6 +45,9 @@
   position: relative;
   z-index: 1;
 
+  display: flex;
+  flex-direction: column;
+
   width: 100%;
   height: 100%;
   min-width: 0;
@@ -869,29 +872,85 @@
   animation: panel-content-enter 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* FLOATING VINYL */
+/* =============================================================
+   DISCO DEL BORDE (asa para ocultar el panel)
+   -------------------------------------------------------------
+   - Anclado al borde izquierdo del propio panel: ya no depende de
+     un ancho fijo y sigue al panel en cualquier tamaño.
+   - Mismo lenguaje que las pestañas: fondo plano oscuro, línea
+     de 1 px, tipografía monoespaciada y acento verde.
+   - Gira mientras suena la música.
+   - Se esconde mientras la pantalla principal hace scroll.
+============================================================= */
 
 .vinyl-panel-trigger {
-  position: fixed;
-  z-index: -10;
+  position: absolute;
+  z-index: 0;
   top: 50%;
-  right: 335px;
-
+  right: 100%;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-
-  width: 66px;
-  height: 88px;
-  padding: 0;
-
-  border: 0;
-  background: transparent;
+  justify-content: flex-end;
+  height: 56px;
+  margin-top: -28px;
+  padding: 0 4px 0 0;
+  border: 1px solid var(--musex-line);
+  border-right: 0;
+  border-radius: 28px 0 0 28px;
+  background: linear-gradient(180deg, #131417 0%, #0f1012 100%);
+  box-shadow: -10px 0 26px rgb(0 0 0 / 35%);
+  color: var(--musex-green);
   cursor: pointer;
-
-  transform: translateY(-50%);
-  transition: right 160ms ease;
+  opacity: 1;
+  transition:
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+  animation: vinyl-handle-in 520ms 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* Mientras el contenido principal hace scroll */
+.vinyl-panel-trigger.is-tucked {
+  transform: translateX(110%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.vinyl-panel-trigger:hover,
+.vinyl-panel-trigger:focus-visible {
+  border-color: color-mix(in srgb, var(--musex-accent) 45%, transparent);
+  box-shadow:
+    -12px 0 30px rgb(0 0 0 / 40%),
+    0 0 18px color-mix(in srgb, var(--musex-accent) 10%, transparent);
+}
+
+/* Etiqueta: aparece al pasar el cursor, con la tipografía de las pestañas */
+.vinyl-panel-label {
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  color: var(--musex-green);
+  font-family: "Courier New", "Lucida Console", monospace;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition:
+    max-width 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    margin 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 200ms ease;
+}
+
+.vinyl-panel-trigger:hover .vinyl-panel-label,
+.vinyl-panel-trigger:focus-visible .vinyl-panel-label {
+  max-width: 64px;
+  margin: 0 10px 0 14px;
+  opacity: 1;
+}
+
+/* ---------- Disco ---------- */
 
 .vinyl-panel-disc {
   position: relative;
@@ -899,65 +958,91 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-
-  width: 84px;
-  height: 84px;
+  width: 44px;
+  height: 44px;
   box-sizing: border-box;
-
-  border: 1px solid #34363a;
+  border: 1px solid #2c2f34;
   border-radius: 50%;
+  background:
+    radial-gradient(circle, #1b1d21 0 16%, transparent 17%),
+    repeating-radial-gradient(
+      circle,
+      #15171a 0 1.5px,
+      #1f2125 2.5px 3px,
+      #101113 4px 5px
+    );
+  box-shadow: inset 0 0 0 3px #121316;
+  transition: border-color 200ms ease, transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: vinyl-spin 7s linear infinite;
+  animation-play-state: paused;
+}
 
-  background: radial-gradient(circle, #202226 0 13%, transparent 14%),
-    repeating-radial-gradient(circle, #181a1d 0 2px, #292b30 3px 4px, #111214 5px 6px);
+.vinyl-panel-trigger.is-playing .vinyl-panel-disc {
+  animation-play-state: running;
+}
 
-  box-shadow: 0 6px 24px rgb(0 0 0 / 45%),
-    0 0 18px rgb(0 0 0 / 25%), inset 0 0 0 4px #141518;
+.vinyl-panel-trigger:hover .vinyl-panel-disc,
+.vinyl-panel-trigger:focus-visible .vinyl-panel-disc {
+  border-color: var(--musex-accent, #9cff00);
+}
 
-  transition: transform 160ms ease, border-color 160ms ease,
-    box-shadow 160ms ease;
+.vinyl-panel-trigger:active .vinyl-panel-disc {
+  transform: scale(0.92);
 }
 
 .vinyl-panel-groove {
   position: absolute;
-  border: 1px solid rgb(255 255 255 / 9%);
+  border: 1px solid rgb(255 255 255 / 6%);
   border-radius: 50%;
   pointer-events: none;
 }
 
-.vinyl-panel-groove-outer {
-  inset: 9px;
-}
+.vinyl-panel-groove-outer { inset: 5px; }
+.vinyl-panel-groove-middle { inset: 9px; }
+.vinyl-panel-groove-inner { inset: 13px; }
 
-.vinyl-panel-groove-middle {
-  inset: 16px;
-}
-
-.vinyl-panel-groove-inner {
-  inset: 23px;
+/* Brillo de luz: al girar da sensación de vinilo real */
+.vinyl-panel-sheen {
+  position: absolute;
+  inset: 1px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 30deg,
+    transparent 0deg,
+    rgb(255 255 255 / 9%) 38deg,
+    transparent 80deg,
+    transparent 180deg,
+    rgb(255 255 255 / 6%) 218deg,
+    transparent 260deg
+  );
+  pointer-events: none;
 }
 
 .vinyl-panel-center {
   position: relative;
   z-index: 1;
-
-  width: 15px;
-  height: 15px;
-
-  border: 4px solid var(--musex-accent, #9cff00);
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--musex-accent, #9cff00);
   border-radius: 50%;
-  background: #181a1d;
-  box-shadow: 0 0 10px rgb(156 255 0 / 20%);
+  background: #121316;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--musex-accent) 35%, transparent);
 }
 
-.vinyl-panel-trigger:hover .vinyl-panel-disc {
-  transform: rotate(24deg) scale(1.06);
-  border-color: var(--musex-accent, #9cff00);
-  box-shadow: 0 8px 28px rgb(0 0 0 / 50%),
-    0 0 14px rgb(156 255 0 / 12%), inset 0 0 0 4px #141518;
+@keyframes vinyl-spin {
+  to { transform: rotate(360deg); }
 }
 
-.vinyl-panel-trigger:active .vinyl-panel-disc {
-  transform: rotate(36deg) scale(0.96);
+@keyframes vinyl-handle-in {
+  from {
+    transform: translateX(110%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 /* RESPONSIVE */
@@ -1109,7 +1194,9 @@
   .now-playing-close,
   .clear-queue,
   .vinyl-panel-trigger,
-  .vinyl-panel-disc {
+  .vinyl-panel-disc,
+  .vinyl-panel-label {
     transition: none !important;
+    animation: none !important;
   }
 }

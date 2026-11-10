@@ -334,7 +334,7 @@ export class DownloadService
     try {
 
       const parsedUrl =
-        new URL(url);
+        new URL(this.normalizeUrl(url));
 
       const hostname =
         parsedUrl.hostname.toLowerCase();
@@ -370,6 +370,259 @@ export class DownloadService
     }
   }
 
+  // ===========================================================
+  // COLA CON LÍMITE DE DESCARGAS SIMULTÁNEAS
+  // ===========================================================
+  //
+  // Cada descarga lanza yt-dlp y ffmpeg. Con una lista larga no
+  // pueden arrancar todas a la vez: se procesan de a pocas.
+
+  /** Cuántas descargas corren a la vez (una por una). */
+  private static readonly MAX_PARALLEL = 1;
+
+  private readonly slotHolders = new Set<string>();
+
+  private readonly slotWaiters: { id: string; resolve: () => void }[] = [];
+
+  /**
+   * Inicia una descarga respetando el límite de simultáneas: si ya
+   * hay varias en curso, espera su turno (queda como "pendiente").
+   */
+  async queueDownload(
+    downloadId: string
+  ): Promise<void> {
+
+    await this.acquireSlot(downloadId);
+
+    // Pudo cancelarse o eliminarse mientras esperaba.
+    const download = this.findDownload(downloadId);
+
+    if (!download || download.status === 'cancelled') {
+      this.releaseSlot(downloadId);
+      return;
+    }
+
+    try {
+
+      await this.startDownload(downloadId);
+
+    } catch (error) {
+
+      this.releaseSlot(downloadId);
+
+      throw error;
+    }
+
+    // Si startDownload ya la dejó en un estado final, libera el turno.
+    const after = this.findDownload(downloadId);
+
+    if (
+      !after ||
+      (after.status !== 'downloading' && after.status !== 'pending')
+    ) {
+      this.releaseSlot(downloadId);
+    }
+  }
+
+  private acquireSlot(
+    downloadId: string
+  ): Promise<void> {
+
+    if (this.slotHolders.size < DownloadService.MAX_PARALLEL) {
+
+      this.slotHolders.add(downloadId);
+
+      return Promise.resolve();
+    }
+
+    return new Promise<void>(resolve => {
+      this.slotWaiters.push({ id: downloadId, resolve });
+    });
+  }
+
+  private releaseSlot(
+    downloadId: string
+  ): void {
+
+    // Si estaba esperando turno, simplemente se quita de la fila.
+    const waiting = this.slotWaiters.findIndex(
+      waiter => waiter.id === downloadId
+    );
+
+    if (waiting >= 0) {
+      this.slotWaiters.splice(waiting, 1);
+      return;
+    }
+
+    if (!this.slotHolders.delete(downloadId)) {
+      return;
+    }
+
+    while (
+      this.slotHolders.size < DownloadService.MAX_PARALLEL &&
+      this.slotWaiters.length > 0
+    ) {
+
+      const next = this.slotWaiters.shift()!;
+
+      this.slotHolders.add(next.id);
+
+      next.resolve();
+    }
+  }
+
+  // ===========================================================
+  // VARIOS ENLACES Y LISTAS DE YOUTUBE
+  // ===========================================================
+
+  /**
+   * Extrae todos los enlaces compatibles de un texto (uno por línea,
+   * o separados por espacios o comas). Sin duplicados.
+   */
+  extractUrls(
+    text: string
+  ): { valid: string[]; invalid: string[] } {
+
+    const valid: string[] = [];
+    const invalid: string[] = [];
+
+    const seen = new Set<string>();
+
+    for (const token of (text ?? '').split(/[\s,;]+/)) {
+
+      const url = this.normalizeUrl(token);
+
+      if (!url) {
+        continue;
+      }
+
+      if (seen.has(url)) {
+        continue;
+      }
+
+      seen.add(url);
+
+      (this.validDownloadUrl(url) ? valid : invalid).push(url);
+    }
+
+    return { valid, invalid };
+  }
+
+  /**
+   * Si la URL pertenece a una lista de YouTube devuelve su
+   * identificador (`list=`); si no, null.
+   */
+  playlistIdOf(
+    url: string
+  ): string | null {
+
+    try {
+
+      const parsed = new URL(this.normalizeUrl(url));
+
+      const host = parsed.hostname.toLowerCase();
+
+      if (
+        host !== 'youtube.com' &&
+        !host.endsWith('.youtube.com')
+      ) {
+        return null;
+      }
+
+      const id = parsed.searchParams.get('list');
+
+      return id && /^[A-Za-z0-9_-]{2,64}$/.test(id)
+        ? id
+        : null;
+
+    } catch {
+
+      return null;
+    }
+  }
+
+  /** true si es una página de lista (no un video dentro de una lista). */
+  isPlaylistPage(
+    url: string
+  ): boolean {
+
+    try {
+
+      return (
+        this.playlistIdOf(url) !== null &&
+        new URL(this.normalizeUrl(url)).pathname === '/playlist'
+      );
+
+    } catch {
+
+      return false;
+    }
+  }
+
+  /** Lee el contenido de una lista de YouTube (sin descargar). */
+  async listYouTubePlaylist(
+    url: string
+  ): Promise<{
+    title: string;
+    entries: { id: string; title: string; duration?: number }[];
+    truncated: boolean;
+  }> {
+
+    return invoke(
+      'list_youtube_playlist',
+      { url }
+    );
+  }
+
+  /**
+   * Limpia el texto pegado y devuelve la URL contenida:
+   * ignora texto alrededor ("Mira esto https://..."), signos
+   * de puntuación o <> alrededor, y añade https:// si falta.
+   */
+  normalizeUrl(
+    input: string
+  ): string {
+
+    const text =
+      (input ?? '').trim();
+
+    if (!text) {
+      return '';
+    }
+
+    const candidates =
+      text
+        .split(/\s+/)
+        .map(token =>
+          token
+            .replace(/^[<("'\[]+/, '')
+            .replace(/[>)"'\],;.]+$/, '')
+        )
+        .filter(token => token.length > 0);
+
+    const withScheme =
+      candidates.find(
+        token => /^https?:\/\//i.test(token)
+      );
+
+    if (withScheme) {
+      return withScheme;
+    }
+
+    const bare =
+      candidates.find(
+        token =>
+          /^(?:[a-z0-9-]+\.)*(?:youtube\.com|youtu\.be|newgrounds\.com)(?:[/?#:]|$)/i
+            .test(token)
+      );
+
+    if (bare) {
+      return `https://${bare.replace(/^\/+/, '')}`;
+    }
+
+    return candidates[0] ?? '';
+  }
+
   validDownloadUrl(
     url: string
   ): boolean {
@@ -377,7 +630,7 @@ export class DownloadService
     try {
 
       const parsedUrl =
-        new URL(url);
+        new URL(this.normalizeUrl(url));
 
       if (
         parsedUrl.protocol !== 'http:' &&
@@ -407,7 +660,7 @@ export class DownloadService
   ): Download | null {
 
     const normalizedUrl =
-      url.trim();
+      this.normalizeUrl(url);
 
     if (
       !this.validDownloadUrl(
@@ -579,6 +832,32 @@ export class DownloadService
       );
 
     if (!download) {
+      return;
+    }
+
+    // Eventos que llegan después de cancelar no deben reactivarla.
+    if (download.status === 'cancelled') {
+      return;
+    }
+
+    if (event.status === 'cancelled') {
+
+      this.updateDownload(
+        event.id,
+        {
+          status:
+            'cancelled',
+
+          message:
+            'Descarga cancelada.'
+        }
+      );
+
+      setTimeout(
+        () => this.remove(event.id),
+        1200
+      );
+
       return;
     }
 
@@ -831,9 +1110,9 @@ export class DownloadService
   /**
    * Cancela una descarga pendiente.
    */
-  cancel(
+  async cancel(
     downloadId: string
-  ): void {
+  ): Promise<void> {
 
     const download =
       this.findDownload(
@@ -844,6 +1123,7 @@ export class DownloadService
       return;
     }
 
+    // Pendiente: aún no llegó a Rust, basta con descartarla.
     if (
       download.status ===
       'pending'
@@ -857,6 +1137,44 @@ export class DownloadService
       this.remove(
         downloadId
       );
+
+      return;
+    }
+
+    // En curso: se pide a Rust detener el proceso.
+    if (
+      download.status ===
+      'downloading'
+    ) {
+
+      this.updateDownload(
+        downloadId,
+        {
+          message:
+            'Cancelando...'
+        }
+      );
+
+      try {
+
+        await invoke<boolean>(
+          'cancel_download',
+          {
+            id:
+              downloadId
+          }
+        );
+
+      } catch (error) {
+
+        this.updateDownload(
+          downloadId,
+          {
+            message:
+              `No se pudo cancelar: ${this.getErrorMessage(error)}`
+          }
+        );
+      }
     }
   }
 
@@ -867,6 +1185,8 @@ export class DownloadService
   remove(
     downloadId: string
   ): void {
+
+    this.releaseSlot(downloadId);
 
     this.downloads.update(
       downloads =>
@@ -936,6 +1256,16 @@ export class DownloadService
     downloadId: string,
     changes: Partial<Download>
   ): void {
+
+    // Al terminar (bien, mal o cancelada) se libera el turno para que
+    // arranque la siguiente descarga en espera.
+    if (
+      changes.status === 'completed' ||
+      changes.status === 'error' ||
+      changes.status === 'cancelled'
+    ) {
+      this.releaseSlot(downloadId);
+    }
 
     this.downloads.update(
       downloads =>

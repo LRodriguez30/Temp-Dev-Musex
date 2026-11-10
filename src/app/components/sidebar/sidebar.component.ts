@@ -27,6 +27,7 @@ import { ThemeSettingsModalComponent } from '../theme-settings-modal/theme-setti
 import { PlayerService } from '../../core/services/player.service';
 import { MobileMenuService } from '../../core/services/mobile-menu.service';
 import { IS_ANDROID } from '@tauri-apps/api/core';
+import { ModalService } from '../../core/services/modal.service';
 
 /**
  * Barra lateral principal de Musex.
@@ -58,7 +59,13 @@ export class SidebarComponent implements OnInit {
   readonly playlistService = inject(PlaylistService);
   readonly playerService = inject(PlayerService);
   readonly mobileMenuService = inject(MobileMenuService);
-  private readonly notificationService = inject(NotificationService);
+  readonly notificationService = inject(NotificationService);
+
+  private readonly modalService = inject(ModalService);
+
+  openSettings(): void {
+    this.modalService.openSettings();
+  }
 
   readonly storageSize = signal<number>(0);
   readonly storageLoading = signal<boolean>(true);
@@ -199,7 +206,8 @@ export class SidebarComponent implements OnInit {
       '5': '/downloads',
       '6': '/history',
       '7': '/equalizer',
-      '8': '/ai'
+      '8': '/ai',
+      '9': '/stats'
     };
 
     const route = routes[event.key];

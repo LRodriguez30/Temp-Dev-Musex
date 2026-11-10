@@ -39,6 +39,8 @@ export class AndroidMediaService {
   private lastPosition = 0;
   private lastPushAt = 0;
 
+  /** Selección del auto-picker ya comunicada a Android. */
+  private autoPickKey: string | null = null;
   constructor() {
 
     if (!IS_ANDROID) {
@@ -62,6 +64,11 @@ export class AndroidMediaService {
     if (!bridge) {
       return;
     }
+
+    // El auto-picker va PRIMERO: Android debe saber que hay una espera
+    // antes de recibir la "pausa" de fin de canción; si no, soltaría el
+    // primer plano y la app quedaría congelada en segundo plano.
+    this.syncAutoPick(bridge);
 
     const state = this.player.state();
     const track = this.player.getCurrentTrack();
@@ -151,6 +158,40 @@ export class AndroidMediaService {
     }
   }
 
+  /** Avisa a Android cuando el auto-picker empieza o termina de esperar. */
+  private syncAutoPick(bridge: NonNullable<Window['MusexAndroid']>): void {
+
+    const pending = this.player.autoPickPending();
+
+    const key = pending
+      ? `${pending.track.id}|${pending.deadline}`
+      : null;
+
+    if (key === this.autoPickKey) {
+      return;
+    }
+
+    this.autoPickKey = key;
+
+    if (pending) {
+
+      const seconds = Math.max(
+        1,
+        Math.round((pending.deadline - Date.now()) / 1000)
+      );
+
+      bridge.setAutoPick?.(
+        pending.track.title,
+        pending.track.artist,
+        seconds
+      );
+
+    } else {
+
+      bridge.clearAutoPick?.();
+    }
+  }
+
   private remember(
     position: number,
     playing: boolean,
@@ -191,12 +232,32 @@ export class AndroidMediaService {
       return;
     }
 
-    switch (command) {
+    // Notificación especial del auto-picker.
+    if (command === 'autopick-now') {
+      void this.player.confirmAutoPick(true);
+      return;
+    }
 
+    if (command === 'autopick-cancel') {
+      this.player.cancelAutoPick();
+      return;
+    }
+
+    // Mientras se espera la confirmación, "play" y "siguiente" de la
+    // notificación multimedia confirman la canción elegida; si no,
+    // reanudarían la canción que ya terminó.
+    if (
+      this.player.autoPickPending() &&
+      (command === 'play' || command === 'toggle' || command === 'next')
+    ) {
+      void this.player.confirmAutoPick(true);
+      return;
+    }
+
+    switch (command) {
       case 'play':
         if (!playing) void this.player.togglePlay();
         break;
-
       case 'pause':
         if (playing) void this.player.togglePlay();
         break;

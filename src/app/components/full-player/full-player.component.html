@@ -1,4 +1,8 @@
-<section class="full-player">
+<section
+  class="full-player"
+  [class.is-closing]="playerService.fullPlayerClosing()"
+  (animationend)="onAnimationEnd($event)"
+>
 
   <!-- =========================================================
        BACKGROUND DECORATION
@@ -69,39 +73,64 @@
     </div>
 
 
-    <button
-      type="button"
-      class="full-player-queue-toggle"
-      [class.active]="queueOpen()"
-      [attr.aria-pressed]="queueOpen()"
-      title="Mostrar cola"
-      aria-label="Mostrar cola"
-      (click)="toggleQueue()"
-    >
+    <div class="full-player-header-actions">
 
-      <span>COLA</span>
-
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        aria-hidden="true"
+      <button
+        type="button"
+        class="full-player-icon-button"
+        title="Más opciones"
+        aria-label="Más opciones de la canción"
+        [disabled]="!currentTrack"
+        (click)="openTrackMenu()"
       >
-        <path
-          d="M4 6h16M4 12h10M4 18h7"
-          stroke="currentColor"
-          stroke-width="1.7"
-          stroke-linecap="round"
-        />
 
-        <path
-          d="M17 15v6m-3-3h6"
-          stroke="currentColor"
-          stroke-width="1.7"
-          stroke-linecap="round"
-        />
-      </svg>
+        <svg
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <circle cx="5" cy="12" r="1.8" />
+          <circle cx="12" cy="12" r="1.8" />
+          <circle cx="19" cy="12" r="1.8" />
+        </svg>
 
-    </button>
+      </button>
+
+      <button
+        type="button"
+        class="full-player-queue-toggle"
+        [class.active]="queueOpen()"
+        [attr.aria-pressed]="queueOpen()"
+        title="Mostrar cola"
+        aria-label="Mostrar cola"
+        (click)="toggleQueue()"
+      >
+
+        <span>COLA</span>
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M4 6h16M4 12h10M4 18h7"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+          />
+
+          <path
+            d="M17 15v6m-3-3h6"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+          />
+        </svg>
+
+      </button>
+
+    </div>
 
   </header>
 

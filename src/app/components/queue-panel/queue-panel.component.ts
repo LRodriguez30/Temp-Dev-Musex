@@ -4,11 +4,16 @@ import {
   effect,
   inject,
   OnInit,
+  computed,
   signal
 } from '@angular/core';
 
 import { QueueComponent } from '../queue/queue.component';
 import { QueuePanelService } from '../../core/services/queue-panel.service';
+import { LibraryService } from '../../core/services/library.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { PlayerService } from '../../core/services/player.service';
+import { QueueService } from '../../core/services/queue.service';
 import { IS_ANDROID } from '@tauri-apps/api/core';
 import { NavigationStart, Router } from '@angular/router';
 import { filter } from 'rxjs';
@@ -41,6 +46,173 @@ export class QueuePanelComponent implements OnInit {
 
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+
+  private readonly player = inject(PlayerService);
+  private readonly queueService = inject(QueueService);
+  private readonly library = inject(LibraryService);
+  private readonly notifications = inject(NotificationService);
+
+  /**
+   * Indica si el usuario está manipulando la posición.
+   */
+  readonly seeking = signal(false);
+
+  /**
+   * Posición seleccionada durante la búsqueda.
+   */
+  readonly seekPosition = signal(0);
+
+  /**
+   * Comienza la búsqueda temporal.
+   */
+  startSeek(): void {
+      this.seeking.set(true);
+
+      this.seekPosition.set(
+          this.playerState().currentTime
+      );
+  }
+
+  /**
+   * Actualiza la posición visual sin modificar
+   * todavía la reproducción real.
+   */
+  updateSeekPosition(position: number): void {
+      const track = this.currentTrack();
+
+      if (!track) {
+          return;
+      }
+
+      this.seekPosition.set(
+          Math.max(
+              0,
+              Math.min(position, track.duration)
+          )
+      );
+  }
+
+  /**
+   * Aplica la posición seleccionada al reproductor.
+   */
+  async finishSeek(): Promise<void> {
+      if (!this.seeking()) {
+          return;
+      }
+
+      const position = this.seekPosition();
+
+      try {
+          await this.player.seek(position);
+      } finally {
+          this.seeking.set(false);
+      }
+  }
+  
+  // ===========================================================
+  // DATOS PARA EL ENCABEZADO Y LA TARJETA "REPRODUCIENDO"
+  // ===========================================================
+
+  readonly playerState = this.player.state;
+
+  readonly currentTrack = computed(() => {
+
+    const id = this.playerState().currentTrackId;
+
+    return id ? this.library.getTrack(id) : undefined;
+  });
+
+  readonly queueCount = computed(() => this.queueService.items().length);
+
+  /** Duración total de las canciones en cola (segundos). */
+  readonly queueSeconds = computed(() =>
+    this.queueService.items().reduce(
+      (sum, id) => sum + (this.library.getTrack(id)?.duration ?? 0),
+      0
+    )
+  );
+
+  readonly progress = computed(() => {
+
+    const duration = this.currentTrack()?.duration ?? 0;
+
+    return duration > 0
+      ? Math.min(100, (this.playerState().currentTime / duration) * 100)
+      : 0;
+  });
+
+  togglePlay(): void {
+    void this.player.togglePlay();
+  }
+
+  next(): void {
+    this.player.nextTrack();
+  }
+
+  previous(): void {
+    this.player.previousTrack();
+  }
+
+  /** Salta a la posición donde se hizo clic en la barra de progreso. */
+  seekFromBar(event: MouseEvent): void {
+
+    const track = this.currentTrack();
+
+    if (!track || track.duration <= 0) {
+      return;
+    }
+
+    const bar = event.currentTarget as HTMLElement;
+
+    const rect = bar.getBoundingClientRect();
+
+    const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+
+    void this.player.seek(ratio * track.duration);
+  }
+
+  clearQueue(): void {
+
+    if (this.queueService.items().length === 0) {
+      return;
+    }
+
+    this.queueService.clear();
+
+    this.player.syncQueue();
+
+    this.notifications.info(
+      'Cola vaciada',
+      'Se eliminaron todas las canciones de la cola.'
+    );
+  }
+
+  formatTime(seconds: number): string {
+
+    if (!Number.isFinite(seconds) || seconds < 0) {
+      return '0:00';
+    }
+
+    const total = Math.floor(seconds);
+
+    return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+  }
+
+  /** "2 h 15 min" / "48 min" */
+  formatTotal(seconds: number): string {
+
+    const minutes = Math.round(seconds / 60);
+
+    if (minutes < 60) {
+      return `${minutes} min`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+
+    return minutes % 60 === 0
+      ? `${hours} h`
+      : `${hours} h ${minutes % 60} min`;
+  }
 
   // El resto de tus propiedades y métodos permanece igual.
 

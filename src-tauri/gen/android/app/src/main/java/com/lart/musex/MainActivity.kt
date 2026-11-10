@@ -63,21 +63,42 @@ class MainActivity : TauriActivity() {
         webView.addJavascriptInterface(MusexBridge(), "MusexAndroid")
 
         // Botones de la notificación / pantalla de bloqueo -> JavaScript
-        MusexPlaybackService.commandHandler = { command ->
+        MusexPlaybackService.setCommandHandler { command ->
             runOnUiThread {
-                webView.evaluateJavascript(
-                    "window.__musexMediaCommand && window.__musexMediaCommand('$command')",
-                    null
-                )
+                // Si el WebView ya no es el de esta Activity, se descarta.
+                if (this.webView === webView) {
+                    webView.evaluateJavascript(
+                        "window.__musexMediaCommand && window.__musexMediaCommand('$command')",
+                        null
+                    )
+                }
             }
         }
+    }
+
+    override fun onDestroy() {
+        // El handler apunta a esta Activity y a su WebView: si se queda
+        // registrado tras destruirse, los botones de la notificación
+        // dejan de hacer nada sin avisar.
+        MusexPlaybackService.setCommandHandler(null)
+        webView = null
+
+        if (isFinishing) {
+            MusexPlaybackService.isPlaying = false
+            MusexPlaybackService.autoPickActive = false
+            stopService(Intent(this, MusexPlaybackService::class.java))
+        }
+
+        super.onDestroy()
     }
 
     // Al apagar la pantalla / cambiar de app, WebView.onPause() puede
     // pausar el audio HTML5. Si está sonando, lo reanudamos.
     override fun onPause() {
         super.onPause()
-        if (MusexPlaybackService.isPlaying) {
+        // También mientras se espera la confirmación del auto-picker: si el
+        // WebView se pausa, su temporizador no corre y la siguiente no suena.
+        if (MusexPlaybackService.isPlaying || MusexPlaybackService.autoPickActive) {
             webView?.onResume()
         }
     }
@@ -95,10 +116,16 @@ class MainActivity : TauriActivity() {
             .setAction(action)
             .apply(fill)
 
-        if (MusexPlaybackService.running || Build.VERSION.SDK_INT < 26) {
-            startService(intent)
-        } else {
-            startForegroundService(intent)
+        // Desde segundo plano Android puede negar el arranque del servicio
+        // (Android 12+). Una orden que no llega no debe cerrar la app.
+        try {
+            if (MusexPlaybackService.running || Build.VERSION.SDK_INT < 26) {
+                startService(intent)
+            } else {
+                startForegroundService(intent)
+            }
+        } catch (error: Exception) {
+            android.util.Log.w("Musex", "No se pudo enviar $action al servicio", error)
         }
     }
 
@@ -190,6 +217,33 @@ class MainActivity : TauriActivity() {
                         2
                     )
                 }
+            }
+        }
+
+        /**
+         * El auto-picker eligió la siguiente canción y espera confirmación:
+         * muestra la notificación con "Reproducir ahora" / "Cancelar" y
+         * mantiene la app viva hasta que se resuelva.
+         */
+        @JavascriptInterface
+        fun setAutoPick(title: String, artist: String, graceSeconds: Float) {
+            // Se marca ya, sin esperar al servicio, para que onPause lo vea.
+            MusexPlaybackService.autoPickActive = true
+
+            sendToService(MusexPlaybackService.ACTION_AUTOPICK) {
+                putExtra("title", title)
+                putExtra("artist", artist)
+                putExtra("seconds", graceSeconds)
+            }
+        }
+
+        /** La espera terminó (se confirmó, canceló o se reemplazó). */
+        @JavascriptInterface
+        fun clearAutoPick() {
+            MusexPlaybackService.autoPickActive = false
+
+            if (MusexPlaybackService.running) {
+                sendToService(MusexPlaybackService.ACTION_AUTOPICK_CLEAR) {}
             }
         }
 

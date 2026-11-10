@@ -19,6 +19,7 @@ import { ToastContainerComponent } from '../../components/toast-container/toast-
 import { QueuePanelComponent } from '../../components/queue-panel/queue-panel.component';
 import { SearchModalComponent } from '../../components/search-modal/search-modal.component';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
+import { AutoPickBannerComponent } from '../../components/auto-pick-banner/auto-pick-banner.component';
 
 import { PlayerService } from '../../core/services/player.service';
 import { LibraryService } from '../../core/services/library.service';
@@ -28,6 +29,10 @@ import { ModalService } from '../../core/services/modal.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { PlaylistSyncService } from '../../core/services/playlist-sync.service';
 import { AndroidMediaService } from '../../core/services/android-media.service';
+import { DesktopMediaService } from '../../core/services/desktop-media.service';
+import { ListeningStatsService } from '../../core/services/listening-stats.service';
+import { EqCurveComponent } from '../../components/eq-curve/eq-curve.component';
+import { PlayerHandleComponent } from '../../components/player-handle/player-handle.component';
 import { ConnectionDialogService } from '../../core/services/connection-dialog.service';
 import { ConfirmDialogService } from '../../core/services/confirm-dialog.service';
 
@@ -40,6 +45,7 @@ import { Track } from '../../core/models/track.model';
 
 import { convertFileSrc, IS_ANDROID } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { ThemeSettingsModalComponent } from '../../components/theme-settings-modal/theme-settings-modal.component';
 
 
 /**
@@ -75,6 +81,9 @@ import { openUrl } from '@tauri-apps/plugin-opener';
   selector: 'app-main-layout',
   standalone: true,
   imports: [
+    EqCurveComponent,
+    PlayerHandleComponent,
+    AutoPickBannerComponent,
     RouterOutlet,
     TopBarComponent,
     SidebarComponent,
@@ -85,6 +94,7 @@ import { openUrl } from '@tauri-apps/plugin-opener';
     ToastContainerComponent,
     QueuePanelComponent,
     SearchModalComponent,
+    ThemeSettingsModalComponent,
     ConfirmDialogComponent
   ],
   templateUrl: './main-layout.component.html',
@@ -127,6 +137,18 @@ export class MainLayoutComponent {
    */
   private readonly androidMedia =
     inject(AndroidMediaService);
+
+  /**
+   * Controles multimedia de Windows y bandeja del sistema.
+   */
+  private readonly desktopMedia =
+    inject(DesktopMediaService);
+
+  /**
+   * Registro de escucha para la página de estadísticas.
+   */
+  private readonly listeningStats =
+    inject(ListeningStatsService);
   
   readonly connectionDialogs =
     inject(ConnectionDialogService);
@@ -227,6 +249,10 @@ export class MainLayoutComponent {
   // =============================================================
   // METADATA EDITOR
   // =============================================================
+
+  /** Canciones con metadatos editados (para "Restaurar original"). */
+  readonly metadataEdited =
+    this.libraryService.metadataEdited;
 
   readonly editingTrack =
     signal<Track | null>(null);
@@ -609,21 +635,34 @@ export class MainLayoutComponent {
 
       try {
 
-        this.playlistService.addTracks(
+        const addedCount = this.playlistService.addTracks(
           playlistId,
           modalState.trackIds
         );
 
 
-        const addedCount =
-          modalState.trackIds.length;
+        if (addedCount === 0) {
 
+          this.notificationService.success(
+            modalState.trackIds.length === 1
+              ? 'Esa canción ya estaba en la playlist.'
+              : 'Esas canciones ya estaban en la playlist.'
+          );
 
-        this.notificationService.success(
-          addedCount === 1
-            ? 'La canción se agregó a la playlist.'
-            : `${addedCount} canciones se agregaron a la playlist.`
-        );
+        } else {
+
+          const skipped =
+            new Set(modalState.trackIds).size - addedCount;
+
+          this.notificationService.success(
+            (addedCount === 1
+              ? 'La canción se agregó a la playlist.'
+              : `${addedCount} canciones se agregaron a la playlist.`) +
+            (skipped > 0
+              ? ` (${skipped} ya estaban incluidas)`
+              : '')
+          );
+        }
 
 
         this.modalService.close();
@@ -661,14 +700,16 @@ export class MainLayoutComponent {
 
     try {
 
-      this.playlistService.addTrack(
+      const added = this.playlistService.addTrack(
         playlistId,
         track.id
       );
 
 
       this.notificationService.success(
-        `"${track.title}" se agregó a la playlist.`
+        added
+          ? `"${track.title}" se agregó a la playlist.`
+          : `"${track.title}" ya estaba en la playlist.`
       );
 
 
@@ -878,6 +919,42 @@ export class MainLayoutComponent {
 
     this.pendingCoverPreviewUrl.set(
       null
+    );
+  }
+
+
+  // =============================================================
+  // RESTORE METADATA
+  // =============================================================
+
+  restoreMetadata(): void {
+
+    const editing =
+      this.editingTrack();
+
+    if (!editing) {
+      return;
+    }
+
+    const original =
+      this.libraryService.restoreMetadata(
+        editing.id
+      );
+
+    if (!original) {
+      return;
+    }
+
+    this.editingTrack.set({
+      ...editing,
+      title: original.title,
+      artist: original.artist,
+      album: original.album,
+      genre: original.genre
+    });
+
+    this.notificationService.success(
+      'Se restauró la información original.'
     );
   }
 

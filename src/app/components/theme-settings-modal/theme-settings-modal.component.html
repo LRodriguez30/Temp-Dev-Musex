@@ -1,31 +1,124 @@
+
 <!-- theme-settings-modal.component.html -->
-<app-modal
-  [open]="true"
-  title="Personalizar Musex"
-  subtitle="Color de acento"
-  (closed)="closed.emit()"
->
 
-  <label class="block cursor-pointer">
-    <span class="text-xs font-medium uppercase tracking-wide text-zinc-500">
-      Color de Musex
-    </span>
+<div class="space-y-5">
 
-    <input
-      type="color"
-      [value]="theme().accentColor"
-      (input)="setAccent($any($event.target).value)"
-      class="mt-2 h-10 w-full cursor-pointer rounded-lg"
-      style="color-scheme: dark"
-    />
-  </label>
+  <!-- APARIENCIA -->
+  <section>
+    <label class="block cursor-pointer">
+      <span class="text-xs font-medium uppercase tracking-wide text-zinc-500">
+        Color de Musex
+      </span>
 
-  <button
-    type="button"
-    class="mt-5 w-full cursor-pointer rounded-lg border border-[#292b30] py-2 text-sm text-zinc-400 hover:text-white"
-    (click)="reset()"
-  >
-    Restaurar verde original
-  </button>
+      <input
+        type="color"
+        [value]="theme().accentColor"
+        (input)="setAccent($any($event.target).value)"
+        class="mt-2 h-10 w-full cursor-pointer rounded-lg"
+        style="color-scheme: dark"
+      />
+    </label>
 
-</app-modal>
+    <button
+      type="button"
+      class="mt-3 w-full cursor-pointer rounded-lg border border-[#292b30] py-2 text-sm text-zinc-400 transition-colors hover:text-white"
+      (click)="reset()"
+    >
+      Restaurar verde original
+    </button>
+  </section>
+
+  <hr class="border-[#292b30]" />
+
+  <!-- REPRODUCCIÓN AUTOMÁTICA -->
+  <section>
+    <div class="flex items-start justify-between gap-4">
+
+      <div class="min-w-0">
+        <p class="text-sm font-medium text-white">
+          Elegir la siguiente por mí
+        </p>
+
+        <p class="mt-1 text-xs leading-relaxed text-zinc-500">
+          Cuando una canción llega a su final, Musex elige la
+          siguiente según tu cola y tu historial de escucha y la
+          reproduce con prioridad, sin agregarla a la cola. No
+          actúa si saltas la canción tú mismo.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        role="switch"
+        [attr.aria-checked]="settings().autoPick"
+        aria-label="Elegir la siguiente canción automáticamente"
+        class="relative mt-0.5 h-6 w-11 shrink-0 cursor-pointer rounded-full border transition-colors"
+        [class]="settings().autoPick
+          ? 'border-[var(--musex-accent)] bg-[var(--musex-accent)]'
+          : 'border-[#363940] bg-[#1b1d20]'"
+        (click)="toggleAutoPick()"
+      >
+        <span
+          class="absolute top-0.5 h-4.5 w-4.5 rounded-full transition-all"
+          style="width: 18px; height: 18px"
+          [class]="settings().autoPick
+            ? 'left-[22px] bg-[#0d0e10]'
+            : 'left-0.5 bg-zinc-400'"
+        ></span>
+      </button>
+
+    </div>
+
+    @if (settings().autoPick) {
+      <label class="mt-4 flex items-center justify-between gap-4">
+
+        <span class="text-xs text-zinc-400">
+          Tiempo de gracia antes de reproducirla
+        </span>
+
+        <select
+          class="rounded-lg border border-[#292b30] bg-[#151719] px-3 py-1.5 text-xs text-white"
+          style="color-scheme: dark"
+          [value]="settings().autoPickGraceSeconds"
+          (change)="setGrace($any($event.target).value)"
+        >
+          @for (seconds of graceOptions; track seconds) {
+            <option [value]="seconds">
+              {{ seconds === 0 ? 'Inmediato' : seconds + ' s' }}
+            </option>
+          }
+        </select>
+
+      </label>
+    }
+  </section>
+
+  <hr class="border-[#292b30]" />
+
+  <!-- HISTORIAL -->
+  <section>
+    <div class="flex items-center justify-between gap-4">
+
+      <div class="min-w-0">
+        <p class="text-sm font-medium text-white">
+          Historial de escucha
+        </p>
+
+        <p class="mt-1 text-xs leading-relaxed text-zinc-500">
+          Se guarda en este dispositivo y alimenta la selección
+          automática.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="shrink-0 cursor-pointer rounded-lg border border-[#292b30] px-3 py-1.5 text-xs text-zinc-400 transition-colors hover:text-white"
+        (click)="clearHistory()"
+      >
+        Borrar
+      </button>
+
+    </div>
+  </section>
+
+</div>

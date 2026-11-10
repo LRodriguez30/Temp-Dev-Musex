@@ -18,7 +18,7 @@ pub struct YouTubeVideo {
     /// Identificador único del video en YouTube.
     pub video_id: String,
 
-    /// URL original proporcionada por el usuario.
+    /// URL canónica construida a partir del identificador.
     pub url: String,
 }
 
@@ -32,6 +32,12 @@ impl YouTubeVideo {
     ) -> Result<Self, String> {
         let url = url.into();
         let video_id = extract_video_id(&url)?;
+
+        // URL canónica: elimina listas, tiempos y texto extra pegado.
+        let url = format!(
+            "https://www.youtube.com/watch?v={}",
+            video_id
+        );
 
         Ok(Self {
             video_id,
@@ -51,75 +57,46 @@ pub fn is_youtube_url(url: &str) -> bool {
 
 /// Extrae el identificador del video desde una URL de YouTube.
 ///
-/// Se contemplan los formatos más habituales:
+/// Acepta el texto tal como lo pega el usuario: con o sin esquema
+/// (`youtube.com/...`), con texto alrededor ("Mira esto https://..."),
+/// con mayúsculas en el dominio y con parámetros extra.
 ///
-/// - https://www.youtube.com/watch?v=VIDEO_ID
-/// - https://youtube.com/watch?v=VIDEO_ID
-/// - https://youtu.be/VIDEO_ID
-/// - https://www.youtube.com/shorts/VIDEO_ID
-/// - https://www.youtube.com/embed/VIDEO_ID
+/// Formatos compatibles:
+///
+/// - youtube.com/watch?v=ID (también m., music., www.)
+/// - youtu.be/ID
+/// - youtube.com/shorts/ID, /embed/ID, /live/ID, /v/ID
 pub fn extract_video_id(url: &str) -> Result<String, String> {
-    let url = url.trim();
-
-    if url.is_empty() {
+    if url.trim().is_empty() {
         return Err("La URL de YouTube está vacía.".to_string());
     }
 
-    // ---------------------------------------------------------
-    // Formato: youtu.be/VIDEO_ID
-    // ---------------------------------------------------------
+    let normalized = normalize_input(url).ok_or_else(|| {
+        "La URL no corresponde a un formato compatible de YouTube.".to_string()
+    })?;
 
-    if let Some(rest) = url
-        .strip_prefix("https://youtu.be/")
-        .or_else(|| url.strip_prefix("http://youtu.be/"))
-    {
-        let video_id = clean_video_id(rest);
+    let (host, path, query) = split_url(&normalized);
 
-        if is_valid_video_id(video_id) {
-            return Ok(video_id.to_string());
-        }
-
-        return Err("El identificador del video no es válido.".to_string());
+    // youtu.be/ID
+    if host == "youtu.be" || host == "www.youtu.be" {
+        let id = path.trim_start_matches('/').split('/').next().unwrap_or("");
+        return validate_video_id(id);
     }
 
-    // ---------------------------------------------------------
-    // Formatos: youtube.com/watch?v=VIDEO_ID
-    // ---------------------------------------------------------
-
-    if url.contains("youtube.com/")
-        || url.contains("youtube-nocookie.com/")
-    {
-        if let Some(query) = url.split_once('?').map(|(_, query)| query) {
-            for parameter in query.split('&') {
-                if let Some(video_id) = parameter.strip_prefix("v=") {
-                    let video_id = clean_video_id(video_id);
-
-                    if is_valid_video_id(video_id) {
-                        return Ok(video_id.to_string());
-                    }
-
-                    return Err(
-                        "El identificador del video no es válido."
-                            .to_string(),
-                    );
-                }
+    if is_youtube_host(&host) {
+        // watch?v=ID (el parámetro puede ir en cualquier posición)
+        for parameter in query.split('&') {
+            if let Some(id) = parameter.strip_prefix("v=") {
+                return validate_video_id(id);
             }
         }
 
-        // -----------------------------------------------------
-        // Formato: /shorts/VIDEO_ID
-        // -----------------------------------------------------
-
-        if let Some(video_id) = extract_path_id(url, "/shorts/") {
-            return Ok(video_id);
-        }
-
-        // -----------------------------------------------------
-        // Formato: /embed/VIDEO_ID
-        // -----------------------------------------------------
-
-        if let Some(video_id) = extract_path_id(url, "/embed/") {
-            return Ok(video_id);
+        // /shorts/ID, /embed/ID, /live/ID, /v/ID
+        for prefix in ["/shorts/", "/embed/", "/live/", "/v/"] {
+            if let Some(rest) = path.strip_prefix(prefix) {
+                let id = rest.split('/').next().unwrap_or("");
+                return validate_video_id(id);
+            }
         }
     }
 
@@ -130,35 +107,72 @@ pub fn extract_video_id(url: &str) -> Result<String, String> {
 // FUNCIONES INTERNAS
 // =============================================================
 
-/// Extrae un identificador ubicado después de un segmento
-/// concreto de la ruta.
-fn extract_path_id(url: &str, segment: &str) -> Option<String> {
-    let position = url.find(segment)?;
+/// Localiza la URL dentro del texto pegado y le añade el esquema
+/// si falta. Devuelve `None` si no hay nada parecido a YouTube.
+fn normalize_input(raw: &str) -> Option<String> {
+    let token = raw.split_whitespace().find(|part| {
+        let lower = part.to_ascii_lowercase();
+        lower.contains("youtu.be")
+            || lower.contains("youtube.com")
+            || lower.contains("youtube-nocookie.com")
+    })?;
 
-    let start = position + segment.len();
-    let remainder = &url[start..];
+    let token = token.trim_matches(|character: char| {
+        matches!(
+            character,
+            '<' | '>' | '"' | '\'' | '(' | ')' | '[' | ']' | ',' | ';' | '.'
+        )
+    });
 
-    let video_id = remainder
-        .split(['?', '&', '#', '/'])
-        .next()
-        .unwrap_or("");
+    let lower = token.to_ascii_lowercase();
 
-    let video_id = clean_video_id(video_id);
-
-    if is_valid_video_id(video_id) {
-        Some(video_id.to_string())
+    if lower.starts_with("http://") || lower.starts_with("https://") {
+        Some(token.to_string())
     } else {
-        None
+        Some(format!("https://{}", token.trim_start_matches('/')))
     }
 }
 
-/// Elimina parámetros o fragmentos que puedan encontrarse
-/// después del identificador del video.
-fn clean_video_id(value: &str) -> &str {
-    value
-        .split(['?', '&', '#', '/'])
+/// Separa una URL en (host en minúsculas, ruta, query).
+fn split_url(url: &str) -> (String, String, String) {
+    let rest = url.split_once("://").map(|(_, rest)| rest).unwrap_or(url);
+    let rest = rest.split('#').next().unwrap_or("");
+
+    let (before_query, query) = match rest.split_once('?') {
+        Some((before, query)) => (before, query),
+        None => (rest, ""),
+    };
+
+    let (authority, path) = match before_query.find('/') {
+        Some(index) => (&before_query[..index], &before_query[index..]),
+        None => (before_query, "/"),
+    };
+
+    let host = authority
+        .rsplit('@')
         .next()
         .unwrap_or("")
+        .split(':')
+        .next()
+        .unwrap_or("")
+        .to_ascii_lowercase();
+
+    (host, path.to_string(), query.to_string())
+}
+
+fn is_youtube_host(host: &str) -> bool {
+    host == "youtube.com"
+        || host.ends_with(".youtube.com")
+        || host == "youtube-nocookie.com"
+        || host.ends_with(".youtube-nocookie.com")
+}
+
+fn validate_video_id(id: &str) -> Result<String, String> {
+    if is_valid_video_id(id) {
+        Ok(id.to_string())
+    } else {
+        Err("El identificador del video no es válido.".to_string())
+    }
 }
 
 /// Comprueba que el identificador tenga una estructura válida.

@@ -2640,28 +2640,47 @@ export class EqualizerService
     }
 
 
+    /**
+     * Los campos numéricos aceptan cualquier texto: aquí se ignoran
+     * los valores vacíos o incompletos y se ajustan a los límites
+     * reales del motor (los mismos que aplica Rust).
+     */
+    private numberFrom(
+        value: string
+    ): number | null {
+
+        if (value.trim() === '') {
+            return null;
+        }
+
+        const parsed =
+            Number(value);
+
+        return Number.isFinite(parsed)
+            ? parsed
+            : null;
+    }
+
+
     onFrequencyInput(
         id: number,
         value: string
     ): void {
 
         const frequency =
-            Number(value);
+            this.numberFrom(value);
 
-
-        if (
-            Number.isFinite(
-                frequency
-            )
-        ) {
-
-            this.updateBand(
-                id,
-                {
-                    frequency
-                }
-            );
+        if (frequency === null) {
+            return;
         }
+
+        this.updateBand(
+            id,
+            {
+                frequency:
+                    this.clamp(frequency, 20, 20000)
+            }
+        );
     }
 
 
@@ -2671,22 +2690,19 @@ export class EqualizerService
     ): void {
 
         const gainDb =
-            Number(value);
+            this.numberFrom(value);
 
-
-        if (
-            Number.isFinite(
-                gainDb
-            )
-        ) {
-
-            this.updateBand(
-                id,
-                {
-                    gainDb
-                }
-            );
+        if (gainDb === null) {
+            return;
         }
+
+        this.updateBand(
+            id,
+            {
+                gainDb:
+                    this.clamp(gainDb, -24, 24)
+            }
+        );
     }
 
 
@@ -2696,22 +2712,19 @@ export class EqualizerService
     ): void {
 
         const q =
-            Number(value);
+            this.numberFrom(value);
 
-
-        if (
-            Number.isFinite(
-                q
-            )
-        ) {
-
-            this.updateBand(
-                id,
-                {
-                    q
-                }
-            );
+        if (q === null) {
+            return;
         }
+
+        this.updateBand(
+            id,
+            {
+                q:
+                    this.clamp(q, 0.1, 20)
+            }
+        );
     }
 
 
@@ -2807,6 +2820,124 @@ export class EqualizerService
         void invoke(
             'reset_eq'
         );
+    }
+
+
+    // ===========================================================
+    // PRESETS INTEGRADOS
+    // ===========================================================
+
+    readonly presets: {
+        id: string;
+        name: string;
+        bands: Omit<EqBand, 'id'>[];
+    }[] = [
+            {
+                id: 'bass',
+                name: 'Graves',
+                bands: [
+                    { filterType: 'lowshelf', frequency: 80, gainDb: 5, q: 0.7 },
+                    { filterType: 'peaking', frequency: 220, gainDb: -2, q: 1 },
+                ]
+            },
+            {
+                id: 'vocal',
+                name: 'Voces',
+                bands: [
+                    { filterType: 'peaking', frequency: 250, gainDb: -2, q: 1 },
+                    { filterType: 'peaking', frequency: 1500, gainDb: 2, q: 1 },
+                    { filterType: 'peaking', frequency: 3500, gainDb: 3, q: 1 },
+                ]
+            },
+            {
+                id: 'bright',
+                name: 'Brillo',
+                bands: [
+                    { filterType: 'peaking', frequency: 3000, gainDb: 1.5, q: 1 },
+                    { filterType: 'highshelf', frequency: 8000, gainDb: 4, q: 0.7 },
+                ]
+            },
+            {
+                id: 'rock',
+                name: 'Rock',
+                bands: [
+                    { filterType: 'lowshelf', frequency: 100, gainDb: 4, q: 0.7 },
+                    { filterType: 'peaking', frequency: 400, gainDb: -3, q: 1 },
+                    { filterType: 'peaking', frequency: 2500, gainDb: 3, q: 1 },
+                    { filterType: 'highshelf', frequency: 9000, gainDb: 3, q: 0.7 },
+                ]
+            },
+            {
+                id: 'electronic',
+                name: 'Electrónica',
+                bands: [
+                    { filterType: 'lowshelf', frequency: 60, gainDb: 6, q: 0.7 },
+                    { filterType: 'peaking', frequency: 250, gainDb: -3, q: 1 },
+                    { filterType: 'peaking', frequency: 3500, gainDb: 2, q: 1 },
+                    { filterType: 'highshelf', frequency: 10000, gainDb: 4, q: 0.7 },
+                ]
+            },
+            {
+                id: 'night',
+                name: 'Volumen bajo',
+                bands: [
+                    { filterType: 'lowshelf', frequency: 80, gainDb: 5, q: 0.7 },
+                    { filterType: 'peaking', frequency: 3000, gainDb: -1.5, q: 0.8 },
+                    { filterType: 'highshelf', frequency: 9000, gainDb: 3, q: 0.7 },
+                ]
+            },
+        ];
+
+
+    /**
+     * Reemplaza las bandas actuales por las de un preset integrado.
+     * Como cualquier cambio manual, no se guarda hasta pulsar
+     * "Guardar preset".
+     */
+    async applyPreset(
+        presetId: string
+    ): Promise<void> {
+
+        const preset =
+            this.presets.find(
+                item => item.id === presetId
+            );
+
+        if (!preset || !this.activeTrack()) {
+            return;
+        }
+
+        const bands: EqBand[] =
+            preset.bands.map(
+                band => ({
+                    id: this.nextBandId++,
+                    ...band
+                })
+            );
+
+        this.bands.set(bands);
+
+        this.activePresetName.set(
+            preset.name
+        );
+
+        this.markPresetAsModified();
+
+        try {
+
+            await invoke('reset_eq');
+
+            for (const band of bands) {
+                await this.pushBand(band);
+            }
+
+        } catch (error) {
+
+            console.error(
+                'No se pudo aplicar el preset:',
+                error
+            );
+        }
     }
 
 

@@ -24,6 +24,8 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
+import android.os.SystemClock
+import android.util.Log
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.math.min
@@ -57,8 +59,54 @@ class MusexPlaybackService : Service() {
         /** true mientras el servicio existe (ver MainActivity). */
         @Volatile var running = false
 
+        /**
+         * true mientras se espera que el usuario confirme la canción
+         * elegida por el auto-picker. Mantiene vivo el proceso, el modo
+         * en primer plano y el WebView aunque no esté sonando nada.
+         */
+        @Volatile var autoPickActive = false
         /** Reenvía un comando a la app (WebView). */
-        var commandHandler: ((String) -> Unit)? = null
+        @Volatile private var commandHandler: ((String) -> Unit)? = null
+
+        /** Comandos que llegaron cuando todavía no había WebView. */
+        private val pendingCommands = ArrayDeque<String>()
+
+        /**
+         * Registra (o quita, con null) el destino de los botones.
+         * Al registrarlo se entregan los comandos que quedaron en espera.
+         */
+        fun setCommandHandler(handler: ((String) -> Unit)?) {
+
+            val queued = synchronized(pendingCommands) {
+                commandHandler = handler
+
+                if (handler == null) {
+                    emptyList()
+                } else {
+                    pendingCommands.toList().also { pendingCommands.clear() }
+                }
+            }
+
+            queued.forEach { handler?.invoke(it) }
+        }
+
+        internal fun dispatch(command: String) {
+
+            val handler = synchronized(pendingCommands) {
+
+                val current = commandHandler
+
+                if (current == null) {
+                    // Sin WebView todavía: se guarda (máx. 5) en vez de perderse.
+                    if (pendingCommands.size >= 5) pendingCommands.removeFirst()
+                    pendingCommands.addLast(command)
+                }
+
+                current
+            }
+
+            handler?.invoke(command)
+        }
 
         const val CHANNEL_ID = "musex_playback"
         const val NOTIFICATION_ID = 1
@@ -67,7 +115,8 @@ class MusexPlaybackService : Service() {
         const val ACTION_NOW_PLAYING = "com.lart.musex.NOW_PLAYING"
         const val ACTION_STATE = "com.lart.musex.STATE"
         const val ACTION_MODES = "com.lart.musex.MODES"
-
+        const val ACTION_AUTOPICK = "com.lart.musex.AUTOPICK"
+        const val ACTION_AUTOPICK_CLEAR = "com.lart.musex.AUTOPICK_CLEAR"
         // Botones de la notificación
         const val ACTION_PREV = "com.lart.musex.PREV"
         const val ACTION_TOGGLE = "com.lart.musex.TOGGLE"
@@ -75,7 +124,26 @@ class MusexPlaybackService : Service() {
         const val ACTION_SHUFFLE = "com.lart.musex.SHUFFLE"
         const val ACTION_REPEAT = "com.lart.musex.REPEAT"
         const val ACTION_DISMISS = "com.lart.musex.DISMISS"
+        const val ACTION_AUTOPICK_NOW = "com.lart.musex.AUTOPICK_NOW"
+        const val ACTION_AUTOPICK_CANCEL = "com.lart.musex.AUTOPICK_CANCEL"
 
+        /** Canal y notificación propios de la confirmación del auto-picker. */
+        const val AUTOPICK_CHANNEL_ID = "musex_autopick"
+        const val AUTOPICK_NOTIFICATION_ID = 2
+
+        /**
+         * Margen extra sobre el tiempo de gracia: JavaScript normalmente
+         * confirma antes; esto solo es la red de seguridad.
+         */
+        private const val AUTOPICK_SAFETY_MS = 2000L
+
+        /**
+         * Tiempo que el servicio sigue en primer plano tras quedarse sin
+         * reproducir. Volver a entrar en primer plano desde segundo plano
+         * (sin una acción del usuario) lo rechaza Android 12+, así que
+         * entre una canción y la siguiente nunca se debe salir.
+         */
+        private const val SETTLE_DELAY_MS = 4000L
         private const val BRAND_DARK = "#111214"
         private const val BRAND_ACCENT = "#9CFF00"
         private const val ART_SIZE = 512
@@ -110,7 +178,31 @@ class MusexPlaybackService : Service() {
     private var wakeLock: PowerManager.WakeLock? = null
     private var wifiLock: WifiManager.WifiLock? = null
 
+    // Auto-picker: canción elegida y cuenta atrás
+    private var autoPickTitle = ""
+    private var autoPickArtist = ""
+    private var autoPickGraceMs = 0L
+    private var autoPickStartedAt = 0L
 
+    /** Red de seguridad: si JavaScript no confirmó, se confirma desde aquí. */
+    private val autoPickExpire = Runnable {
+        if (autoPickActive) {
+            endAutoPick()
+            send("autopick-now")
+        }
+    }
+
+    /** Pasado el margen, si sigue sin sonar nada, se sale del primer plano. */
+    private val settleRunnable = Runnable { settle() }
+
+    /** Actualiza la cuenta atrás de la notificación cada segundo. */
+    private val autoPickTick = object : Runnable {
+        override fun run() {
+            if (!autoPickActive) return
+            showAutoPickNotification()
+            mainHandler.postDelayed(this, 1000)
+        }
+    }
     // ---------------------------------------------------------
     // CICLO DE VIDA
     // ---------------------------------------------------------
@@ -148,9 +240,19 @@ class MusexPlaybackService : Service() {
 
             ACTION_DISMISS -> {
                 // El usuario quitó la notificación (solo posible en pausa).
-                if (!isPlaying) shutdown()
+                // Mientras se espera la confirmación del auto-picker no se apaga.
+                if (!isPlaying && !autoPickActive) shutdown()
             }
 
+            // ---- Auto-picker: confirmación de la siguiente canción ----
+            ACTION_AUTOPICK_NOW -> {
+                endAutoPick()
+                send("autopick-now")
+            }
+            ACTION_AUTOPICK_CANCEL -> {
+                endAutoPick()
+                send("autopick-cancel")
+            }
             // ---- Órdenes de la app ----
 
             ACTION_NOW_PLAYING -> {
@@ -192,9 +294,31 @@ class MusexPlaybackService : Service() {
             ACTION_MODES -> {
                 shuffle = intent.getBooleanExtra("shuffle", shuffle)
                 repeatMode = intent.getStringExtra("repeat") ?: repeatMode
-
                 publish()
             }
+
+            // ---- Órdenes de la app: auto-picker ----
+            ACTION_AUTOPICK -> {
+                autoPickTitle = intent.getStringExtra("title").orEmpty()
+                autoPickArtist = intent.getStringExtra("artist").orEmpty()
+                autoPickGraceMs = (intent.getFloatExtra("seconds", 0f) * 1000)
+                    .toLong()
+                    .coerceAtLeast(1000L)
+                autoPickStartedAt = SystemClock.elapsedRealtime()
+                autoPickActive = true
+
+                // Mantiene el primer plano y los bloqueos durante la espera.
+                publish()
+
+                createAutoPickChannel()
+                showAutoPickNotification()
+
+                mainHandler.removeCallbacks(autoPickExpire)
+                mainHandler.removeCallbacks(autoPickTick)
+                mainHandler.postDelayed(autoPickExpire, autoPickGraceMs + AUTOPICK_SAFETY_MS)
+                mainHandler.postDelayed(autoPickTick, 1000)
+            }
+            ACTION_AUTOPICK_CLEAR -> endAutoPick()
         }
 
         return START_NOT_STICKY
@@ -208,7 +332,10 @@ class MusexPlaybackService : Service() {
     override fun onDestroy() {
         running = false
         isPlaying = false
-
+        autoPickActive = false
+        mainHandler.removeCallbacks(autoPickExpire)
+        mainHandler.removeCallbacks(autoPickTick)
+        mainHandler.removeCallbacks(settleRunnable)
         artGeneration++               // descarta cualquier portada en camino
 
         releaseLocks()
@@ -221,7 +348,12 @@ class MusexPlaybackService : Service() {
 
     private fun shutdown() {
         isPlaying = false
-
+        autoPickActive = false
+        mainHandler.removeCallbacks(autoPickExpire)
+        mainHandler.removeCallbacks(autoPickTick)
+        mainHandler.removeCallbacks(settleRunnable)
+        getSystemService(NotificationManager::class.java)
+            .cancel(AUTOPICK_NOTIFICATION_ID)
         releaseLocks()
         leaveForeground()
 
@@ -236,10 +368,12 @@ class MusexPlaybackService : Service() {
     private fun publish() {
 
         updateSession()
-
         val notification = buildNotification()
 
-        if (isPlaying) {
+        // Sonando, o esperando que el usuario confirme la siguiente.
+        if (isPlaying || autoPickActive) {
+
+            mainHandler.removeCallbacks(settleRunnable)
 
             enterForeground(notification)
             acquireLocks()
@@ -249,30 +383,64 @@ class MusexPlaybackService : Service() {
             // Android exige startForeground() tras startForegroundService().
             if (!hasEnteredForeground) enterForeground(notification)
 
-            // En pausa la notificación se puede descartar con un deslizamiento.
-            leaveForeground()
-
+            // Se actualiza la notificación SIN salir del primer plano: si la
+            // siguiente canción empieza en unos segundos (auto-picker, fin de
+            // canción) hay que poder seguir sonando con la pantalla apagada.
             getSystemService(NotificationManager::class.java)
                 .notify(NOTIFICATION_ID, notification)
 
-            releaseLocks()
+            mainHandler.removeCallbacks(settleRunnable)
+            mainHandler.postDelayed(settleRunnable, SETTLE_DELAY_MS)
         }
+    }
+
+    /**
+     * Pausa o espera terminadas: ahora sí se libera el primer plano y los
+     * bloqueos, y la notificación puede descartarse con un deslizamiento.
+     */
+    private fun settle() {
+
+        if (isPlaying || autoPickActive) return
+
+        leaveForeground()
+        releaseLocks()
+
+        getSystemService(NotificationManager::class.java)
+            .notify(NOTIFICATION_ID, buildNotification())
     }
 
     private fun enterForeground(notification: Notification) {
 
-        if (Build.VERSION.SDK_INT >= 29) {
-            startForeground(
-                NOTIFICATION_ID,
-                notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
-            )
-        } else {
-            startForeground(NOTIFICATION_ID, notification)
-        }
+        try {
 
-        isForeground = true
-        hasEnteredForeground = true
+            if (Build.VERSION.SDK_INT >= 29) {
+                startForeground(
+                    NOTIFICATION_ID,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+                )
+            } else {
+                startForeground(NOTIFICATION_ID, notification)
+            }
+
+            isForeground = true
+            hasEnteredForeground = true
+
+        } catch (error: Exception) {
+
+            // Android 12+ rechaza volver a primer plano desde segundo plano
+            // sin una acción del usuario (ForegroundServiceStartNotAllowed).
+            // Un fallo aquí no debe cerrar la app: se deja la notificación
+            // normal y la reproducción continúa.
+            Log.w("Musex", "No se pudo entrar en primer plano", error)
+
+            try {
+                getSystemService(NotificationManager::class.java)
+                    .notify(NOTIFICATION_ID, notification)
+            } catch (ignored: Exception) {
+                // Sin notificación: nada más que hacer.
+            }
+        }
     }
 
     private fun leaveForeground() {
@@ -422,7 +590,7 @@ class MusexPlaybackService : Service() {
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setOnlyAlertOnce(true)
             .setShowWhen(false)
-            .setOngoing(isPlaying)
+            .setOngoing(isPlaying || autoPickActive)
             .setColor(cardColor)
             .addAction(
                 action(
@@ -466,6 +634,96 @@ class MusexPlaybackService : Service() {
         return builder.build()
     }
 
+    // ---------------------------------------------------------
+    // AUTO-PICKER: NOTIFICACIÓN DE CONFIRMACIÓN
+    // ---------------------------------------------------------
+
+    private fun createAutoPickChannel() {
+        if (Build.VERSION.SDK_INT < 26) return
+        val manager = getSystemService(NotificationManager::class.java)
+        if (manager.getNotificationChannel(AUTOPICK_CHANNEL_ID) != null) return
+        val channel = NotificationChannel(
+            AUTOPICK_CHANNEL_ID,
+            "Siguiente canción",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = "Confirmación de la canción que elige el auto-picker"
+            // Aparece arriba pero sin sonido ni vibración.
+            setSound(null, null)
+            enableVibration(false)
+            setShowBadge(false)
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+        }
+        manager.createNotificationChannel(channel)
+    }
+
+    private fun showAutoPickNotification() {
+        if (!autoPickActive) return
+
+        val totalSec = (autoPickGraceMs / 1000).toInt().coerceAtLeast(1)
+        val elapsedSec = ((SystemClock.elapsedRealtime() - autoPickStartedAt) / 1000)
+            .toInt()
+            .coerceIn(0, totalSec)
+        val remaining = totalSec - elapsedSec
+
+        val builder = if (Build.VERSION.SDK_INT >= 26) {
+            Notification.Builder(this, AUTOPICK_CHANNEL_ID)
+        } else {
+            @Suppress("DEPRECATION")
+            Notification.Builder(this)
+        }
+
+        builder
+            .setSmallIcon(R.drawable.ic_stat_musex)
+            .setContentTitle("Siguiente: " + autoPickTitle.ifBlank { "canción elegida" })
+            .setContentText(
+                (if (autoPickArtist.isBlank()) "" else "$autoPickArtist · ") +
+                    "empieza en ${remaining}s"
+            )
+            .setLargeIcon(art)
+            .setContentIntent(openAppIntent())
+            .setCategory(Notification.CATEGORY_RECOMMENDATION)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setOnlyAlertOnce(true)
+            .setOngoing(true)
+            .setShowWhen(false)
+            .setColor(cardColor)
+            .setProgress(totalSec, elapsedSec, false)
+            .addAction(
+                action(
+                    R.drawable.musex_ic_play,
+                    "Reproducir ahora",
+                    ACTION_AUTOPICK_NOW
+                )
+            )
+            .addAction(
+                action(
+                    R.drawable.musex_ic_close,
+                    "Cancelar",
+                    ACTION_AUTOPICK_CANCEL
+                )
+            )
+
+        if (Build.VERSION.SDK_INT < 26) {
+            @Suppress("DEPRECATION")
+            builder.setPriority(Notification.PRIORITY_HIGH)
+        }
+
+        getSystemService(NotificationManager::class.java)
+            .notify(AUTOPICK_NOTIFICATION_ID, builder.build())
+    }
+
+    /** Termina la espera: quita la notificación y libera los bloqueos si no suena nada. */
+    private fun endAutoPick() {
+        autoPickActive = false
+        mainHandler.removeCallbacks(autoPickExpire)
+        mainHandler.removeCallbacks(autoPickTick)
+        getSystemService(NotificationManager::class.java)
+            .cancel(AUTOPICK_NOTIFICATION_ID)
+        // Si no está sonando, el servicio vuelve al estado normal de pausa.
+        publish()
+    }
+
     private fun action(icon: Int, label: String, action: String): Notification.Action =
         Notification.Action.Builder(
             Icon.createWithResource(this, icon),
@@ -491,7 +749,7 @@ class MusexPlaybackService : Service() {
         )
 
     private fun send(command: String) {
-        commandHandler?.invoke(command)
+        dispatch(command)
     }
 
 

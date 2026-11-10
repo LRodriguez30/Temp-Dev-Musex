@@ -2568,3 +2568,99 @@ app-bottom-player {
     transition: none;
   }
 }
+
+
+/* =============================================================
+   METADATOS — AJUSTES TÁCTILES (teléfono)
+============================================================= */
+
+.music-metadata-restore {
+  margin-right: auto;
+  color: var(--musex-accent);
+}
+
+@media (max-width: 560px) {
+
+  .music-metadata-modal {
+    max-height: 92vh;
+    max-height: 92dvh;
+
+    overscroll-behavior: contain;
+  }
+
+  /* 16px evita el zoom automático del teclado en móvil */
+  .music-metadata-field input {
+    min-height: 48px;
+
+    font-size: 16px;
+  }
+
+  .music-metadata-actions {
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+    padding:
+      14px 16px
+      calc(14px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .music-metadata-cancel,
+  .music-metadata-save {
+    flex: 1 1 0;
+
+    min-height: 46px;
+  }
+
+  .music-metadata-restore {
+    flex: 1 1 100%;
+
+    margin-right: 0;
+  }
+
+  .music-metadata-close {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+
+/* =============================================================
+   ECUALIZADOR — curva y presets integrados
+============================================================= */
+
+.eq-curve-host {
+  display: block;
+  margin: 0 0 18px;
+}
+
+.eq-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.eq-preset-chip {
+  height: 30px;
+  padding: 0 13px;
+  border: 1px solid #292b30;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+}
+
+.eq-preset-chip:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--musex-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--musex-accent) 8%, transparent);
+  color: var(--musex-accent);
+}
+
+.eq-preset-chip:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

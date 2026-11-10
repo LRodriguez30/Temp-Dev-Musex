@@ -1,33 +1,30 @@
 <!-- =========================================================
      HISTORY VIEW
      ---------------------------------------------------------
-     Historial de Musex: descargas persistidas y (próximamente)
-     actividad de reproducción.
+     Historial unificado: reproducción, descargas y auto-picker.
 ========================================================== -->
 
 <section class="view h-full history-page overflow-y-auto scroll-area">
   <div class="content-pad mx-auto max-w-[1060px] px-7 pb-12 pt-8">
 
-    <!-- =======================================================
-         HEADER
-    ======================================================== -->
-    <div class="flex items-end justify-between">
+    <!-- HEADER -->
+    <div class="flex items-end justify-between gap-4">
 
-      <div>
+      <div class="min-w-0">
         <h1 class="text-[25px] font-semibold tracking-tight">
           Historial
         </h1>
 
         <p class="mt-1 text-sm text-zinc-400">
-          Descargas completadas anteriormente.
+          Reproducción, descargas y selección automática.
         </p>
       </div>
 
       <button
         type="button"
-        [disabled]="downloadHistory().length === 0"
-        class="transition-ui flex h-10 items-center gap-2 rounded-lg border border-[#292b30] px-4 text-sm font-medium text-zinc-400 hover:border-[#3a3d42] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 hide-on-android"
-        (click)="clearHistory()"
+        [disabled]="visibleItems().length === 0"
+        class="transition-ui flex h-10 shrink-0 items-center gap-2 rounded-lg border border-[#292b30] px-4 text-sm font-medium text-zinc-400 hover:border-[#3a3d42] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+        (click)="clearCurrent()"
       >
         <svg
           viewBox="0 0 24 24"
@@ -46,77 +43,167 @@
           <path d="M14 11v6"></path>
         </svg>
 
-        Borrar historial
+        {{ filter() === 'all' ? 'Borrar historial' : 'Borrar lista' }}
       </button>
 
     </div>
 
 
-    <!-- =======================================================
-         HISTORY LIST
-    ======================================================== -->
-    <section class="mt-8">
+    <!-- FILTROS -->
+    <div class="history-filters mt-6 flex gap-2 overflow-x-auto" role="tablist">
 
-      @if (loading()) {
+      @for (item of filters(); track item.id) {
+
+        <button
+          type="button"
+          role="tab"
+          class="history-filter transition-ui flex h-9 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-medium"
+          [class.is-active]="filter() === item.id"
+          [attr.aria-selected]="filter() === item.id"
+          (click)="setFilter(item.id)"
+        >
+          {{ item.label }}
+
+          <span class="history-filter-count">
+            {{ item.count }}
+          </span>
+        </button>
+
+      }
+
+    </div>
+
+
+    <!-- LISTA -->
+    <section class="mt-6">
+
+      @if (loading() && visibleItems().length === 0) {
 
         <div class="rounded-xl border border-[#292b30] bg-[#131517] px-5 py-12 text-center text-sm text-zinc-500">
           Cargando historial...
         </div>
 
-      } @else if (downloadHistory().length === 0) {
+      } @else if (groups().length === 0) {
 
         <div class="rounded-xl border border-[#202225] bg-[#111214] px-5 py-12 text-center">
           <p class="text-sm font-medium text-zinc-400">
-            Todavía no hay descargas en el historial.
+            {{ emptyText().title }}
           </p>
           <p class="mt-1 text-xs text-zinc-600">
-            Las descargas completadas aparecerán aquí.
+            {{ emptyText().hint }}
           </p>
         </div>
 
       } @else {
 
-        <div class="divide-y divide-[#202225] overflow-hidden rounded-xl border border-[#292b30] bg-[#131517]">
+        @for (group of groups(); track group.label) {
 
-          @for (entry of downloadHistory(); track entry.id) {
+          <h2 class="history-day mb-2 mt-6 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500 first:mt-0">
+            {{ group.label }}
+          </h2>
 
-            <div class="flex items-center gap-3 px-4 py-3">
+          <div class="divide-y divide-[#202225] overflow-hidden rounded-xl border border-[#292b30] bg-[#131517]">
 
-              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--musex-accent-soft)] text-[var(--musex-accent)]">
-                <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M12 3v12"></path>
-                  <path d="m7 10 5 5 5-5"></path>
-                  <path d="M5 21h14"></path>
-                </svg>
+            @for (entry of group.items; track entry.key) {
+
+              <div class="flex items-center gap-3 px-4 py-3">
+
+                <!-- Icono por tipo -->
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--musex-accent-soft)] text-[var(--musex-accent)]">
+
+                  @switch (entry.kind) {
+
+                    @case ('download') {
+                      <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 3v12"></path>
+                        <path d="m7 10 5 5 5-5"></path>
+                        <path d="M5 21h14"></path>
+                      </svg>
+                    }
+
+                    @case ('autopick') {
+                      <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"></path>
+                      </svg>
+                    }
+
+                    @default {
+                      <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9 18V5l12-2v13"></path>
+                        <circle cx="6" cy="18" r="3"></circle>
+                        <circle cx="18" cy="16" r="3"></circle>
+                      </svg>
+                    }
+
+                  }
+
+                </div>
+
+                <!-- Texto -->
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-medium text-white" [title]="entry.title">
+                    {{ entry.title }}
+                  </p>
+
+                  <p class="mt-0.5 truncate text-xs text-zinc-500">
+                    @if (filter() === 'all') {
+                      {{
+                        entry.kind === 'download' ? 'Descarga'
+                          : entry.kind === 'autopick' ? 'Auto-picker'
+                            : 'Reproducción'
+                      }} ·
+                    }
+                    {{ entry.subtitle }} · {{ entry.at | date:'HH:mm' }}
+                  </p>
+                </div>
+
+                <!-- Resultado del auto-picker -->
+                @if (entry.badge) {
+                  <span
+                    class="history-badge shrink-0"
+                    [class.is-ok]="entry.badgeTone === 'ok'"
+                    [class.is-warn]="entry.badgeTone === 'warn'"
+                  >
+                    {{ entry.badge }}
+                  </span>
+                }
+
+                <!-- Reproducir -->
+                @if (entry.playable) {
+                  <button
+                    type="button"
+                    class="icon-btn flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-zinc-500 hover:text-white"
+                    aria-label="Reproducir"
+                    title="Reproducir"
+                    (click)="play(entry)"
+                  >
+                    <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true">
+                      <path d="M8 5v14l11-7z"></path>
+                    </svg>
+                  </button>
+                }
+
+                <!-- Eliminar -->
+                <button
+                  type="button"
+                  class="icon-btn flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-zinc-500 hover:text-white"
+                  aria-label="Eliminar del historial"
+                  title="Eliminar del historial"
+                  (click)="remove(entry)"
+                >
+                  <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                  </svg>
+                </button>
+
               </div>
 
-              <div class="min-w-0 flex-1">
-                <p class="truncate text-sm font-medium text-white" [title]="entry.title">
-                  {{ entry.title }}
-                </p>
-                <p class="mt-0.5 truncate text-xs text-zinc-500">
-                  {{ entry.source | titlecase }} · {{ entry.completedAt | date:'d MMM, HH:mm' }}
-                </p>
-              </div>
+            }
 
-              <button
-                type="button"
-                class="icon-btn flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-zinc-500 hover:text-white hide-on-android"
-                aria-label="Eliminar del historial"
-                title="Eliminar del historial"
-                (click)="removeEntry(entry.id)"
-              >
-                <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M18 6 6 18"></path>
-                  <path d="m6 6 12 12"></path>
-                </svg>
-              </button>
+          </div>
 
-            </div>
-
-          }
-
-        </div>
+        }
 
       }
 

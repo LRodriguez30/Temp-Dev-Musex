@@ -5,11 +5,14 @@
       modal-backdrop
       fixed
       inset-0
-      z-[200]
       flex
       items-center
       justify-center
+      z-[1100]
+      overflow-y-auto
+      bg-black/65
       p-4
+      backdrop-blur-md
       sm:p-6
     "
     [class.is-closing]="closing"
@@ -20,13 +23,14 @@
     <section
       class="
         modal-panel
+        my-auto
         flex
+        max-h-[calc(100dvh-32px)]
         w-full
         flex-col
+        overflow-hidden
       "
-      [class.max-h-[calc(100vh-32px)]]="!bare"
       [class.max-w-[520px]]="!bare"
-      [class.overflow-hidden]="!bare"
       [class.rounded-2xl]="!bare"
       [class.border]="!bare"
       [class.border-[#292b2f]]="!bare"
@@ -140,14 +144,16 @@
       ====================================================== -->
 
       <div
-        class="min-h-0"
-        [class.overflow-y-auto]="!bare"
+        class="
+          min-h-0
+          flex-1
+          overflow-y-auto
+          overscroll-contain
+        "
         [class.p-5]="!bare"
         [class.modal-content-bare]="bare"
       >
-
         <ng-content></ng-content>
-
       </div>
 
     </section>

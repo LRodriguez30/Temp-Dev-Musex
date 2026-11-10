@@ -1422,6 +1422,20 @@
                   (addToPlaylist)="
                     openAddToPlaylist($event)
                   "
+
+                  (addSelectedToPlaylist)="
+                    openAddSelectedToPlaylist($event)
+                  "
+
+                  [removable]="canEditTracks"
+
+                  (removeTrack)="
+                    removeTrack($event.id)
+                  "
+
+                  (removeSelected)="
+                    removeTracks($event)
+                  "
                 ></app-music-table>
 
               } @else {
