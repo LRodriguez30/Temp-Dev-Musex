@@ -10,6 +10,7 @@ import { FormsModule } from '@angular/forms';
 
 import { Download } from '../../core/models/download.model';
 
+import { ConfirmDialogService } from '../../core/services/confirm-dialog.service';
 import { DownloadService } from '../../core/services/download.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { PlayerService } from '../../core/services/player.service';
@@ -99,6 +100,12 @@ export class DownloadsComponent
    */
   private readonly notificationService =
     inject(NotificationService);
+
+  private readonly confirmDialog =
+    inject(ConfirmDialogService);
+
+  /** true mientras se lee el contenido de una lista de YouTube. */
+  loadingPlaylist = false;
 
 
   // ===========================================================
@@ -380,20 +387,59 @@ export class DownloadsComponent
   // ===========================================================
 
   /**
-   * Agrega una nueva descarga a la cola
-   * y comienza inmediatamente su ejecución.
+   * Resumen de lo pegado en el formulario: cuántos enlaces son
+   * compatibles, cuántos no, y si hay una lista de YouTube.
+   */
+  linkSummary(): {
+    valid: number;
+    invalid: number;
+    playlistUrl: string | null;
+    playlistIsPage: boolean;
+  } {
+
+    const { valid, invalid } =
+      this.downloadService.extractUrls(this.downloadUrl);
+
+    let playlistUrl: string | null = null;
+    let playlistIsPage = false;
+
+    for (const url of valid) {
+
+      const id = this.downloadService.playlistIdOf(url);
+
+      if (id) {
+
+        playlistUrl =
+          `https://www.youtube.com/playlist?list=${id}`;
+
+        playlistIsPage =
+          this.downloadService.isPlaylistPage(url);
+
+        break;
+      }
+    }
+
+    return {
+      valid: valid.length,
+      invalid: invalid.length,
+      playlistUrl,
+      playlistIsPage
+    };
+  }
+
+
+  /**
+   * Agrega a la cola todos los enlaces pegados (uno o varios).
+   *
+   * Los enlaces de listas de YouTube se expanden en sus videos.
+   * Se descargan de a pocos a la vez para no saturar el equipo.
    */
   async addDownload(): Promise<void> {
 
-    const url =
-      this.downloadUrl.trim();
+    const { valid, invalid } =
+      this.downloadService.extractUrls(this.downloadUrl);
 
-
-    // ---------------------------------------------------------
-    // URL VACÍA
-    // ---------------------------------------------------------
-
-    if (!url) {
+    if (!this.downloadUrl.trim()) {
 
       this.notificationService.warning(
         'Introduce una URL para iniciar la descarga.'
@@ -402,16 +448,7 @@ export class DownloadsComponent
       return;
     }
 
-
-    // ---------------------------------------------------------
-    // URL NO COMPATIBLE
-    // ---------------------------------------------------------
-
-    if (
-      !this.isValidDownloadUrl(
-        url
-      )
-    ) {
+    if (valid.length === 0) {
 
       this.notificationService.error(
         'La URL no pertenece a una fuente compatible.'
@@ -420,58 +457,177 @@ export class DownloadsComponent
       return;
     }
 
+    let added = 0;
 
-    // ---------------------------------------------------------
-    // CREAR DESCARGA
-    // ---------------------------------------------------------
+    for (const url of valid) {
 
-    const download =
-      this.downloadService.addDownload(
-        url
-      );
+      // Página de lista: se expande en sus videos.
+      if (this.downloadService.isPlaylistPage(url)) {
 
+        added += await this.addPlaylist(url);
 
-    if (!download) {
+        continue;
+      }
 
-      this.notificationService.error(
-        'No se pudo agregar la descarga.'
-      );
+      const download =
+        this.downloadService.addDownload(url);
 
-      return;
+      if (!download) {
+        continue;
+      }
+
+      added++;
+
+      this.startQueued(download.id);
     }
-
-
-    // ---------------------------------------------------------
-    // LIMPIAR FORMULARIO
-    // ---------------------------------------------------------
 
     this.downloadUrl = '';
 
+    if (added > 0) {
 
-    this.notificationService.success(
-      'La descarga se agregó a la cola.'
-    );
+      this.notificationService.success(
+        added === 1
+          ? 'La descarga se agregó a la cola.'
+          : `${added} descargas se agregaron a la cola.`
+      );
+    }
+
+    if (invalid.length > 0) {
+
+      this.notificationService.warning(
+        invalid.length === 1
+          ? 'Se ignoró 1 enlace no compatible.'
+          : `Se ignoraron ${invalid.length} enlaces no compatibles.`
+      );
+    }
+  }
 
 
-    // ---------------------------------------------------------
-    // INICIAR DESCARGA
-    // ---------------------------------------------------------
+  /**
+   * Lee una lista de YouTube y agrega sus videos a la cola.
+   * Devuelve cuántos se agregaron.
+   */
+  async addPlaylist(
+    playlistUrl: string
+  ): Promise<number> {
+
+    if (this.loadingPlaylist) {
+      return 0;
+    }
+
+    this.loadingPlaylist = true;
 
     try {
 
-      await this.downloadService
-        .startDownload(
-          download.id
+      const info =
+        await this.downloadService.listYouTubePlaylist(
+          playlistUrl
         );
+
+      if (info.entries.length === 0) {
+
+        this.notificationService.warning(
+          'La lista no tiene videos disponibles.'
+        );
+
+        return 0;
+      }
+
+      const count = info.entries.length;
+
+      const confirmed = await this.confirmDialog.request({
+        title: 'Descargar lista',
+        message:
+          `«${info.title}» tiene ${count} ` +
+          `${count === 1 ? 'video' : 'videos'}` +
+          (info.truncated
+            ? ' (se muestran los primeros 300)'
+            : '') +
+          '. Se descargarán una por una. ¿Agregarlos todos?',
+        confirmLabel: 'Descargar'
+      });
+
+      if (!confirmed) {
+        return 0;
+      }
+
+      let added = 0;
+
+      for (const entry of info.entries) {
+
+        const download =
+          this.downloadService.addDownload(
+            `https://www.youtube.com/watch?v=${entry.id}`,
+            entry.title
+          );
+
+        if (!download) {
+          continue;
+        }
+
+        added++;
+
+        this.startQueued(download.id);
+      }
+
+      return added;
 
     } catch (error) {
 
       this.notificationService.error(
-        error instanceof Error
-          ? error.message
-          : 'No se pudo iniciar la descarga.'
+        typeof error === 'string'
+          ? error
+          : error instanceof Error
+            ? error.message
+            : 'No se pudo leer la lista de reproducción.'
+      );
+
+      return 0;
+
+    } finally {
+
+      this.loadingPlaylist = false;
+    }
+  }
+
+
+  /** Botón "Descargar lista completa" del formulario. */
+  async downloadWholePlaylist(): Promise<void> {
+
+    const { playlistUrl } = this.linkSummary();
+
+    if (!playlistUrl) {
+      return;
+    }
+
+    const added = await this.addPlaylist(playlistUrl);
+
+    if (added > 0) {
+
+      this.downloadUrl = '';
+
+      this.notificationService.success(
+        `${added} descargas se agregaron a la cola.`
       );
     }
+  }
+
+
+  /** Inicia una descarga respetando el límite de simultáneas. */
+  private startQueued(
+    downloadId: string
+  ): void {
+
+    this.downloadService
+      .queueDownload(downloadId)
+      .catch(error => {
+
+        this.notificationService.error(
+          error instanceof Error
+            ? error.message
+            : 'No se pudo iniciar la descarga.'
+        );
+      });
   }
 
 
@@ -565,7 +721,7 @@ export class DownloadsComponent
 
 
   /**
-   * Cancela una descarga que todavía está pendiente.
+   * Cancela una descarga pendiente o en curso.
    */
   cancelDownload(
     download: Download
@@ -573,24 +729,24 @@ export class DownloadsComponent
 
     if (
       download.status !==
-      'pending'
+      'pending' &&
+      download.status !==
+      'downloading'
     ) {
-
-      this.notificationService.info(
-        'Esta descarga ya está siendo procesada y no puede cancelarse todavía.'
-      );
 
       return;
     }
 
 
-    this.downloadService.cancel(
+    void this.downloadService.cancel(
       download.id
     );
 
 
     this.notificationService.info(
-      `"${download.title}" fue cancelada.`
+      download.status === 'downloading'
+        ? `Cancelando "${download.title}"...`
+        : `"${download.title}" fue cancelada.`
     );
   }
 
@@ -647,7 +803,7 @@ export class DownloadsComponent
     try {
 
       await this.downloadService
-        .startDownload(
+        .queueDownload(
           download.id
         );
 

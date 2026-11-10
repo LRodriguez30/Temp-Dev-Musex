@@ -23,7 +23,9 @@ export class HistoryService {
    * Las entradas más recientes se mantienen al principio
    * de la colección.
    */
-  private readonly history = signal<HistoryEntry[]>([]);
+  private readonly history = signal<HistoryEntry[]>(
+    this.loadSaved()
+  );
 
   /**
    * Exposición de solo lectura del historial.
@@ -67,6 +69,8 @@ export class HistoryService {
       )
     ]);
 
+    this.persist();
+
     return entry;
   }
 
@@ -77,6 +81,8 @@ export class HistoryService {
     this.history.update(history =>
       history.filter(entry => entry.id !== entryId)
     );
+
+    this.persist();
   }
 
   /**
@@ -84,6 +90,8 @@ export class HistoryService {
    */
   clearHistory(): void {
     this.history.set([]);
+
+    this.persist();
   }
 
   /**
@@ -119,6 +127,43 @@ export class HistoryService {
    */
   setHistory(entries: HistoryEntry[]): void {
     this.history.set([...entries]);
+
+    this.persist();
+  }
+
+  /**
+   * Restaura el historial guardado entre sesiones.
+   */
+  private loadSaved(): HistoryEntry[] {
+
+    try {
+      const raw = localStorage.getItem('musex_history');
+
+      if (raw) {
+        const parsed: unknown = JSON.parse(raw);
+
+        if (Array.isArray(parsed)) {
+          return parsed as HistoryEntry[];
+        }
+      }
+    } catch {
+      /* historial ilegible: se empieza vacío */
+    }
+
+    return [];
+  }
+
+  /** Guarda como máximo las 200 reproducciones más recientes. */
+  private persist(): void {
+
+    try {
+      localStorage.setItem(
+        'musex_history',
+        JSON.stringify(this.history().slice(0, 200))
+      );
+    } catch {
+      /* almacenamiento no disponible */
+    }
   }
 
   /**

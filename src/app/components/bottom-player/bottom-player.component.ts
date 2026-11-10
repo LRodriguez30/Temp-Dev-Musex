@@ -120,6 +120,8 @@ export class BottomPlayerComponent {
   private swipeStartY = 0;
   private swipeIgnored = false;
 
+  /** Desplazamiento de la hoja al empezar el gesto. */
+  private swipeStartScroll = 0;
   /**
    * Si deja de haber algo reproducible, el panel se cierra solo.
    */
@@ -145,6 +147,8 @@ export class BottomPlayerComponent {
     this.swipeStartX = touch.clientX;
     this.swipeStartY = touch.clientY;
 
+    this.swipeStartScroll =
+      (event.currentTarget as HTMLElement | null)?.scrollTop ?? 0;
     /*
      * Si el gesto empieza sobre una barra (progreso / volumen)
      * se ignora, para no cerrar el panel al arrastrar.
@@ -171,6 +175,13 @@ export class BottomPlayerComponent {
       return;
     }
 
+    // Si la hoja estaba desplazada, arrastrar hacia abajo es hacer scroll
+    // hacia arriba, no cerrar. Solo se cierra desde el comienzo.
+    const sheet = event.currentTarget as HTMLElement | null;
+
+    if (this.swipeStartScroll > 0 || (sheet?.scrollTop ?? 0) > 0) {
+      return;
+    }
     const { dx, dy } = this.swipeDelta(event);
 
     if (dy > 50 && Math.abs(dx) < dy) {
@@ -193,8 +204,8 @@ export class BottomPlayerComponent {
   }
 
   openFullPlayerFromSheet(): void {
-    this.closeMobileSheet();
-    this.toggleFullPlayer();
+      this.closeMobileSheet();
+      this.toggleFullPlayer();
   }
 
   /**
@@ -428,9 +439,16 @@ export class BottomPlayerComponent {
 
   /**
    * Muestra u oculta el reproductor expandido.
+   *
+   * No permite abrirlo mientras la cola independiente
+   * está visible.
    */
   toggleFullPlayer(): void {
-    this.playerService.toggleFullPlayer();
+      if (this.queuePanelService.open()) {
+          return;
+      }
+
+      this.playerService.toggleFullPlayer();
   }
 
   /**

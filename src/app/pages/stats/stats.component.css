@@ -1,0 +1,337 @@
+.stats-page {
+  animation:
+    stats-page-enter
+    350ms
+    ease
+    both;
+}
+
+@keyframes stats-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stats-clear {
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid #292b30;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+
+.stats-clear:hover {
+  border-color: #3a3d42;
+  color: #fff;
+}
+
+/* ---------- Periodo ---------- */
+
+.stats-periods {
+  display: flex;
+  gap: 8px;
+  margin: 22px 0 18px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.stats-periods::-webkit-scrollbar { display: none; }
+
+.stats-period {
+  flex-shrink: 0;
+  height: 34px;
+  padding: 0 15px;
+  border: 1px solid #292b30;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+}
+
+.stats-period:hover {
+  border-color: #3a3d42;
+  color: #fff;
+}
+
+.stats-period.is-active {
+  border-color: color-mix(in srgb, var(--musex-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--musex-accent) 8%, transparent);
+  color: var(--musex-accent);
+}
+
+.stats-empty {
+  padding: 48px 20px;
+  border: 1px solid #202225;
+  border-radius: 14px;
+  background: #111214;
+  text-align: center;
+}
+
+/* ---------- Tarjetas numéricas ---------- */
+
+.stats-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.stats-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #292b30;
+  border-radius: 14px;
+  background: #131517;
+}
+
+.stats-kpi.is-hero {
+  grid-column: span 1;
+  border-color: color-mix(in srgb, var(--musex-accent) 30%, transparent);
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--musex-accent) 10%, transparent),
+      transparent 70%
+    ),
+    #131517;
+}
+
+.stats-kpi-label {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.stats-kpi strong {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.stats-kpi.is-hero strong {
+  color: var(--musex-accent);
+}
+
+.stats-kpi small {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ---------- Tarjetas con listas ---------- */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.stats-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #292b30;
+  border-radius: 14px;
+  background: #131517;
+}
+
+.stats-card h2 {
+  margin: 0 0 14px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.stats-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 16px;
+}
+
+.stats-card-head h2 { margin-bottom: 4px; }
+
+.stats-peak {
+  color: var(--musex-accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.stats-rank {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stats-rank li {
+  display: flex;
+  gap: 12px;
+}
+
+.stats-rank-pos {
+  width: 18px;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.stats-rank-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.stats-rank-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stats-rank-name {
+  min-width: 0;
+  overflow: hidden;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stats-rank-value {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+}
+
+.stats-rank-sub {
+  display: block;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stats-rank-bar {
+  height: 3px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.stats-rank-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--musex-accent);
+  transition: width 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------- Hábitos ---------- */
+
+.stats-caption {
+  margin: 14px 0 8px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.stats-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 120px;
+}
+
+.stats-bars.is-days { gap: 10px; }
+
+.stats-bar {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+  min-width: 0;
+}
+
+.stats-bar-fill {
+  display: block;
+  width: 100%;
+  margin-bottom: 18px;
+  border-radius: 4px 4px 2px 2px;
+  background: color-mix(in srgb, var(--musex-accent) 35%, #1a1c1f);
+  transition: height 500ms cubic-bezier(0.22, 1, 0.36, 1), background 200ms ease;
+}
+
+.stats-bar.is-peak .stats-bar-fill {
+  background: var(--musex-accent);
+}
+
+.stats-bar:hover .stats-bar-fill {
+  background: var(--musex-accent);
+}
+
+.stats-bar-label {
+  position: absolute;
+  right: -6px;
+  bottom: 0;
+  left: -6px;
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 10px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ---------- Adaptación a pantallas pequeñas ---------- */
+
+@media (max-width: 900px) {
+
+  .stats-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stats-kpi.is-hero {
+    grid-column: 1 / -1;
+  }
+
+  .stats-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stats-rank-bar span,
+  .stats-bar-fill {
+    transition: none;
+  }
+}

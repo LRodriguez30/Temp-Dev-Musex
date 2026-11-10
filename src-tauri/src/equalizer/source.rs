@@ -52,6 +52,10 @@ where
     filters: Vec<Vec<DirectForm1<f32>>>,
 
     current_channel: usize,
+
+    /// Ganancia de seguridad (≤ 1.0) que compensa los refuerzos
+    /// del ecualizador para evitar saturación.
+    headroom: f32,
 }
 
 
@@ -90,10 +94,12 @@ where
             filters: Vec::new(),
 
             current_channel: 0,
+
+            headroom: 1.0,
         };
 
 
-        source.rebuild_filters();
+        source.rebuild_filters(false);
 
 
         source
@@ -104,30 +110,74 @@ where
     // REBUILD FILTERS
     // =========================================================
 
-    fn rebuild_filters(&mut self) {
+    /// Reconstruye la cadena de filtros.
+    ///
+    /// Con `keep_state` se conserva la memoria interna de cada filtro
+    /// si la cantidad de bandas no cambió: solo se actualizan los
+    /// coeficientes. Así mover una banda no produce chasquidos.
+    fn rebuild_filters(&mut self, keep_state: bool) {
 
         let bands =
             self.state.bands();
 
+        let sample_rate =
+            self.sample_rate;
 
-        self.filters =
-            (0..self.channels)
-                .map(|_| {
 
-                    bands
-                        .iter()
-                        .filter_map(
-                            |band| {
-                                Self::build_filter(
-                                    band,
-                                    self.sample_rate,
-                                )
-                            }
-                        )
-                        .collect()
-
-                })
+        let coefficients: Vec<Coefficients<f32>> =
+            bands
+                .iter()
+                .filter_map(
+                    |band| Self::build_coefficients(
+                        band,
+                        sample_rate,
+                    )
+                )
                 .collect();
+
+
+        self.headroom =
+            Self::headroom_for(
+                &coefficients,
+                sample_rate,
+            );
+
+
+        let reusable =
+            keep_state
+            && self.filters.len() == self.channels
+            && self.filters
+                .iter()
+                .all(|channel| channel.len() == coefficients.len());
+
+
+        if reusable {
+
+            for channel in self.filters.iter_mut() {
+
+                for (filter, coefficient) in
+                    channel.iter_mut().zip(coefficients.iter())
+                {
+                    filter.update_coefficients(*coefficient);
+                }
+            }
+
+        } else {
+
+            self.filters =
+                (0..self.channels)
+                    .map(|_| {
+
+                        coefficients
+                            .iter()
+                            .map(|coefficient| {
+                                DirectForm1::<f32>::new(*coefficient)
+                            })
+                            .collect()
+
+                    })
+                    .collect();
+        }
 
 
         self.cached_version =
@@ -136,22 +186,29 @@ where
 
 
     // =========================================================
-    // BUILD FILTER
+    // BUILD COEFFICIENTS
     // =========================================================
 
-    fn build_filter(
+    fn build_coefficients(
         band: &super::band::EqBand,
         sample_rate: u32,
-    ) -> Option<DirectForm1<f32>> {
+    ) -> Option<Coefficients<f32>> {
 
         // -----------------------------------------------------
         // Límites de seguridad
         // -----------------------------------------------------
+        //
+        // La frecuencia nunca debe acercarse a Nyquist: con
+        // archivos de 22.05 kHz o 32 kHz una banda aguda sería
+        // rechazada por el cálculo y quedaría sin efecto.
+
+        let max_frequency =
+            20_000.0_f32.min(sample_rate as f32 * 0.45);
 
         let frequency =
             band.frequency.clamp(
                 20.0,
-                20_000.0,
+                max_frequency.max(20.0),
             );
 
 
@@ -197,21 +254,93 @@ where
         // Coeficientes
         // -----------------------------------------------------
 
-        let coefficients =
-            Coefficients::<f32>::from_params(
-                biquad_type,
-                sample_rate.hz(),
-                frequency.hz(),
-                q,
-            )
-            .ok()?;
-
-
-        Some(
-            DirectForm1::<f32>::new(
-                coefficients
-            )
+        Coefficients::<f32>::from_params(
+            biquad_type,
+            sample_rate.hz(),
+            frequency.hz(),
+            q,
         )
+        .ok()
+    }
+
+
+    // =========================================================
+    // HEADROOM
+    // =========================================================
+    //
+    // Calcula el pico de la respuesta combinada de todas las bandas
+    // y devuelve la ganancia lineal que lo compensa. Sin ella, un
+    // refuerzo de +7 dB puede superar 0 dBFS y saturar el audio.
+
+    fn headroom_for(
+        coefficients: &[Coefficients<f32>],
+        sample_rate: u32,
+    ) -> f32 {
+
+        if coefficients.is_empty() {
+            return 1.0;
+        }
+
+        const POINTS: usize = 192;
+
+        let sample_rate =
+            sample_rate as f64;
+
+        let max_frequency =
+            20_000.0_f64.min(sample_rate * 0.45);
+
+        let mut peak_db = 0.0_f64;
+
+        for index in 0..POINTS {
+
+            let t =
+                index as f64 / (POINTS - 1) as f64;
+
+            let frequency =
+                20.0 * (max_frequency / 20.0).powf(t);
+
+            let w =
+                2.0 * std::f64::consts::PI * frequency / sample_rate;
+
+            let (c1, s1) = (w.cos(), w.sin());
+            let (c2, s2) = ((2.0 * w).cos(), (2.0 * w).sin());
+
+            let mut total_db = 0.0_f64;
+
+            for c in coefficients {
+
+                let (b0, b1, b2) =
+                    (c.b0 as f64, c.b1 as f64, c.b2 as f64);
+
+                let (a1, a2) =
+                    (c.a1 as f64, c.a2 as f64);
+
+                // H(z) = (b0 + b1 z^-1 + b2 z^-2) / (1 + a1 z^-1 + a2 z^-2)
+                let num_re = b0 + b1 * c1 + b2 * c2;
+                let num_im = -(b1 * s1 + b2 * s2);
+
+                let den_re = 1.0 + a1 * c1 + a2 * c2;
+                let den_im = -(a1 * s1 + a2 * s2);
+
+                let num = num_re * num_re + num_im * num_im;
+                let den = den_re * den_re + den_im * den_im;
+
+                if num > 0.0 && den > 0.0 {
+                    total_db += 10.0 * (num / den).log10();
+                }
+            }
+
+            if total_db > peak_db {
+                peak_db = total_db;
+            }
+        }
+
+        // Por debajo de ~0.05 dB no merece la pena compensar.
+        if peak_db < 0.05 {
+            return 1.0;
+        }
+
+        10.0_f32.powf(-(peak_db.min(24.0) as f32) / 20.0)
     }
 
 
@@ -227,7 +356,9 @@ where
 
         self.current_channel = 0;
 
-        self.rebuild_filters();
+        // Tras un salto de posición la memoria de los filtros ya no
+        // es válida: se reconstruyen desde cero.
+        self.rebuild_filters(false);
     }
 }
 
@@ -253,7 +384,7 @@ where
             && self.cached_version
                 != self.state.version()
         {
-            self.rebuild_filters();
+            self.rebuild_filters(true);
         }
 
 
@@ -306,7 +437,11 @@ where
         }
 
 
-        Some(filtered)
+        // Margen de seguridad + último recurso contra saturación.
+        Some(
+            (filtered * self.headroom)
+                .clamp(-1.0, 1.0)
+        )
     }
 }
 

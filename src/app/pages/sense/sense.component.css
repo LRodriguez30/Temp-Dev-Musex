@@ -1151,3 +1151,187 @@
   }
 
 }
+
+
+/* ============================================================
+   RENOVACIÓN VISUAL
+   Paneles con profundidad, marca con halo y filas más claras.
+   ============================================================ */
+
+.sense-page {
+  background:
+    radial-gradient(
+      50% 34% at 85% 0%,
+      color-mix(in srgb, var(--musex-accent) 8%, transparent),
+      transparent 72%
+    );
+}
+
+/* ---------- Marca con halo ---------- */
+
+.sense-mark {
+  position: relative;
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--musex-accent) 7%, transparent),
+    0 8px 26px color-mix(in srgb, var(--musex-accent) 16%, transparent);
+}
+
+.sense-mark::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border: 1px solid color-mix(in srgb, var(--musex-accent) 28%, transparent);
+  border-radius: 18px;
+  opacity: 0;
+  animation: sense-mark-pulse 3.2s ease-out infinite;
+}
+
+@keyframes sense-mark-pulse {
+  0%   { opacity: 0.7; transform: scale(0.92); }
+  70%  { opacity: 0;   transform: scale(1.12); }
+  100% { opacity: 0;   transform: scale(1.12); }
+}
+
+/* ---------- Paneles ---------- */
+
+.sense-page .sense-control,
+.sense-page .provider-panel,
+.sense-page .capabilities-panel,
+.sense-page .tutorial-panel {
+  position: relative;
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 90px),
+    #151719;
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+/* Filo de acento superior */
+.sense-page .sense-control::before,
+.sense-page .provider-panel::before,
+.sense-page .capabilities-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 22px;
+  right: 22px;
+  height: 1px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--musex-accent) 55%, transparent),
+      transparent
+    );
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.sense-page .control-icon {
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--musex-accent) 22%, transparent);
+}
+
+/* ---------- Interruptores ---------- */
+
+.sense-page .sense-switch,
+.sense-page .capability-switch {
+  transition:
+    background 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.sense-page .sense-switch-active,
+.sense-page .capability-switch-active {
+  box-shadow: 0 0 14px color-mix(in srgb, var(--musex-accent) 28%, transparent);
+}
+
+.sense-page .sense-switch-thumb,
+.sense-page .capability-switch-thumb {
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), background 200ms ease;
+}
+
+/* ---------- Capacidades ---------- */
+
+.sense-page .capability-row {
+  position: relative;
+  transition: background 180ms ease;
+}
+
+.sense-page .capability-row + .capability-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sense-page .capabilities-panel:not(.capabilities-disabled) .capability-row:hover {
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.sense-page .capability-index {
+  color: color-mix(in srgb, var(--musex-accent) 45%, #45484e);
+}
+
+/* ---------- Botones y campos ---------- */
+
+.sense-page .tutorial-button,
+.sense-page .test-button,
+.sense-page .ai-studio-button {
+  border-radius: 10px;
+  transition:
+    background 170ms ease,
+    border-color 170ms ease,
+    color 170ms ease,
+    transform 170ms ease,
+    box-shadow 170ms ease;
+}
+
+.sense-page .test-button:hover:not(:disabled),
+.sense-page .ai-studio-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+}
+
+.sense-page .api-key-field {
+  border-radius: 10px;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.sense-page .api-key-field:focus-within {
+  border-color: color-mix(in srgb, var(--musex-accent) 55%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--musex-accent) 12%, transparent);
+}
+
+/* ---------- Tutorial ---------- */
+
+.sense-page .tutorial-step {
+  transition: background 180ms ease;
+}
+
+.sense-page .tutorial-number {
+  box-shadow: 0 0 14px color-mix(in srgb, var(--musex-accent) 16%, transparent);
+}
+
+/* ---------- Estado de conexión ---------- */
+
+.sense-page .connection-status {
+  border-radius: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .sense-mark::after {
+    animation: none;
+  }
+
+  .sense-page .sense-switch,
+  .sense-page .capability-switch,
+  .sense-page .sense-switch-thumb,
+  .sense-page .capability-switch-thumb,
+  .sense-page .test-button,
+  .sense-page .ai-studio-button {
+    transition: none;
+  }
+}

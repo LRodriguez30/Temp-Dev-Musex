@@ -9,6 +9,338 @@
 ========================================================== -->
 
 
+@if (isAndroid) {
+
+  <!-- =========================================================
+       LISTA TÁCTIL (ANDROID)
+       ---------------------------------------------------------
+       Tarjetas con todos los datos de la canción (portada, título,
+       artista, álbum, género y duración), gestos de deslizamiento
+       y respuesta visual y háptica.
+
+         - Tocar            → reproducir / pausar
+         - Mantener pulsado → seleccionar
+         - Deslizar →       → favorita
+         - Deslizar ←       → agregar a la cola
+  ========================================================== -->
+
+  <div
+    class="mt-m"
+    [class.is-selecting]="isSelecting"
+    [class.is-compact]="density() === 'compact'"
+  >
+
+    <!-- Barra superior fija -->
+    <div class="mt-m-toolbar">
+
+      @if (isSelecting) {
+
+        <button
+          type="button"
+          class="mt-m-icon"
+          aria-label="Salir de la selección"
+          (click)="exitSelection()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+
+        <span class="mt-m-selected">
+          <strong>{{ selectedCount }}</strong>
+          {{ selectedCount === 1 ? 'seleccionada' : 'seleccionadas' }}
+        </span>
+
+        <button type="button" class="mt-m-chip" (click)="toggleSelectAll()">
+          {{ allTracksSelected ? 'Ninguna' : 'Todas' }}
+        </button>
+
+        <button
+          type="button"
+          class="mt-m-chip is-primary"
+          [disabled]="!hasSelection"
+          (click)="addSelectionToPlaylistMobile()"
+        >
+          + Playlist
+        </button>
+
+        @if (removable) {
+          <button
+            type="button"
+            class="mt-m-chip is-danger"
+            [disabled]="!hasSelection"
+            (click)="removeSelectedTracks()"
+          >
+            Quitar
+          </button>
+        }
+
+      } @else {
+
+        <span class="mt-m-count">
+          <strong>{{ tracks.length }}</strong>
+          {{ tracks.length === 1 ? 'canción' : 'canciones' }}
+        </span>
+
+        @if (tracks.length > 0) {
+
+          <button
+            type="button"
+            class="mt-m-icon"
+            [attr.aria-label]="density() === 'detailed' ? 'Vista compacta' : 'Vista detallada'"
+            [title]="density() === 'detailed' ? 'Vista compacta' : 'Vista detallada'"
+            (click)="toggleDensity()"
+          >
+            @if (density() === 'detailed') {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 6h16"></path>
+                <path d="M4 10h16"></path>
+                <path d="M4 14h16"></path>
+                <path d="M4 18h16"></path>
+              </svg>
+            } @else {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="4" y="4" width="16" height="7" rx="2"></rect>
+                <rect x="4" y="13" width="16" height="7" rx="2"></rect>
+              </svg>
+            }
+          </button>
+
+          <button type="button" class="mt-m-chip" (click)="toggleSelectMode()">
+            Seleccionar
+          </button>
+        }
+
+      }
+
+    </div>
+
+    <!-- Pista de gestos (una sola vez) -->
+    @if (hintVisible() && tracks.length > 0 && !isSelecting) {
+
+      <div class="mt-m-hint" role="note">
+
+        <p>
+          <b>Desliza →</b> favorita · <b>←</b> a la cola ·
+          <b>Mantén pulsado</b> para seleccionar
+        </p>
+
+        <button type="button" (click)="dismissHint()">Entendido</button>
+
+      </div>
+    }
+
+    @if (tracks.length === 0) {
+
+      <div class="mt-m-empty">
+        <span>SIN CANCIONES</span>
+        <p>No hay canciones para mostrar.</p>
+      </div>
+
+    } @else {
+
+      <div class="mt-m-list" role="list">
+
+        @for (track of tracks; track track.id; let index = $index) {
+
+          <div
+            class="mt-m-row"
+            role="listitem"
+            tabindex="0"
+            [style.--i]="index < 14 ? index : 14"
+            [class.is-playing]="isTrackPlaying(track)"
+            [class.is-current]="isCurrent(track)"
+            [class.is-selected]="isTrackSelected(track)"
+            (pointerdown)="onPointerDown(track, $event)"
+            (pointermove)="onPointerMove($event)"
+            (pointerup)="onPointerUp(track)"
+            (pointercancel)="onPointerCancel()"
+            (pointerleave)="onRelease()"
+            (contextmenu)="$event.preventDefault()"
+            (click)="onRowClick(track)"
+            (keydown.enter)="onRowClick(track)"
+          >
+
+            <!-- Acciones reveladas al deslizar -->
+            <div class="mt-m-swipe is-right" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+              <span>{{ isFav(track) ? 'Quitar' : 'Favorita' }}</span>
+            </div>
+
+            <div class="mt-m-swipe is-left" aria-hidden="true">
+              <span>A la cola</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h13"></path>
+                <path d="M3 12h13"></path>
+                <path d="M3 18h9"></path>
+                <path d="M19 15v6"></path>
+                <path d="M16 18h6"></path>
+              </svg>
+            </div>
+
+            <!-- Tarjeta (es la que se desplaza) -->
+            <div class="mt-m-card">
+
+              <!-- Casilla redonda (solo al seleccionar) -->
+              @if (isSelecting) {
+                <span class="mt-m-check" [class.is-on]="isTrackSelected(track)" aria-hidden="true">
+                  @if (isTrackSelected(track)) {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  }
+                </span>
+              }
+
+              <!-- Portada: al sonar se vuelve disco y gira -->
+              <div class="mt-m-cover" [class.is-playing]="isTrackPlaying(track)">
+
+                <div class="mt-m-art">
+
+                  @if (track.coverType === 'image' && track.image) {
+
+                    <img [src]="track.image" [alt]="track.title" loading="lazy" decoding="async" />
+
+                  } @else if (track.coverType === 'icon') {
+
+                    <span
+                      class="mt-m-art-icon"
+                      [style.background]="(track.coverColor || 'var(--musex-accent)') + '1f'"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        [attr.stroke]="track.coverColor || 'var(--musex-accent)'"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path [attr.d]="track.coverIcon"></path>
+                      </svg>
+                    </span>
+
+                  } @else {
+
+                    <svg class="mt-m-disc" viewBox="0 0 100 100" aria-hidden="true">
+                      <circle cx="50" cy="50" r="47" fill="none" stroke="var(--musex-accent)" stroke-width="3" stroke-opacity="0.65" />
+                      <circle cx="50" cy="50" r="43" fill="var(--musex-accent)" />
+                      <circle cx="50" cy="50" r="38" fill="none" stroke="#0d0e10" stroke-width="1.5" opacity="0.35" />
+                      <circle cx="50" cy="50" r="31" fill="none" stroke="#0d0e10" stroke-width="1" opacity="0.3" />
+                      <circle cx="50" cy="50" r="24" fill="none" stroke="#0d0e10" stroke-width="1" opacity="0.25" />
+                      <circle cx="50" cy="50" r="13" fill="#0d0e10" />
+                      <circle cx="50" cy="50" r="4" fill="var(--musex-accent)" />
+                    </svg>
+
+                  }
+
+                </div>
+
+                @if (isTrackLoading(track)) {
+
+                  <span class="mt-m-cover-overlay" aria-label="Cargando">
+                    <span class="mt-m-spinner"></span>
+                  </span>
+
+                } @else if (isTrackPlaying(track)) {
+
+                  <span class="mt-m-cover-overlay" aria-label="Reproduciendo">
+                    <span class="mt-m-bars"><i></i><i></i><i></i><i></i></span>
+                  </span>
+                }
+
+              </div>
+
+              <!-- Datos -->
+              <div class="mt-m-body">
+
+                <div class="mt-m-line">
+                  <p class="mt-m-title">{{ track.title }}</p>
+
+                  @if (isFav(track)) {
+                    <svg class="mt-m-fav" viewBox="0 0 24 24" fill="currentColor" aria-label="Favorita">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                  }
+                </div>
+
+                <p class="mt-m-artist">
+                  {{ track.artist }}
+                  @if (density() === 'compact' && track.album) {
+                    <span class="mt-m-dot">·</span>{{ track.album }}
+                  }
+                </p>
+
+                @if (density() === 'detailed') {
+
+                  <div class="mt-m-meta">
+
+                    @if (track.album) {
+                      <span class="mt-m-album">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <circle cx="12" cy="12" r="9"></circle>
+                          <circle cx="12" cy="12" r="2.5"></circle>
+                        </svg>
+                        {{ track.album }}
+                      </span>
+                    }
+
+                    @if (track.genre) {
+                      <span class="mt-m-genre" [style.--g]="genreHue(track.genre)">
+                        {{ track.genre }}
+                      </span>
+                    }
+
+                  </div>
+                }
+
+              </div>
+
+              <!-- Lado derecho -->
+              <div class="mt-m-side">
+
+                <span class="mt-m-duration">{{ formatDuration(track.duration) }}</span>
+
+                @if (!isSelecting) {
+                  <button
+                    type="button"
+                    class="mt-m-more"
+                    [attr.aria-label]="'Más opciones de ' + track.title"
+                    (pointerdown)="$event.stopPropagation()"
+                    (click)="$event.stopPropagation(); openMore(track)"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <circle cx="12" cy="5" r="1.9"></circle>
+                      <circle cx="12" cy="12" r="1.9"></circle>
+                      <circle cx="12" cy="19" r="1.9"></circle>
+                    </svg>
+                  </button>
+                }
+
+              </div>
+
+              <!-- Progreso de la canción actual -->
+              @if (isCurrent(track)) {
+                <app-row-progress></app-row-progress>
+              }
+
+            </div>
+
+          </div>
+
+        }
+
+      </div>
+
+    }
+
+  </div>
+
+} @else {
+
 <!-- =========================================================
      MULTI-SELECTION BAR
 ========================================================= -->
@@ -117,6 +449,39 @@
 
       </button>
 
+      @if (removable) {
+
+        <button
+          type="button"
+          class="music-table-selection-playlist music-table-selection-remove"
+          title="Quitar canciones seleccionadas de la playlist"
+          (click)="removeSelectedTracks()"
+        >
+
+          <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M3 6h18"></path>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+          <path d="M10 11v6"></path>
+          <path d="M14 11v6"></path>
+          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+        </svg>
+
+          <span>
+            Quitar
+          </span>
+
+        </button>
+
+      }
+
     </div>
 
   </div>
@@ -133,7 +498,7 @@
   [class.music-table-scroll--android]="isAndroid"
 >
 
-  <div class="music-table-content">
+  <div class="music-table-content" [class.is-removable]="removable">
 
 
     <!-- =======================================================
@@ -163,6 +528,7 @@
 
       <div
         class="music-table-header"
+        [class.is-removable]="removable"
         role="row"
       >
 
@@ -275,6 +641,7 @@
 
         <div
           class="music-table-row"
+          [class.is-removable]="removable"
           [class.is-playing]="isTrackPlaying(track)"
           [class.is-selected]="isTrackSelected(track)"
           role="row"
@@ -757,6 +1124,41 @@
             }
 
 
+
+            @if (removable) {
+
+              <button
+                type="button"
+                class="music-table-playlist music-table-remove"
+                [attr.aria-label]="
+                  'Quitar ' +
+                  track.title +
+                  ' de la playlist'
+                "
+                title="Quitar de la playlist"
+                (click)="removeOne(track)"
+              >
+
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M3 6h18"></path>
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                  <path d="M10 11v6"></path>
+                  <path d="M14 11v6"></path>
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+        </svg>
+
+              </button>
+
+            }
+
             <!-- ===============================================
                 MORE OPTIONS
                 -----------------------------------------------
@@ -765,7 +1167,7 @@
 
             <button
               type="button"
-              class="music-table-options hide-on-android"
+              class="music-table-options"
               [attr.aria-label]="
                 'Más opciones para ' +
                 track.title
@@ -817,3 +1219,5 @@
   </div>
 
 </div>
+
+}

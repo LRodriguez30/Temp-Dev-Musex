@@ -2487,4 +2487,846 @@
 
 /* =========================================================
    MUSIC TABLE — ALTURA POR PLATAFORMA
+
+/* Escritorio */
+.music-table-scroll {
+  max-height: min(75vh, 800px);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+}
+
+/* Android */
+.music-table-scroll--android {
+  max-height: min(65vh, 560px);
+}
+
+/* Encabezado fijo durante el scroll */
+.music-table-scroll .music-table-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+
+/* =============================================================
+   QUITAR DE LA PLAYLIST
+   -------------------------------------------------------------
+   La última columna estaba dimensionada para 2 botones
+   (agregar + más opciones). Con el botón de quitar son 3, así
+   que la columna y el ancho mínimo de la tabla crecen solo
+   cuando la tabla es "removable".
+
+.music-table-content.is-removable {
+    min-width: 1006px;
+}
+
+.music-table-content.is-removable .music-table-header,
+.music-table-content.is-removable .music-table-row {
+    grid-template-columns:
+        32px
+        40px
+        minmax(235px, 1fr)
+        minmax(135px, 0.58fr)
+        minmax(110px, 0.45fr)
+        minmax(120px, 0.5fr)
+        70px
+        112px;
+}
+
+.music-table-remove:hover {
+    color: #ff5c6c;
+    background: rgba(255, 92, 108, 0.1);
+    border-color: rgba(255, 92, 108, 0.25);
+}
+
+.music-table-selection-remove {
+    border-color: rgba(255, 92, 108, 0.45);
+    background: transparent;
+    color: #ff7a85;
+}
+
+.music-table-selection-remove:hover {
+    border-color: #ff5c6c;
+    background: rgba(255, 92, 108, 0.12);
+    color: #ff9aa3;
+}
+
+@media (max-width: 900px) {
+
+    .music-table-content.is-removable {
+        min-width: 966px;
+    }
+
+    .music-table-content.is-removable .music-table-header,
+    .music-table-content.is-removable .music-table-row {
+        grid-template-columns:
+            32px
+            36px
+            minmax(210px, 1fr)
+            120px
+            100px
+            105px
+            65px
+            106px;
+    }
+}
+
+@media (max-width: 700px) {
+
+    .music-table-content.is-removable {
+        min-width: 796px;
+    }
+
+    .music-table-content.is-removable .music-table-header,
+    .music-table-content.is-removable .music-table-row {
+        grid-template-columns:
+            30px
+            32px
+            minmax(205px, 1fr)
+            105px
+            95px
+            68px
+            104px;
+    }
+
+    .music-table-content.is-removable .music-table-actions {
+        width: 104px;
+        min-width: 104px;
+        max-width: 104px;
+    }
+}
+
+@media (max-width: 380px) {
+
+    .music-table-content.is-removable {
+        min-width: 764px;
+    }
+
+    .music-table-content.is-removable .music-table-header,
+    .music-table-content.is-removable .music-table-row {
+        grid-template-columns:
+            28px
+            30px
+            minmax(195px, 1fr)
+            100px
+            90px
+            62px
+            98px;
+    }
+
+    .music-table-content.is-removable .music-table-actions {
+        width: 98px;
+        min-width: 98px;
+        max-width: 98px;
+    }
+}
+
+
+/* =============================================================
+   LISTA TÁCTIL (ANDROID)
+   -------------------------------------------------------------
+   Tarjetas con todos los datos, gestos de deslizamiento, portada
+   que se convierte en disco al sonar y respuesta visual al
+   tocar. La tabla de escritorio no se toca.
+
+.mt-m {
+  --mt-accent: var(--musex-accent, #9cff00);
+  display: block;
+  width: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------- Barra superior fija ---------- */
+
+.mt-m-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 54px;
+  padding: 8px 4px;
+  background: rgba(13, 14, 16, 0.9);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 220ms ease, border-color 220ms ease;
+}
+
+.mt-m.is-selecting .mt-m-toolbar {
+  background: color-mix(in srgb, var(--mt-accent) 10%, rgba(13, 14, 16, 0.95));
+  border-bottom-color: color-mix(in srgb, var(--mt-accent) 30%, transparent);
+}
+
+.mt-m-count,
+.mt-m-selected {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mt-m-count {
+  padding-left: 14px;
+}
+
+.mt-m-count strong,
+.mt-m-selected strong {
+  color: var(--mt-accent);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.mt-m-chip {
+  flex-shrink: 0;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.85);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  transition: transform 140ms ease, background 140ms ease, opacity 140ms ease;
+}
+
+.mt-m-chip:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.mt-m-chip:disabled {
+  opacity: 0.4;
+}
+
+.mt-m-chip.is-primary {
+  border-color: transparent;
+  background: var(--mt-accent);
+  color: #0d0e10;
+}
+
+.mt-m-chip.is-danger {
+  border-color: rgba(255, 92, 108, 0.45);
+  background: transparent;
+  color: #ff7a85;
+}
+
+.mt-m-icon {
+  display: flex;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  transition: background 140ms ease, transform 140ms ease;
+}
+
+.mt-m-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.mt-m-icon:active {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(0.92);
+}
+
+/* ---------- Pista de gestos ---------- */
+
+.mt-m-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 2px 2px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--mt-accent) 25%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--mt-accent) 7%, transparent);
+  animation: mt-m-hint-in 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.mt-m-hint p {
+  flex: 1;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.mt-m-hint b {
+  color: var(--mt-accent);
+  font-weight: 600;
+}
+
+.mt-m-hint button {
+  flex-shrink: 0;
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--mt-accent);
+  color: #0d0e10;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@keyframes mt-m-hint-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+}
+
+/* ---------- Lista ---------- */
+
+.mt-m-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 0 14px;
+}
+
+/* ---------- Fila (contenedor de gestos) ---------- */
+
+.mt-m-row {
+  position: relative;
+  border-radius: 18px;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  /* Scroll vertical nativo; el horizontal lo gestiona la fila. */
+  touch-action: pan-y;
+  cursor: pointer;
+  /* Entrada escalonada de las primeras filas */
+  animation: mt-m-in 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 30ms);
+  /* Las filas fuera de pantalla no se pintan: listas largas fluidas. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 96px;
+}
+
+@keyframes mt-m-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/* ---------- Acciones reveladas al deslizar ---------- */
+
+.mt-m-swipe {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 22px;
+  border-radius: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.mt-m-swipe svg {
+  width: 22px;
+  height: 22px;
+  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mt-m-swipe.is-right {
+  justify-content: flex-start;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--mt-accent) 32%, transparent), color-mix(in srgb, var(--mt-accent) 6%, transparent));
+  color: var(--mt-accent);
+}
+
+.mt-m-swipe.is-left {
+  justify-content: flex-end;
+  background: linear-gradient(270deg, color-mix(in srgb, var(--mt-accent) 32%, transparent), color-mix(in srgb, var(--mt-accent) 6%, transparent));
+  color: var(--mt-accent);
+}
+
+.mt-m-row[data-dir="right"] .mt-m-swipe.is-right,
+.mt-m-row[data-dir="left"] .mt-m-swipe.is-left {
+  opacity: calc(0.35 + var(--swipe, 0) * 0.65);
+}
+
+/* Al llegar al umbral el icono "salta" y el fondo se intensifica */
+.mt-m-row.is-armed .mt-m-swipe svg {
+  transform: scale(1.35);
+}
+
+.mt-m-row.is-armed[data-dir="right"] .mt-m-swipe.is-right {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--mt-accent) 55%, transparent), color-mix(in srgb, var(--mt-accent) 12%, transparent));
+}
+
+.mt-m-row.is-armed[data-dir="left"] .mt-m-swipe.is-left {
+  background: linear-gradient(270deg, color-mix(in srgb, var(--mt-accent) 55%, transparent), color-mix(in srgb, var(--mt-accent) 12%, transparent));
+}
+
+/* ---------- Tarjeta ---------- */
+
+.mt-m-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 88px;
+  padding: 10px 6px 12px 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+    #131517;
+  transition:
+    background 220ms ease,
+    border-color 220ms ease,
+    box-shadow 260ms ease;
+  will-change: transform;
+}
+
+.mt-m-card.is-snapping {
+  transition:
+    transform 340ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 220ms ease,
+    border-color 220ms ease;
+}
+
+.mt-m-row.is-swiping .mt-m-card {
+  transition: none;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
+}
+
+/* Onda de toque desde el punto pulsado */
+.mt-m-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at var(--rx, 50%) var(--ry, 50%),
+    color-mix(in srgb, var(--mt-accent) 24%, transparent) 0,
+    transparent 62%
+  );
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mt-m-row:active .mt-m-card::after {
+  animation: mt-m-ripple 520ms ease-out;
+}
+
+@keyframes mt-m-ripple {
+  0%   { opacity: 0.9; transform: scale(0.5); }
+  100% { opacity: 0;   transform: scale(1.6); }
+}
+
+.mt-m-row:active:not(.is-swiping) .mt-m-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025)),
+    #15171a;
+}
+
+/* Canción actual (en pausa) */
+.mt-m-row.is-current .mt-m-card {
+  border-color: color-mix(in srgb, var(--mt-accent) 22%, transparent);
+}
+
+/* Canción sonando: brillo suave que respira */
+.mt-m-row.is-playing .mt-m-card {
+  border-color: color-mix(in srgb, var(--mt-accent) 45%, transparent);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--mt-accent) 13%, transparent),
+      transparent 72%
+    ),
+    #131517;
+  animation: mt-m-breathe 2.6s ease-in-out infinite;
+}
+
+@keyframes mt-m-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--mt-accent) 0%, transparent); }
+  50%      { box-shadow: 0 0 22px 0 color-mix(in srgb, var(--mt-accent) 16%, transparent); }
+}
+
+/* Seleccionada */
+.mt-m-row.is-selected .mt-m-card {
+  border-color: color-mix(in srgb, var(--mt-accent) 60%, transparent);
+  background: color-mix(in srgb, var(--mt-accent) 12%, #131517);
+}
+
+/* ---------- Casilla ---------- */
+
+.mt-m-check {
+  display: flex;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  color: #0d0e10;
+  animation: mt-m-pop 260ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.mt-m-check svg {
+  width: 15px;
+  height: 15px;
+}
+
+.mt-m-check.is-on {
+  border-color: var(--mt-accent);
+  background: var(--mt-accent);
+}
+
+@keyframes mt-m-pop {
+  from { opacity: 0; transform: scale(0.4); }
+}
+
+/* ---------- Portada ---------- */
+
+.mt-m-cover {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
+}
+
+.mt-m-art {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #181a1d;
+  /* Al sonar pasa de cuadrada a disco con una transición suave */
+  transition: border-radius 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mt-m-art img,
+.mt-m-disc {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mt-m-art-icon {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.mt-m-art-icon svg {
+  width: 46%;
+  height: 46%;
+}
+
+.mt-m-cover.is-playing .mt-m-art {
+  border-radius: 50%;
+  animation: mt-m-spin 9s linear infinite;
+}
+
+@keyframes mt-m-spin {
+  to { transform: rotate(360deg); }
+}
+
+.mt-m-cover-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(8, 9, 10, 0.5);
+  animation: mt-m-fade 240ms ease both;
+}
+
+.mt-m-cover.is-playing .mt-m-cover-overlay {
+  border-radius: 50%;
+}
+
+@keyframes mt-m-fade {
+  from { opacity: 0; }
+}
+
+/* Barras animadas de "reproduciendo" */
+.mt-m-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 20px;
+}
+
+.mt-m-bars i {
+  width: 3px;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--mt-accent);
+  transform-origin: bottom;
+  animation: mt-m-bar 900ms ease-in-out infinite;
+}
+
+.mt-m-bars i:nth-child(2) { animation-delay: -300ms; }
+.mt-m-bars i:nth-child(3) { animation-delay: -600ms; }
+.mt-m-bars i:nth-child(4) { animation-delay: -150ms; }
+
+@keyframes mt-m-bar {
+  0%, 100% { transform: scaleY(0.25); }
+  50%      { transform: scaleY(1); }
+}
+
+.mt-m-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: var(--mt-accent);
+  border-radius: 50%;
+  animation: mt-m-rot 700ms linear infinite;
+}
+
+@keyframes mt-m-rot {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- Datos ---------- */
+
+.mt-m-body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mt-m-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.mt-m-title,
+.mt-m-artist {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mt-m-title {
+  min-width: 0;
+  color: #fff;
+  font-size: 15.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  transition: color 200ms ease;
+}
+
+.mt-m-row.is-playing .mt-m-title,
+.mt-m-row.is-current .mt-m-title {
+  color: var(--mt-accent);
+}
+
+.mt-m-fav {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--mt-accent);
+  animation: mt-m-pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.mt-m-artist {
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.mt-m-dot {
+  margin: 0 5px;
+  opacity: 0.5;
+}
+
+/* Álbum + género */
+.mt-m-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-top: 2px;
+}
+
+.mt-m-album {
+  display: inline-flex;
+  min-width: 0;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mt-m-album svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+/* El género tiene un color propio, estable por nombre */
+.mt-m-genre {
+  flex-shrink: 0;
+  max-width: 45%;
+  overflow: hidden;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: hsl(var(--g, 120) 70% 55% / 0.14);
+  color: hsl(var(--g, 120) 80% 72%);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ---------- Lado derecho ---------- */
+
+.mt-m-side {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.mt-m-duration {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mt-m-more {
+  display: flex;
+  width: 44px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  transition: background 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.mt-m-more svg {
+  width: 20px;
+  height: 20px;
+}
+
+.mt-m-more:active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  transform: scale(0.9);
+}
+
+/* ---------- Vista compacta ---------- */
+
+.mt-m.is-compact .mt-m-list {
+  gap: 4px;
+}
+
+.mt-m.is-compact .mt-m-card {
+  min-height: 62px;
+  padding: 6px 4px 8px 8px;
+  border-radius: 14px;
+}
+
+.mt-m.is-compact .mt-m-row {
+  border-radius: 14px;
+  contain-intrinsic-size: auto 64px;
+}
+
+.mt-m.is-compact .mt-m-cover {
+  width: 46px;
+  height: 46px;
+}
+
+.mt-m.is-compact .mt-m-art {
+  border-radius: 11px;
+}
+
+.mt-m.is-compact .mt-m-title {
+  font-size: 14.5px;
+}
+
+.mt-m.is-compact .mt-m-artist {
+  font-size: 12.5px;
+}
+
+.mt-m.is-compact .mt-m-side {
+  flex-direction: row;
+  gap: 2px;
+}
+
+/* ---------- Vacío ---------- */
+
+.mt-m-empty {
+  padding: 56px 16px;
+  text-align: center;
+}
+
+.mt-m-empty span {
+  color: var(--mt-accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.mt-m-empty p {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 13px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .mt-m-row,
+  .mt-m-hint,
+  .mt-m-check,
+  .mt-m-fav,
+  .mt-m-cover.is-playing .mt-m-art,
+  .mt-m-row.is-playing .mt-m-card,
+  .mt-m-bars i,
+  .mt-m-spinner {
+    animation: none;
+  }
+
+  .mt-m-card,
+  .mt-m-art,
+  .mt-m-chip,
+  .mt-m-swipe svg {
+    transition: none;
+  }
+}
 }

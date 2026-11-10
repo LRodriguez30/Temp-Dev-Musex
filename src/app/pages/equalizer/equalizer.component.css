@@ -2338,3 +2338,199 @@ RESPONSIVE — 620px
   }
 
 }
+
+
+/* =========================================================
+   RENOVACIÓN VISUAL
+   Aire, profundidad y una jerarquía más clara en cabecera,
+   filtros y tablas.
+========================================================= */
+
+.equalizer-page {
+  background:
+    radial-gradient(
+      55% 38% at 12% 0%,
+      color-mix(in srgb, var(--musex-accent) 7%, transparent),
+      transparent 72%
+    );
+}
+
+/* ---------- Cabecera ---------- */
+
+.equalizer-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.equalizer-eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--musex-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--musex-accent) 60%, transparent);
+}
+
+.equalizer-header h1 {
+  font-size: 34px;
+  background: linear-gradient(180deg, #ffffff 30%, #a9acb3 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ---------- Barra de búsqueda y filtros ---------- */
+
+.equalizer-page .eq-toolbar {
+  padding: 12px;
+  border: 1px solid var(--eq-line);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent),
+    var(--eq-panel);
+}
+
+.equalizer-page .eq-search {
+  border-radius: 12px;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.equalizer-page .eq-search:focus-within {
+  border-color: color-mix(in srgb, var(--musex-accent) 55%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--musex-accent) 12%, transparent);
+}
+
+/* ---------- Secciones ---------- */
+
+.equalizer-page .section-heading {
+  padding-left: 12px;
+  border-left: 2px solid var(--musex-accent);
+}
+
+.equalizer-page .section-heading h2 {
+  font-size: 19px;
+}
+
+.equalizer-page .section-count {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ---------- Tabla ---------- */
+
+.equalizer-page .music-table {
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 120px),
+    var(--eq-panel);
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.equalizer-page .music-table-head {
+  min-height: 44px;
+  background: rgba(17, 18, 20, 0.86);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  letter-spacing: 0.1em;
+}
+
+.equalizer-page .music-table-row {
+  position: relative;
+  min-height: 72px;
+  border-bottom-color: rgba(41, 43, 48, 0.55);
+}
+
+/* Barra de acento a la izquierda al pasar el cursor / al sonar */
+.equalizer-page .music-table-row::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--musex-accent);
+  opacity: 0;
+  transform: scaleY(0.4);
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.equalizer-page .music-table-row:hover {
+  background: rgba(255, 255, 255, 0.028);
+}
+
+.equalizer-page .music-table-row:hover::before {
+  opacity: 0.55;
+  transform: scaleY(1);
+}
+
+.equalizer-page .music-table-row.is-playing {
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--musex-accent) 9%, transparent),
+      transparent 55%
+    );
+}
+
+.equalizer-page .music-table-row.is-playing::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.equalizer-page .track-cover {
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.equalizer-page .music-table-row:hover .track-cover {
+  transform: scale(1.04);
+}
+
+.equalizer-page .table-action {
+  border-radius: 10px;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.equalizer-page .table-action:hover {
+  transform: translateY(-1px);
+}
+
+.equalizer-page .table-action:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Etiqueta "ecualizador activo" */
+.equalizer-page .enabled-badge {
+  border-radius: 999px;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--musex-accent) 14%, transparent);
+}
+
+/* ---------- Estado vacío ---------- */
+
+.equalizer-page .empty-state {
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      60% 100% at 50% 0%,
+      color-mix(in srgb, var(--musex-accent) 5%, transparent),
+      transparent 70%
+    ),
+    var(--eq-panel);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .equalizer-page .music-table-row::before,
+  .equalizer-page .track-cover,
+  .equalizer-page .table-action {
+    transition: none;
+  }
+}

@@ -143,9 +143,18 @@ declare global {
       /** Aleatorio / repetir. */
       setModes(shuffle: boolean, repeat: string): void;
 
+      /**
+       * El auto-picker espera confirmación: muestra la notificación con
+       * "Reproducir ahora" / "Cancelar". Opcional: una versión nativa
+       * antigua no lo tiene.
+       */
+      setAutoPick?(title: string, artist: string, graceSeconds: number): void;
+
+      /** La espera del auto-picker terminó. */
+      clearAutoPick?(): void;
+
       /** Se terminó la reproducción: quita la notificación. */
       stop(): void;
-
       /** ¿Android permitió escribir en la carpeta pública "Musex"? */
       hasAllFilesAccess(): boolean;
 
@@ -153,6 +162,9 @@ declare global {
       requestAllFilesAccess(): void;
     };
     __musexMediaCommand?: (command: string) => void;
+
+    /** Eventos del <audio> de Android hacia el PlayerService. */
+    __musexAudioEvent?: (event: 'ended' | 'interrupted' | 'resumed') => void;
   }
 }
 
@@ -167,6 +179,23 @@ let playbackEnded = false;
 /** Evita que una canción vieja pise a una más reciente. */
 let playToken = 0;
 
+/**
+ * Hasta cuándo (performance.now) las pausas del <audio> se consideran
+ * pedidas por la propia app y no una interrupción del sistema.
+ */
+let expectedPauseUntil = 0;
+
+function expectPause(): void {
+  expectedPauseUntil = performance.now() + 400;
+}
+
+/** Igual que expectedPauseUntil, para los play() pedidos por la app. */
+let expectedPlayUntil = 0;
+
+function expectPlay(): void {
+  expectedPlayUntil = performance.now() + 400;
+}
+
 function player(): HTMLAudioElement {
   if (!audio) {
     audio = new Audio();
@@ -174,6 +203,38 @@ function player(): HTMLAudioElement {
 
     audio.addEventListener('ended', () => {
       playbackEnded = true;
+
+      // Avanza por evento y no solo por el polling de 250 ms:
+      // con la pantalla apagada los timers del WebView se frenan.
+      window.__musexAudioEvent?.('ended');
+    });
+
+    // Android pausa el <audio> cuando otra app toma el foco de audio
+    // (llamada, otro reproductor, etc.). Se avisa al reproductor para
+    // que su estado pase a "pausado" en vez de quedar en "sonando"
+    // sin audio. Las pausas pedidas por la propia app se ignoran.
+    audio.addEventListener('pause', () => {
+
+      if (
+        !audio ||
+        audio.ended ||
+        playbackEnded ||
+        performance.now() < expectedPauseUntil
+      ) {
+        return;
+      }
+
+      window.__musexAudioEvent?.('interrupted');
+    });
+
+    // Reanudación que no pidió la app (el sistema devolvió el foco).
+    audio.addEventListener('play', () => {
+
+      if (performance.now() < expectedPlayUntil) {
+        return;
+      }
+
+      window.__musexAudioEvent?.('resumed');
     });
 
     audio.addEventListener('error', () => {
@@ -187,6 +248,7 @@ function player(): HTMLAudioElement {
       // el reproductor pase a la siguiente en vez de quedarse mudo.
       if ((audio?.currentTime ?? 0) > 0) {
         playbackEnded = true;
+        window.__musexAudioEvent?.('ended');
       }
     });
   }
@@ -401,21 +463,25 @@ async function androidInvoke(
 
       playbackEnded = false;
       a.src = source;
+      expectPlay();
       await a.play();
       return undefined;
     }
 
     case 'pause_audio':
+      expectPause();
       player().pause();
       return undefined;
 
     case 'resume_audio':
+      expectPlay();
       await player().play();
       return undefined;
 
     case 'stop_audio': {
       const a = player();
       playToken++;
+      expectPause();
       a.pause();
       a.currentTime = 0;
       releaseBlob();

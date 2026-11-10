@@ -73,7 +73,12 @@ export class RecommendationService {
   // GET RECOMMENDATIONS
   // ============================================================
 
-  async getRecommendations(): Promise<RecommendedTrack[]> {
+  /**
+   * @param exclude Canciones ya recomendadas: Sense no debe repetirlas.
+   */
+  async getRecommendations(
+    exclude: { title: string; artist: string }[] = []
+  ): Promise<RecommendedTrack[]> {
 
     // ----------------------------------------------------------
     // LIBRARY
@@ -130,6 +135,7 @@ export class RecommendationService {
       {
         library: libraryPayload,
         history: historyPayload,
+        exclude,
       }
     );
   }

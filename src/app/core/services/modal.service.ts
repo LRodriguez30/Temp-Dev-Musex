@@ -316,9 +316,9 @@ export class ModalService {
    * Abre la configuración general de Musex.
    */
   openSettings(): void {
-
     this.open('settings', {
-      title: 'Configuración'
+      title: 'Ajustes',
+      subtitle: 'Apariencia y reproducción'
     });
   }
 

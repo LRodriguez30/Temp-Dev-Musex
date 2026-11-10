@@ -407,6 +407,51 @@
       </a>
 
 
+      <a
+        routerLink="/stats"
+        routerLinkActive="active"
+        class="
+          sidebar-link
+          flex
+          h-11
+          w-full
+          items-center
+          gap-4
+          rounded-lg
+          px-3.5
+          text-[15px]
+          text-zinc-200
+          transition-ui
+
+          max-[820px]:justify-center
+          max-[820px]:gap-0
+          max-[820px]:px-0
+        "
+        title="Estadísticas"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          class="h-5 w-5 shrink-0"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <line x1="6" y1="20" x2="6" y2="11"></line>
+          <line x1="12" y1="20" x2="12" y2="4"></line>
+          <line x1="18" y1="20" x2="18" y2="14"></line>
+</svg>
+
+        <span class="sidebar-label max-[820px]:hidden">
+          Estadísticas
+        </span>
+
+      </a>
+
+
       <!-- ======================================================
            ECUALIZADOR
       ======================================================= -->
@@ -814,7 +859,7 @@
         max-[820px]:px-0
       "
       title="Ajustes"
-      (click)="showThemeModal.set(true)"
+      (click)="openSettings()"
     >
 
       <svg
@@ -1995,6 +2040,73 @@
         </span>
 
       </a>
+      <a
+        routerLink="/stats"
+        routerLinkActive="mobile-more-active"
+        (click)="mobileMenuService.close()"
+        class="
+          mobile-more-item
+          group
+          flex
+          w-[112px]
+          min-w-[112px]
+          snap-start
+          flex-col
+          items-center
+          justify-center
+          gap-2
+          rounded-2xl
+          border
+          border-[#292b2f]
+          bg-[#151719]
+          px-3
+          py-4
+          text-zinc-400
+          transition-all
+          duration-200
+          active:scale-95
+        "
+      >
+
+        <span
+          class="
+            mobile-more-item-icon
+            flex
+            h-11
+            w-11
+            items-center
+            justify-center
+            rounded-xl
+            border
+            border-[#303236]
+            bg-[#111214]
+            transition-all
+            duration-200
+          "
+        >
+
+          <svg
+            viewBox="0 0 24 24"
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+          <line x1="6" y1="20" x2="6" y2="11"></line>
+          <line x1="12" y1="20" x2="12" y2="4"></line>
+          <line x1="18" y1="20" x2="18" y2="14"></line>
+</svg>
+
+        </span>
+
+        <span class="text-xs font-medium text-white">
+          Estadísticas
+        </span>
+
+      </a>
 
 
       <!-- ======================================================
@@ -2418,7 +2530,7 @@
           duration-200
           active:scale-95
         "
-        (click)="showThemeModal.set(true); mobileMenuService.close()"
+        (click)="openSettings()"
       >
 
         <span

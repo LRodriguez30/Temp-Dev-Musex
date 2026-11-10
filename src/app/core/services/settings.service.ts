@@ -7,12 +7,16 @@ import { Settings } from '../models/settings.model';
  * todavía no tiene una configuración guardada.
  */
 const DEFAULT_SETTINGS: Settings = {
-  volume: 52,
+  volume: 100,
   muted: false,
   rightPanel: true,
   autoDownload: true,
-  downloadDirectory: ''
+  downloadDirectory: '',
+  autoPick: false,
+  autoPickGraceSeconds: 5
 };
+
+const STORAGE_KEY = 'musex_settings';
 
 /**
  * Gestiona las preferencias generales de Musex.
@@ -35,9 +39,9 @@ export class SettingsService {
    * Se inicializa utilizando una copia de los valores
    * predeterminados para evitar referencias compartidas.
    */
-  private readonly settings = signal<Settings>({
-    ...DEFAULT_SETTINGS
-  });
+  private readonly settings = signal<Settings>(
+    this.loadSaved()
+  );
 
   /**
    * Exposición de solo lectura de la configuración.
@@ -63,6 +67,8 @@ export class SettingsService {
     this.settings.set({
       ...settings
     });
+
+    this.persist();
   }
 
   /**
@@ -75,6 +81,8 @@ export class SettingsService {
       ...current,
       ...changes
     }));
+
+    this.persist();
   }
 
   /**
@@ -140,5 +148,68 @@ export class SettingsService {
     this.settings.set({
       ...DEFAULT_SETTINGS
     });
+
+    this.persist();
+  }
+
+  /**
+   * Activa o desactiva la selección automática de la
+   * siguiente canción.
+   */
+  setAutoPick(autoPick: boolean): void {
+    this.updateSettings({
+      autoPick
+    });
+  }
+
+  /**
+   * Cambia el tiempo de gracia (0–30 s) de la selección automática.
+   */
+  setAutoPickGraceSeconds(seconds: number): void {
+
+    const value = Number.isFinite(seconds)
+      ? Math.max(0, Math.min(Math.round(seconds), 30))
+      : DEFAULT_SETTINGS.autoPickGraceSeconds;
+
+    this.updateSettings({
+      autoPickGraceSeconds: value
+    });
+  }
+
+  /**
+   * Lee las preferencias guardadas (localStorage) y las mezcla
+   * con los valores predeterminados.
+   */
+  private loadSaved(): Settings {
+
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+
+      if (raw) {
+        const parsed: unknown = JSON.parse(raw);
+
+        if (parsed && typeof parsed === 'object') {
+          return {
+            ...DEFAULT_SETTINGS,
+            ...(parsed as Partial<Settings>)
+          };
+        }
+      }
+    } catch {
+      /* se usan los valores predeterminados */
+    }
+
+    return { ...DEFAULT_SETTINGS };
+  }
+
+  private persist(): void {
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(this.settings())
+      );
+    } catch {
+      /* almacenamiento no disponible */
+    }
   }
 }

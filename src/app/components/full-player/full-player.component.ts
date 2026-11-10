@@ -9,6 +9,7 @@ import {
 
 import { PlayerService } from '../../core/services/player.service';
 import { LibraryService } from '../../core/services/library.service';
+import { ModalService } from '../../core/services/modal.service';
 import { Track } from '../../core/models/track.model';
 
 import { getCoverIconPath } from '../../core/data/playlist-icons';
@@ -33,6 +34,8 @@ export class FullPlayerComponent {
 
     readonly libraryService = inject(LibraryService);
 
+    private readonly modalService = inject(ModalService);
+
     readonly playerState = this.playerService.state;
 
     @Output()
@@ -45,6 +48,18 @@ export class FullPlayerComponent {
      * En pantallas pequeñas puede ocultarse para recuperar espacio.
      */
     readonly queueOpen = signal(false);
+
+    /** Abre el menú de la canción (incluye editar información). */
+    openTrackMenu(): void {
+
+        const track = this.currentTrack;
+
+        if (!track) {
+            return;
+        }
+
+        this.modalService.openTrackMenu(track.id);
+    }
 
     get currentTrack(): Track | undefined {
         return this.playerService.getCurrentTrack();
@@ -179,4 +194,21 @@ export class FullPlayerComponent {
     }
 
     getCoverIconPath = getCoverIconPath;
+
+    /**
+     * Finaliza la animación de salida del Full Player.
+     *
+     * Se ignoran las animaciones de elementos internos para evitar
+     * desmontar el componente antes de tiempo.
+     */
+    onAnimationEnd(event: AnimationEvent): void {
+        if (
+            event.target !== event.currentTarget ||
+            event.animationName !== 'full-player-exit'
+        ) {
+            return;
+        }
+
+        this.playerService.finishFullPlayerClose();
+    }
 }

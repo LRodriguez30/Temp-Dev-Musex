@@ -1,0 +1,223 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.lyrics-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 220px;
+  padding: 12px;
+  text-align: center;
+}
+
+.lyrics-state p,
+.lyrics-hint {
+  max-width: 220px;
+  margin: 0;
+  color: var(--text-muted, rgba(255, 255, 255, 0.5));
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.lyrics-glyph {
+  color: var(--musex-accent);
+  font-size: 30px;
+  line-height: 1;
+}
+
+/* ---------- Acciones ---------- */
+
+.lyrics-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.lyrics-btn {
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+}
+
+.lyrics-btn:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #fff;
+}
+
+.lyrics-btn.is-primary {
+  border-color: transparent;
+  background: var(--musex-accent);
+  color: #0d0e10;
+}
+
+.lyrics-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ---------- Carga ---------- */
+
+.lyrics-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 4px;
+}
+
+.lyrics-skeleton span {
+  display: block;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  animation: lyrics-pulse 1.2s ease-in-out infinite;
+}
+
+.lyrics-skeleton span:nth-child(even) {
+  animation-delay: 0.15s;
+}
+
+@keyframes lyrics-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+/* ---------- Letra ---------- */
+
+.lyrics-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 0 40vh;
+}
+
+.lyric-line {
+  display: block;
+  width: 100%;
+  padding: 6px 4px;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.34);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: left;
+  overflow-wrap: anywhere;
+  transform-origin: left center;
+  cursor: pointer;
+  transition:
+    color 260ms ease,
+    transform 260ms ease,
+    opacity 260ms ease;
+}
+
+.lyric-line:hover {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.lyric-line.is-past {
+  color: rgba(255, 255, 255, 0.24);
+}
+
+.lyric-line.is-active {
+  color: #fff;
+  transform: scale(1.04);
+}
+
+.lyric-line.is-break {
+  font-size: 14px;
+  opacity: 0.6;
+}
+
+.lyrics-plain {
+  margin: 0;
+  padding: 18px 4px 32px;
+  color: rgba(255, 255, 255, 0.78);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.lyrics-footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0 2px;
+  background: linear-gradient(to top, #0d0e10 70%, transparent);
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+}
+
+.lyrics-footer-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.lyrics-footer-actions button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--musex-accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ---------- Editor ---------- */
+
+.lyrics-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lyrics-hint {
+  max-width: none;
+  text-align: left;
+}
+
+.lyrics-hint code {
+  color: var(--musex-accent);
+  font-size: 11px;
+}
+
+.lyrics-textarea {
+  width: 100%;
+  min-height: 260px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  /* 16px evita el zoom automático en móvil */
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.lyrics-textarea:focus {
+  border-color: color-mix(in srgb, var(--musex-accent) 55%, transparent);
+}
+
+.lyrics-editor .lyrics-actions {
+  justify-content: flex-end;
+}

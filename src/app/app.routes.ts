@@ -8,6 +8,7 @@ import { LibraryComponent } from './pages/library/library.component';
 import { FavoritesComponent } from './pages/favorites/favorites.component';
 import { DownloadsComponent } from './pages/downloads/downloads.component';
 import { HistoryComponent } from './pages/history/history.component';
+import { StatsComponent } from './pages/stats/stats.component';
 import { SenseComponent } from './pages/sense/sense.component';
 import { EqualizerComponent } from './pages/equalizer/equalizer.component';
 import { PlaylistsComponent } from './pages/playlists/playlists.component';
@@ -128,6 +129,12 @@ export const routes: Routes = [
         path: 'history',
         component: HistoryComponent,
         title: 'Historial | Musex'
+      },
+
+      {
+        path: 'stats',
+        component: StatsComponent,
+        title: 'Estadísticas | Musex'
       },
 
       {

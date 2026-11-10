@@ -660,7 +660,7 @@ impl Downloader for YouTubeDownloader {
                         .to_string_lossy()
                         .as_ref(),
 
-                    &download.url,
+                    &video.url,
                 ]);
 
         // -----------------------------------------------------
@@ -753,10 +753,29 @@ impl Downloader for YouTubeDownloader {
             // Esperar siguiente evento
             // -------------------------------------------------
 
-            let event =
-                tauri::async_runtime::block_on(
-                    receiver.recv()
-                );
+            // Sondeo con espera corta: permite atender cancelación o
+            // pausa aunque yt-dlp no emita salida durante un rato.
+            let event = loop {
+                match receiver.try_recv() {
+                    Ok(event) => break Some(event),
+
+                    Err(tokio::sync::mpsc::error::TryRecvError::Empty) => {
+                        if controller.is_cancelled()
+                            || controller.is_paused()
+                        {
+                            // Evento vacío: el ciclo exterior vuelve a
+                            // comprobar los controles al inicio.
+                            break Some(CommandEvent::Stdout(Vec::new()));
+                        }
+
+                        std::thread::sleep(
+                            std::time::Duration::from_millis(100),
+                        );
+                    }
+
+                    Err(_) => break None,
+                }
+            };
 
             let Some(event) =
                 event

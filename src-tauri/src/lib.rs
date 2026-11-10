@@ -16,6 +16,8 @@ mod downloads;
 #[cfg(desktop)]
 mod equalizer;
 #[cfg(desktop)]
+mod media;
+#[cfg(desktop)]
 mod sense;
 #[cfg(desktop)]
 mod streaming;
@@ -118,6 +120,8 @@ pub fn run() {
         commands::downloads::detect_download_source,
         commands::downloads::move_download_to_library,
         commands::downloads::download_audio,
+        commands::downloads::cancel_download,
+        commands::downloads::list_youtube_playlist,
         commands::downloads::open_download_location,
         commands::downloads::get_download_history,
         commands::downloads::remove_download_history_entry,
@@ -165,7 +169,16 @@ pub fn run() {
         streaming::revoke_paired_device,
         streaming::set_stream_playlists,
         streaming::set_stream_favorites,
+        // Segundo plano / controles del sistema
+        media::media_set_metadata,
+        media::media_set_playback,
     ]);
+
+    // Con música sonando, cerrar la ventana la deja en segundo plano.
+    #[cfg(desktop)]
+    let builder = builder.on_window_event(|window, event| {
+        media::handle_window_event(window, event);
+    });
 
     #[cfg(mobile)]
     let builder = builder.invoke_handler(tauri::generate_handler![
@@ -209,6 +222,7 @@ pub fn run() {
                 app.manage(SenseStore::new(base_dir.clone()));
                 app.manage(EqPresetStore::new(&base_dir));
                 app.manage(streaming::StreamState::default());
+                app.manage(media::MediaState::new());
 
                 let manager_storage = Storage::new(base_dir);
                 manager_storage.initialize().expect(
@@ -222,6 +236,15 @@ pub fn run() {
                     AudioPlayer::new()
                         .expect("No se pudo inicializar el dispositivo de audio."),
                 );
+
+                // Controles multimedia de Windows, bandeja y segundo plano.
+                media::init_controls(app.handle());
+
+                if let Err(error) = media::setup_tray(app.handle()) {
+                    eprintln!("[MEDIA] No se pudo crear la bandeja: {}", error);
+                }
+
+                media::spawn_end_watchdog(app.handle().clone());
 
                 // Detecta cambios del dispositivo de salida.
                 let app_handle = app.handle().clone();

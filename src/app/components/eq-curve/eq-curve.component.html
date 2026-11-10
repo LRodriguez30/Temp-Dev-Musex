@@ -1,0 +1,80 @@
+<div class="eq-curve">
+
+  <svg
+    #svg
+    class="eq-curve-svg"
+    [attr.viewBox]="'0 0 ' + width + ' ' + height"
+    role="img"
+    aria-label="Curva de respuesta del ecualizador"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp()"
+    (pointercancel)="onPointerUp()"
+  >
+
+    <defs>
+      <linearGradient id="eqCurveFill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--musex-accent)" stop-opacity="0.28" />
+        <stop offset="100%" stop-color="var(--musex-accent)" stop-opacity="0.02" />
+      </linearGradient>
+    </defs>
+
+    <!-- Rejilla de decibelios -->
+    @for (line of dbLines; track line.label) {
+      <line
+        class="grid"
+        [class.zero]="line.zero"
+        x1="38" x2="630"
+        [attr.y1]="line.y" [attr.y2]="line.y"
+      />
+      <text class="axis" x="32" [attr.y]="line.y + 3" text-anchor="end">
+        {{ line.label }}
+      </text>
+    }
+
+    <!-- Rejilla de frecuencias -->
+    @for (line of freqLines; track line.label) {
+      <line
+        class="grid"
+        [attr.x1]="line.x" [attr.x2]="line.x"
+        y1="10" y2="208"
+      />
+      <text class="axis" [attr.x]="line.x" y="222" text-anchor="middle">
+        {{ line.label }}
+      </text>
+    }
+
+    <!-- Curva -->
+    <path class="area" [attr.d]="areaPath()" />
+    <path class="line" [attr.d]="linePath()" />
+
+    <!-- Nodos de las bandas -->
+    @for (node of nodes(); track node.id) {
+
+      <g
+        class="node"
+        [class.is-selected]="selectedId() === node.id"
+        [class.is-clipped]="node.clipped"
+        (pointerdown)="onPointerDown($event, node.id)"
+        (wheel)="onWheel($event, node)"
+      >
+        <title>{{ node.label }}</title>
+        <circle class="hit" [attr.cx]="node.x" [attr.cy]="node.y" r="14" />
+        <circle class="dot" [attr.cx]="node.x" [attr.cy]="node.y" r="6" />
+      </g>
+    }
+
+  </svg>
+
+  <div class="eq-curve-meta">
+
+    <span>Arrastra los puntos · rueda del ratón = Q</span>
+
+    @if (headroomDb() > 0) {
+      <span class="eq-curve-headroom">
+        Pico +{{ peakDb().toFixed(1) }} dB · margen automático −{{ headroomDb().toFixed(1) }} dB
+      </span>
+    }
+
+  </div>
+
+</div>

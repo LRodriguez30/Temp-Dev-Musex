@@ -1,0 +1,172 @@
+/* Mismo lenguaje visual que el disco de now-playing:
+   pestaña plana oscura, línea de 1 px, tipografía monoespaciada
+   y acento verde. */
+
+.player-handle {
+  position: fixed;
+  z-index: 60;
+  top: 50%;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 56px;
+  margin-top: -28px;
+  padding: 0 4px 0 0;
+  border: 1px solid var(--musex-line, #202225);
+  border-right: 0;
+  border-radius: 28px 0 0 28px;
+  background: linear-gradient(180deg, #131417 0%, #0f1012 100%);
+  box-shadow: -10px 0 26px rgb(0 0 0 / 35%);
+  color: var(--musex-green, #9cff00);
+  cursor: pointer;
+  opacity: 1;
+  transition:
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+  animation: handle-in 520ms 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.player-handle.is-tucked {
+  transform: translateX(110%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.player-handle:hover,
+.player-handle:focus-visible {
+  border-color: color-mix(in srgb, var(--musex-accent, #9cff00) 45%, transparent);
+  box-shadow:
+    -12px 0 30px rgb(0 0 0 / 40%),
+    0 0 18px color-mix(in srgb, var(--musex-accent, #9cff00) 10%, transparent);
+  outline: none;
+}
+
+.handle-label {
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  color: var(--musex-green, #9cff00);
+  font-family: "Courier New", "Lucida Console", monospace;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition:
+    max-width 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    margin 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 200ms ease;
+}
+
+.player-handle:hover .handle-label,
+.player-handle:focus-visible .handle-label {
+  max-width: 96px;
+  margin: 0 10px 0 14px;
+  opacity: 1;
+}
+
+/* ---------- Disco ---------- */
+
+.handle-disc {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  box-sizing: border-box;
+  border: 1px solid #2c2f34;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #1b1d21 0 16%, transparent 17%),
+    repeating-radial-gradient(
+      circle,
+      #15171a 0 1.5px,
+      #1f2125 2.5px 3px,
+      #101113 4px 5px
+    );
+  box-shadow: inset 0 0 0 3px #121316;
+  transition: border-color 200ms ease, transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: handle-spin 7s linear infinite;
+  animation-play-state: paused;
+}
+
+.player-handle.is-playing .handle-disc {
+  animation-play-state: running;
+}
+
+.player-handle:hover .handle-disc,
+.player-handle:focus-visible .handle-disc {
+  border-color: var(--musex-accent, #9cff00);
+}
+
+.player-handle:active .handle-disc {
+  transform: scale(0.92);
+}
+
+.handle-groove {
+  position: absolute;
+  border: 1px solid rgb(255 255 255 / 6%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.handle-groove-outer { inset: 5px; }
+.handle-groove-middle { inset: 9px; }
+.handle-groove-inner { inset: 13px; }
+
+.handle-sheen {
+  position: absolute;
+  inset: 1px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 30deg,
+    transparent 0deg,
+    rgb(255 255 255 / 9%) 38deg,
+    transparent 80deg,
+    transparent 180deg,
+    rgb(255 255 255 / 6%) 218deg,
+    transparent 260deg
+  );
+  pointer-events: none;
+}
+
+.handle-center {
+  position: relative;
+  z-index: 1;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--musex-accent, #9cff00);
+  border-radius: 50%;
+  background: #121316;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--musex-accent, #9cff00) 35%, transparent);
+}
+
+@keyframes handle-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes handle-in {
+  from {
+    transform: translateX(110%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-handle,
+  .handle-disc,
+  .handle-label {
+    transition: none !important;
+    animation: none !important;
+  }
+}

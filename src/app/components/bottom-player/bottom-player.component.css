@@ -4454,3 +4454,29 @@
   }
 
 }
+
+
+/* =============================================================
+   HOJA MÓVIL — SCROLL Y ALTURA
+   -------------------------------------------------------------
+   - El scroll de la hoja no se transmite a la página.
+   - La altura máxima descuenta la navegación, el mini player y
+     la barra superior para que nunca quede tapada.
+============================================================= */
+
+@media (max-width: 620px) {
+
+  .mobile-sheet {
+    max-height: calc(
+      100dvh
+      - 136px
+      - var(--safe-bottom, 0px)
+      - var(--topbar-height, 68px)
+      - var(--safe-top, 0px)
+      - 12px
+    );
+
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}

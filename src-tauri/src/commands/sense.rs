@@ -191,6 +191,13 @@ pub struct HistoryEntryPayload {
     pub played_at: String,
 }
 
+/// Canción ya recomendada antes: Sense no debe repetirla.
+#[derive(Debug, Deserialize)]
+pub struct ExcludedTrackPayload {
+    pub title: String,
+    pub artist: String,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RecommendedTrack {
@@ -306,6 +313,7 @@ struct GeminiResponsePart {
 pub async fn get_sense_recommendations(
     library: Vec<LibraryTrackPayload>,
     history: Vec<HistoryEntryPayload>,
+    exclude: Option<Vec<ExcludedTrackPayload>>,
     store: State<'_, SenseStore>,
 ) -> Result<Vec<RecommendedTrack>, String> {
     // ---------------------------------------------------------
@@ -357,6 +365,20 @@ pub async fn get_sense_recommendations(
         );
     }
 
+    // Canciones ya recomendadas: no se repiten y no se inventan otras.
+    if exclude.as_ref().is_some_and(|list| !list.is_empty()) {
+        system_parts.push(
+            GeminiPart {
+                text: "El campo alreadyRecommended contiene canciones que ya se \
+                       recomendaron antes: NO las repitas. Recomienda únicamente \
+                       canciones REALES que existan de verdad; nunca inventes \
+                       títulos ni artistas. Si no encuentras suficientes canciones \
+                       nuevas y reales, devuelve menos de 20 o una lista vacía."
+                    .to_string(),
+            }
+        );
+    }
+
     // ---------------------------------------------------------
     // 4. Preparar información musical
     // ---------------------------------------------------------
@@ -369,6 +391,17 @@ pub async fn get_sense_recommendations(
                     "title": track.title,
                     "artist": track.artist,
                     "genre": track.genre,
+                })
+            })
+            .collect::<Vec<_>>(),
+
+        "alreadyRecommended": exclude
+            .iter()
+            .flatten()
+            .map(|track| {
+                serde_json::json!({
+                    "title": track.title,
+                    "artist": track.artist,
                 })
             })
             .collect::<Vec<_>>(),

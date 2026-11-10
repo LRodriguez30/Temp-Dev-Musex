@@ -1,9 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 
 import { PlayerService } from '../../core/services/player.service';
 import { LibraryService } from '../../core/services/library.service';
 import { QueueService } from '../../core/services/queue.service';
 import { QueueComponent } from '../queue/queue.component';
+import { LyricsComponent } from '../lyrics/lyrics.component';
 import { NotificationService } from '../../core/services/notification.service';
 
 /**
@@ -19,7 +20,8 @@ import { NotificationService } from '../../core/services/notification.service';
   selector: 'app-now-playing',
   standalone: true,
   imports: [
-    QueueComponent
+    QueueComponent,
+    LyricsComponent
   ],
   templateUrl: './now-playing.component.html',
   styleUrl: './now-playing.component.css'
@@ -33,6 +35,55 @@ export class NowPlayingComponent {
   readonly playerState = this.playerService.state;
 
   activePanel: 'playing' | 'lyrics' = 'playing';
+
+  /**
+   * true mientras el contenido principal hace scroll: el disco del
+   * borde se esconde detrás del panel para no estorbar la barra de
+   * desplazamiento y reaparece al terminar.
+   */
+  readonly handleTucked = signal(false);
+
+  constructor() {
+
+    const destroyRef = inject(DestroyRef);
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const onScroll = (event: Event): void => {
+
+      const target = event.target;
+
+      // El scroll interno del propio panel (cola, letras) no cuenta.
+      if (
+        target instanceof Element &&
+        target.closest('.right-panel')
+      ) {
+        return;
+      }
+
+      this.handleTucked.set(true);
+
+      clearTimeout(timer);
+
+      timer = setTimeout(
+        () => this.handleTucked.set(false),
+        700
+      );
+    };
+
+    // El evento scroll no burbujea: se escucha en fase de captura.
+    document.addEventListener('scroll', onScroll, {
+      capture: true,
+      passive: true
+    });
+
+    destroyRef.onDestroy(() => {
+
+      document.removeEventListener('scroll', onScroll, true);
+
+      clearTimeout(timer);
+    });
+  }
   
   /**
    * Canción actualmente seleccionada en el reproductor.

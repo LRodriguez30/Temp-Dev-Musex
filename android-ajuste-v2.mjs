@@ -41,7 +41,7 @@ const TARGETS = [
   ['src/app/components/playlist-detail/playlist-detail.component.html', 'deletePlaylist(', 'conditional'],
 
   // ---- Ocultas ----
-  ['src/app/components/music-table/music-table.component.html', 'openMore(', 'add']
+  ['src/app/components/music-table/music-table.component.html', 'openMore(', 'remove']
 ];
 
 const CONDITION = '[class.hide-on-android]="playlist()?.remote"';

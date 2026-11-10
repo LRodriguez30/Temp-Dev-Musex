@@ -108,16 +108,17 @@
             class="relative min-w-0 flex-1"
           >
 
-            <input
+            <textarea
               [(ngModel)]="downloadUrl"
               name="downloadUrl"
-              type="url"
+              rows="2"
               autocomplete="off"
               spellcheck="false"
-              placeholder="Pega aquí una URL..."
-              aria-label="URL de descarga"
-              class="downloads-url-input min-w-0 w-full rounded-lg border border-[#303236] bg-[#0d0e10] px-4 py-3 text-sm text-white outline-none transition-ui placeholder:text-zinc-600 focus:border-[var(--musex-accent)]"
-            />
+              placeholder="Pega uno o varios enlaces (uno por línea) o una lista de YouTube..."
+              aria-label="Enlaces de descarga"
+              class="downloads-url-input min-w-0 w-full resize-y rounded-lg border border-[#303236] bg-[#0d0e10] px-4 py-3 text-sm text-white outline-none transition-ui placeholder:text-zinc-600 focus:border-[var(--musex-accent)]"
+              (keydown.control.enter)="addDownload()"
+            ></textarea>
 
           </div>
 
@@ -126,7 +127,7 @@
 
           <button
             type="submit"
-            [disabled]="!downloadUrl.trim()"
+            [disabled]="!downloadUrl.trim() || loadingPlaylist"
             class="downloads-submit transition-ui flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-[var(--musex-accent)] px-5 text-sm font-semibold text-black hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
           >
 
@@ -146,7 +147,10 @@
             </svg>
 
             <span>
-              Descargar
+              {{ loadingPlaylist ? 'Leyendo lista...' : 'Descargar' }}
+              @if (!loadingPlaylist && linkSummary().valid > 1) {
+                ({{ linkSummary().valid }})
+              }
             </span>
 
           </button>
@@ -155,19 +159,17 @@
 
 
         <!-- URL STATUS -->
-
         @if (downloadUrl.trim()) {
 
-          @if (isValidDownloadUrl(downloadUrl.trim())) {
+          @let summary = linkSummary();
 
+          @if (summary.valid > 0) {
             <div
               class="downloads-url-status downloads-url-valid mt-3 flex items-center gap-2 text-xs text-[var(--musex-accent)]"
             >
-
               <span
                 class="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--musex-accent-soft)]"
               >
-
                 <svg
                   viewBox="0 0 24 24"
                   class="h-3 w-3"
@@ -178,29 +180,26 @@
                   stroke-linejoin="round"
                   aria-hidden="true"
                 >
-
                   <path d="m5 12 4 4L19 6"></path>
-
                 </svg>
-
               </span>
-
               <span>
-                Fuente compatible detectada.
+                @if (summary.valid === 1) {
+                  Fuente compatible detectada.
+                } @else {
+                  {{ summary.valid }} enlaces compatibles detectados.
+                }
               </span>
-
             </div>
+          }
 
-          } @else {
-
+          @if (summary.invalid > 0) {
             <div
               class="downloads-url-status downloads-url-invalid mt-3 flex items-center gap-2 text-xs text-zinc-500"
             >
-
               <span
                 class="flex h-5 w-5 items-center justify-center rounded-full border border-[#303236]"
               >
-
                 <svg
                   viewBox="0 0 24 24"
                   class="h-3 w-3"
@@ -211,65 +210,47 @@
                   stroke-linejoin="round"
                   aria-hidden="true"
                 >
-
                   <path d="M12 8v4"></path>
                   <path d="M12 16h.01"></path>
-
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="9"
-                  ></circle>
-
+                  <circle cx="12" cy="12" r="9"></circle>
                 </svg>
-
               </span>
-
               <span>
-                Introduce una URL de YouTube o Newgrounds compatible.
+                @if (summary.valid === 0) {
+                  Introduce una URL de YouTube o Newgrounds compatible.
+                } @else {
+                  {{ summary.invalid }}
+                  {{ summary.invalid === 1 ? 'texto no reconocido se ignorará' : 'textos no reconocidos se ignorarán' }}.
+                }
               </span>
-
             </div>
-
           }
 
+          @if (summary.playlistUrl) {
+            <div
+              class="downloads-playlist-hint mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-[#303236] bg-[#111214] px-3 py-2.5 text-xs text-zinc-400"
+            >
+              <span class="min-w-0 flex-1">
+                @if (summary.playlistIsPage) {
+                  Es una lista de reproducción de YouTube.
+                } @else {
+                  Este video pertenece a una lista: se descargará solo el video.
+                }
+              </span>
+
+              @if (!summary.playlistIsPage) {
+                <button
+                  type="button"
+                  class="shrink-0 font-semibold text-[var(--musex-accent)] hover:underline disabled:opacity-50"
+                  [disabled]="loadingPlaylist"
+                  (click)="downloadWholePlaylist()"
+                >
+                  Descargar lista completa
+                </button>
+              }
+            </div>
+          }
         }
-
-
-        <!-- SOURCE PRESETS -->
-
-        <div
-          class="downloads-presets mt-4 flex flex-wrap items-center gap-2"
-        >
-
-          <span
-            class="mr-1 text-xs text-zinc-600"
-          >
-            Fuentes:
-          </span>
-
-
-          <button
-            type="button"
-            class="download-preset transition-ui rounded-full border border-[#292b30] bg-[#17191b] px-3 py-1.5 text-xs text-zinc-400 hover:border-[#3a3d42] hover:text-white"
-            title="Preparar enlace de YouTube"
-            (click)="selectPreset('youtube')"
-          >
-            YouTube
-          </button>
-
-
-          <button
-            type="button"
-            class="download-preset transition-ui rounded-full border border-[#292b30] bg-[#17191b] px-3 py-1.5 text-xs text-zinc-400 hover:border-[#3a3d42] hover:text-white"
-            title="Preparar enlace de Newgrounds"
-            (click)="selectPreset('newgrounds')"
-          >
-            Newgrounds
-          </button>
-
-        </div>
-
       </form>
 
     </section>

@@ -1,0 +1,157 @@
+@if (!track()) {
+
+  <div class="lyrics-state">
+    <p>Reproduce una canción para ver su letra.</p>
+  </div>
+
+} @else if (editing()) {
+
+  <div class="lyrics-editor">
+
+    <p class="lyrics-hint">
+      Pega o escribe la letra. Si incluye tiempos
+      (<code>[01:23.45]</code>) se mostrará sincronizada.
+    </p>
+
+    <textarea
+      class="lyrics-textarea"
+      rows="14"
+      spellcheck="false"
+      placeholder="Escribe la letra aquí..."
+      [value]="draft()"
+      (input)="onDraft($event)"
+    ></textarea>
+
+    <div class="lyrics-actions">
+      <button type="button" class="lyrics-btn" (click)="cancelEdit()">
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        class="lyrics-btn is-primary"
+        [disabled]="!draft().trim()"
+        (click)="saveEdit()"
+      >
+        Guardar
+      </button>
+    </div>
+
+  </div>
+
+} @else {
+
+  @switch (status()) {
+
+    @case ('loading') {
+
+      <div class="lyrics-skeleton" aria-label="Buscando letra">
+        @for (width of [70, 90, 55, 80, 65, 85, 50]; track $index) {
+          <span [style.width.%]="width"></span>
+        }
+      </div>
+    }
+
+    @case ('instrumental') {
+
+      <div class="lyrics-state">
+        <span class="lyrics-glyph">♪</span>
+        <p>Esta canción es instrumental.</p>
+      </div>
+    }
+
+    @case ('notfound') {
+
+      <div class="lyrics-state">
+        <p>No encontramos la letra de esta canción.</p>
+
+        <div class="lyrics-actions">
+          <button type="button" class="lyrics-btn" (click)="retry()">
+            Buscar de nuevo
+          </button>
+
+          <button type="button" class="lyrics-btn is-primary" (click)="startEdit()">
+            Pegar letra
+          </button>
+        </div>
+      </div>
+    }
+
+    @case ('error') {
+
+      <div class="lyrics-state">
+        <p>No se pudo buscar la letra. Revisa tu conexión.</p>
+
+        <div class="lyrics-actions">
+          <button type="button" class="lyrics-btn" (click)="retry()">
+            Reintentar
+          </button>
+
+          <button type="button" class="lyrics-btn is-primary" (click)="startEdit()">
+            Pegar letra
+          </button>
+        </div>
+      </div>
+    }
+
+    @case ('ready') {
+
+      @if (lyrics(); as data) {
+
+        <div
+          class="lyrics-body"
+          (wheel)="onManualScroll()"
+          (touchmove)="onManualScroll()"
+        >
+
+          @if (data.synced) {
+
+            <div class="lyrics-lines">
+              @for (line of data.synced; track $index) {
+
+                <button
+                  type="button"
+                  class="lyric-line"
+                  [class.is-active]="$index === activeIndex()"
+                  [class.is-past]="$index < activeIndex()"
+                  [class.is-break]="!line.text"
+                  (click)="seekTo(line)"
+                >
+                  {{ line.text || '♪' }}
+                </button>
+
+              }
+            </div>
+
+          } @else {
+
+            <pre class="lyrics-plain">{{ data.plain }}</pre>
+          }
+
+          <footer class="lyrics-footer">
+
+            <span>
+              {{
+                data.source === 'manual'
+                  ? 'Letra guardada por ti'
+                  : data.synced
+                    ? 'Letra sincronizada · LRCLIB'
+                    : 'Letra sin sincronizar · LRCLIB'
+              }}
+            </span>
+
+            <span class="lyrics-footer-actions">
+              <button type="button" (click)="startEdit()">Editar</button>
+
+              @if (data.source === 'manual') {
+                <button type="button" (click)="discardStored()">Quitar</button>
+              }
+            </span>
+
+          </footer>
+
+        </div>
+      }
+    }
+  }
+}

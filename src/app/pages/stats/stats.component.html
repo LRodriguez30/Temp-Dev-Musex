@@ -1,0 +1,257 @@
+<section class="view h-full stats-page overflow-y-auto scroll-area">
+  <div class="content-pad mx-auto max-w-[1060px] px-7 pb-12 pt-8">
+
+    <!-- CABECERA -->
+    <div class="flex flex-wrap items-end justify-between gap-4">
+
+      <div class="min-w-0">
+        <h1 class="text-[25px] font-semibold tracking-tight">
+          Estadísticas
+        </h1>
+
+        <p class="mt-1 text-sm text-zinc-400">
+          Lo que escuchas, medido en tiempo real de reproducción.
+        </p>
+      </div>
+
+      @if (hasAnyData()) {
+        <button type="button" class="stats-clear" (click)="clearAll()">
+          Reiniciar estadísticas
+        </button>
+      }
+
+    </div>
+
+    <!-- PERIODO -->
+    <div class="stats-periods" role="tablist">
+      @for (option of periods; track option.id) {
+        <button
+          type="button"
+          role="tab"
+          class="stats-period"
+          [class.is-active]="period() === option.id"
+          [attr.aria-selected]="period() === option.id"
+          (click)="setPeriod(option.id)"
+        >
+          {{ option.label }}
+        </button>
+      }
+    </div>
+
+    @if (isEmpty()) {
+
+      <div class="stats-empty">
+        <p class="text-sm font-medium text-zinc-400">
+          @if (hasAnyData()) {
+            No hay reproducciones en este periodo.
+          } @else {
+            Todavía no hay datos.
+          }
+        </p>
+
+        <p class="mt-1 text-xs text-zinc-600">
+          @if (hasAnyData()) {
+            Prueba con otro periodo.
+          } @else {
+            Musex empieza a contar desde ahora: una canción cuenta
+            cuando la escuchas por suficiente tiempo.
+          }
+        </p>
+      </div>
+
+    } @else {
+
+      <!-- TARJETAS -->
+      <div class="stats-kpis">
+
+        <div class="stats-kpi is-hero">
+          <span class="stats-kpi-label">Tiempo escuchado</span>
+          <strong>{{ formatDuration(totalSeconds()) }}</strong>
+        </div>
+
+        <div class="stats-kpi">
+          <span class="stats-kpi-label">Reproducciones</span>
+          <strong>{{ playCount() }}</strong>
+        </div>
+
+        <div class="stats-kpi">
+          <span class="stats-kpi-label">Canciones distintas</span>
+          <strong>{{ uniqueTracks() }}</strong>
+        </div>
+
+        <div class="stats-kpi">
+          <span class="stats-kpi-label">Artistas</span>
+          <strong>{{ uniqueArtists() }}</strong>
+        </div>
+
+        <div class="stats-kpi">
+          <span class="stats-kpi-label">Racha</span>
+          <strong>
+            {{ streak() }}
+            <small>{{ streak() === 1 ? 'día' : 'días' }}</small>
+          </strong>
+        </div>
+
+      </div>
+
+      <!-- RANKINGS -->
+      <div class="stats-grid">
+
+        <section class="stats-card">
+          <h2>Canciones más escuchadas</h2>
+
+          <ol class="stats-rank">
+            @for (row of topTracks(); track $index) {
+              <li>
+                <span class="stats-rank-pos">{{ $index + 1 }}</span>
+
+                <div class="stats-rank-body">
+                  <div class="stats-rank-top">
+                    <span class="stats-rank-name" [attr.title]="row.label">{{ row.label }}</span>
+                    <span class="stats-rank-value">
+                      {{ row.plays }} {{ row.plays === 1 ? 'vez' : 'veces' }}
+                    </span>
+                  </div>
+
+                  @if (row.sublabel) {
+                    <span class="stats-rank-sub">{{ row.sublabel }}</span>
+                  }
+
+                  <div class="stats-rank-bar">
+                    <span [style.width.%]="row.width"></span>
+                  </div>
+                </div>
+              </li>
+            }
+          </ol>
+        </section>
+
+        <section class="stats-card">
+          <h2>Artistas más escuchados</h2>
+
+          <ol class="stats-rank">
+            @for (row of topArtists(); track $index) {
+              <li>
+                <span class="stats-rank-pos">{{ $index + 1 }}</span>
+
+                <div class="stats-rank-body">
+                  <div class="stats-rank-top">
+                    <span class="stats-rank-name" [attr.title]="row.label">{{ row.label }}</span>
+                    <span class="stats-rank-value">{{ formatDuration(row.seconds) }}</span>
+                  </div>
+
+                  <div class="stats-rank-bar">
+                    <span [style.width.%]="row.width"></span>
+                  </div>
+                </div>
+              </li>
+            }
+          </ol>
+        </section>
+
+        @if (topAlbums().length > 0) {
+          <section class="stats-card">
+            <h2>Álbumes</h2>
+
+            <ol class="stats-rank">
+              @for (row of topAlbums(); track $index) {
+                <li>
+                  <span class="stats-rank-pos">{{ $index + 1 }}</span>
+
+                  <div class="stats-rank-body">
+                    <div class="stats-rank-top">
+                      <span class="stats-rank-name" [attr.title]="row.label">{{ row.label }}</span>
+                      <span class="stats-rank-value">{{ row.plays }}</span>
+                    </div>
+
+                    @if (row.sublabel) {
+                      <span class="stats-rank-sub">{{ row.sublabel }}</span>
+                    }
+
+                    <div class="stats-rank-bar">
+                      <span [style.width.%]="row.width"></span>
+                    </div>
+                  </div>
+                </li>
+              }
+            </ol>
+          </section>
+        }
+
+        @if (topGenres().length > 0) {
+          <section class="stats-card">
+            <h2>Géneros</h2>
+
+            <ol class="stats-rank">
+              @for (row of topGenres(); track $index) {
+                <li>
+                  <span class="stats-rank-pos">{{ $index + 1 }}</span>
+
+                  <div class="stats-rank-body">
+                    <div class="stats-rank-top">
+                      <span class="stats-rank-name">{{ row.label }}</span>
+                      <span class="stats-rank-value">{{ row.plays }}</span>
+                    </div>
+
+                    <div class="stats-rank-bar">
+                      <span [style.width.%]="row.width"></span>
+                    </div>
+                  </div>
+                </li>
+              }
+            </ol>
+          </section>
+        }
+
+      </div>
+
+      <!-- HÁBITOS -->
+      <section class="stats-card mt-4">
+
+        <div class="stats-card-head">
+          <h2>¿Cuándo escuchas?</h2>
+
+          @if (peakHourLabel()) {
+            <span class="stats-peak">
+              Hora pico: {{ peakHourLabel() }}
+              @if (peakWeekdayLabel()) { · {{ peakWeekdayLabel() }} }
+            </span>
+          }
+        </div>
+
+        <p class="stats-caption">Por hora del día</p>
+
+        <div class="stats-bars is-hours">
+          @for (bar of byHour(); track $index) {
+            <div
+              class="stats-bar"
+              [class.is-peak]="bar.peak"
+              [attr.title]="formatDuration(bar.value * 60)"
+            >
+              <span class="stats-bar-fill" [style.height.%]="bar.height"></span>
+              <span class="stats-bar-label">{{ bar.label }}</span>
+            </div>
+          }
+        </div>
+
+        <p class="stats-caption">Por día de la semana</p>
+
+        <div class="stats-bars is-days">
+          @for (bar of byWeekday(); track $index) {
+            <div
+              class="stats-bar"
+              [class.is-peak]="bar.peak"
+              [attr.title]="formatDuration(bar.value * 60)"
+            >
+              <span class="stats-bar-fill" [style.height.%]="bar.height"></span>
+              <span class="stats-bar-label">{{ bar.label }}</span>
+            </div>
+          }
+        </div>
+
+      </section>
+
+    }
+
+  </div>
+</section>

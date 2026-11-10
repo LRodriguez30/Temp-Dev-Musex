@@ -1,25 +1,42 @@
 
-:host {
-    display: contents;
-}
-
 /* =============================================================
-   QUEUE PANEL — TRANSITIONS
-============================================================= */
+   QUEUE PANEL — BASE
+   ============================================================= */
 
 .queue-panel {
-    animation: queue-panel-enter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    position: fixed;
+    inset: 0 0 88px;
+    z-index: 1000;
+
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    background: #0d0e10;
+    color: #fff;
+    font-family: inherit;
+
+    animation: queue-panel-enter 220ms ease-out;
+}
+
+.queue-panel *,
+.queue-panel *::before,
+.queue-panel *::after {
+    box-sizing: border-box;
 }
 
 .queue-panel.is-exiting {
-    animation: queue-panel-exit 180ms ease-in both;
     pointer-events: none;
+    animation: queue-panel-exit 180ms ease-in forwards;
 }
 
 @keyframes queue-panel-enter {
     from {
         opacity: 0;
-        transform: translateY(12px);
+        transform: translateY(10px);
     }
 
     to {
@@ -29,239 +46,1241 @@
 }
 
 @keyframes queue-panel-exit {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
     to {
         opacity: 0;
         transform: translateY(8px);
     }
 }
 
-/* =============================================================
-   PAGE HEADING
-============================================================= */
 
-.queue-page-heading {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 20px;
+/* =============================================================
+   BACKGROUND
+   ============================================================= */
+
+.queue-panel-glow {
+    position: absolute;
+    top: 15%;
+    left: 18%;
+
+    width: 480px;
+    height: 480px;
+
+    border-radius: 50%;
+
+    background: color-mix(
+        in srgb,
+        var(--musex-accent) 4%,
+        transparent
+    );
+
+    filter: blur(90px);
+    pointer-events: none;
 }
 
-.queue-page-indicator {
+.queue-panel-grid {
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    justify-content: space-evenly;
+
+    opacity: 0.025;
+    pointer-events: none;
+}
+
+.queue-panel-grid span {
+    width: 1px;
+    height: 100%;
+    background: #fff;
+}
+
+
+/* =============================================================
+   HEADER
+   ============================================================= */
+
+.queue-panel-header {
+    position: relative;
+    z-index: 5;
+
+    flex: 0 0 68px;
+    min-width: 0;
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+
+    padding: 0 24px;
+
+    border-bottom: 1px solid #292b30;
+}
+
+.queue-panel-brand {
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.queue-panel-brand-copy {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+}
+
+.queue-panel-brand-copy span {
+    color: #fff;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 3px;
+}
+
+.queue-panel-brand-copy small {
+    margin-top: 6px;
+
+    color: rgb(255 255 255 / 30%);
+    font-family: "Courier New", Courier, monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+}
+
+.queue-panel-icon-button {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: 1px solid #292b30;
+    border-radius: 8px;
+
+    background: #111214;
+    color: rgb(255 255 255 / 58%);
+
+    cursor: pointer;
+
+    transition:
+        color 150ms ease,
+        border-color 150ms ease,
+        background 150ms ease;
+}
+
+.queue-panel-icon-button:hover {
+    color: #fff;
+    background: #17191b;
+    border-color: #3a3d42;
+}
+
+.queue-panel-icon-button svg {
+    width: 18px;
+    height: 18px;
+}
+
+.queue-panel-header-status {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 10px;
-    background: #17191b;
-    color: #c0c4c8;
+
+    color: rgb(255 255 255 / 38%);
+    font-family: "Courier New", Courier, monospace;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 700;
+    letter-spacing: 1.5px;
     white-space: nowrap;
 }
 
-.queue-page-indicator-dot {
-    width: 7px;
-    height: 7px;
+.queue-status-dot {
+    width: 6px;
+    height: 6px;
     flex: 0 0 auto;
+
     border-radius: 50%;
+    background: #45484d;
+}
+
+.queue-status-dot.is-playing {
     background: var(--musex-accent);
+
+    box-shadow:
+        0 0 0 4px color-mix(in srgb, var(--musex-accent) 8%, transparent),
+        0 0 12px color-mix(in srgb, var(--musex-accent) 25%, transparent);
 }
 
-/* =============================================================
-   QUEUE CONTAINER
-============================================================= */
-
-.queue-page-container {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    border-radius: 18px;
-    background: #111315;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
-    animation: queue-container-enter 280ms ease-out both;
-}
-
-.queue-panel.is-exiting .queue-page-container {
-    animation: none;
-}
-
-@keyframes queue-container-enter {
-    from {
-        opacity: 0;
-        transform: translateY(6px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.queue-page-accent {
-    position: absolute;
-    top: 0;
-    left: 24px;
-    right: 24px;
-    height: 2px;
-    background: var(--musex-accent);
-    opacity: 0.55;
-    pointer-events: none;
-}
-
-.queue-page-inner-glow {
-    position: absolute;
-    top: -100px;
-    left: 50%;
-    width: 500px;
-    height: 220px;
-    transform: translateX(-50%);
-    border-radius: 50%;
-    background: rgba(156, 255, 0, 0.018);
-    filter: blur(60px);
-    pointer-events: none;
-}
-
-/* =============================================================
-   TABLE HEADER
-============================================================= */
-
-.queue-page-table-header {
-    position: relative;
-    z-index: 2;
-    display: grid;
-    grid-template-columns: 36px minmax(0, 1fr) 90px 44px;
-    align-items: center;
-    min-height: 48px;
-    padding: 0 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
-    color: #a6abb1;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-
-.queue-page-table-header span:nth-child(2) {
-    padding-left: 10px;
-}
-
-.queue-header-duration {
-    text-align: right;
-}
-
-/* =============================================================
-   QUEUE CONTENT
-============================================================= */
-
-.queue-page-content {
-    position: relative;
-    z-index: 2;
+.queue-panel-header-actions {
     min-width: 0;
-    padding: 8px;
+
+    display: flex;
+    align-items: center;
+    justify-self: end;
+    gap: 12px;
 }
 
-/* =============================================================
-   MOBILE
-============================================================= */
+.queue-panel-total {
+    color: rgb(255 255 255 / 38%);
+    font-family: "Courier New", Courier, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.queue-panel-clear {
+    min-height: 38px;
+    padding: 0 14px;
+
+    border: 1px solid #292b30;
+    border-radius: 8px;
+
+    background: #111214;
+    color: rgb(255 255 255 / 55%);
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        color 150ms ease,
+        border-color 150ms ease,
+        background 150ms ease;
+}
+
+.queue-panel-clear:hover:not(:disabled) {
+    color: #ff8585;
+    border-color: rgb(255 110 110 / 35%);
+    background: rgb(255 110 110 / 4%);
+}
+
+.queue-panel-clear:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
 
 /* =============================================================
-   MOBILE — QUEUE PANEL
-============================================================= */
+   MAIN LAYOUT
+   ============================================================= */
 
-@media (max-width: 640px) {
-    /* Diseño móvil convencional */
-    .queue-panel:not(.queue-panel-android) {
-        top: var(--safe-top, 0px) !important;
-        bottom: calc(88px + var(--safe-bottom, 0px)) !important;
-        overflow: hidden;
-        overscroll-behavior: contain;
-    }
+.queue-panel-layout {
+    position: relative;
+    z-index: 2;
 
-    /* Android: panel entre el topbar y el reproductor inferior */
-    .queue-panel-android {
-        position: fixed;
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
 
-        top: calc(var(--topbar-height, 68px) + env(safe-area-inset-top, 0px));
-        bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+    display: grid;
+    grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
+    gap: 22px;
 
-        left: 0;
-        right: 0;
+    padding: 22px;
+    overflow: hidden;
+}
 
-        z-index: 60;
 
-        width: 100%;
-        height: auto;
+/* =============================================================
+   CURRENT TRACK PANEL
+   ============================================================= */
 
-        overflow: hidden;
-        padding: 0;
+.queue-panel-current {
+    min-width: 0;
+    min-height: 0;
 
-        box-sizing: border-box;
-    }
+    display: flex;
+    flex-direction: column;
 
-    .queue-panel > aside {
-        min-height: 0;
+    padding: clamp(20px, 2.5vw, 34px);
+
+    border: 1px solid #292b30;
+    border-radius: 14px;
+
+    background: #111214;
+    overflow: hidden;
+}
+
+.queue-panel-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    margin-bottom: 26px;
+}
+
+.queue-panel-eyebrow {
+    display: block;
+
+    color: var(--musex-accent);
+    font-family: "Courier New", Courier, monospace;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    line-height: 1.4;
+}
+
+.queue-panel-live {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    color: rgb(255 255 255 / 40%);
+    font-family: "Courier New", Courier, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.queue-panel-live i {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+
+    border-radius: 50%;
+    background: var(--musex-accent);
+}
+
+
+/* =============================================================
+   COVER
+   ============================================================= */
+
+.queue-panel-current-content {
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    margin: auto 0;
+}
+
+.queue-panel-art-area {
+    position: relative;
+
+    width: min(100%, 380px, calc(100dvh - 330px));
+    flex: 0 1 auto;
+    aspect-ratio: 1;
+
+    margin: 0 auto 28px;
+}
+
+.queue-panel-art-shadow {
+    position: absolute;
+    top: 8%;
+    right: -4%;
+
+    width: 78%;
+    aspect-ratio: 1;
+
+    border: 1px solid #292b30;
+    border-radius: 50%;
+
+    background: #17191b;
+
+    transform: rotate(7deg);
+
+    box-shadow: 0 20px 50px rgb(0 0 0 / 40%);
+}
+
+.queue-panel-art {
+    position: relative;
+    z-index: 2;
+
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    border: 1px solid #3a3d42;
+    border-radius: 10px;
+
+    background: #0d0e10;
+
+    box-shadow:
+        0 30px 70px rgb(0 0 0 / 50%),
+        0 0 50px color-mix(in srgb, var(--musex-accent) 2.5%, transparent);
+}
+
+.queue-panel-art > img {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+/* Portada predeterminada de Musex */
+
+.queue-panel-art-fallback {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+    background: #17191b;
+}
+
+.queue-panel-art-fallback .musex-default-cover {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    flex: 1 1 auto;
+
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.queue-panel-art-fallback svg {
+    width: 35%;
+    height: 35%;
+    flex: 0 0 auto;
+}
+
+
+/* =============================================================
+   TRACK INFORMATION
+   ============================================================= */
+
+.queue-panel-track-info {
+    width: 100%;
+    min-width: 0;
+    text-align: center;
+}
+
+.queue-panel-track-info h1 {
+    max-width: 100%;
+
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+
+    margin: 0;
+    padding-bottom: 0.08em;
+
+    color: #fff;
+    font-size: clamp(23px, 2.2vw, 36px);
+    font-weight: 750;
+    line-height: 1.08;
+    letter-spacing: -1.4px;
+
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    text-overflow: ellipsis;
+}
+
+.queue-panel-artist {
+    max-width: 100%;
+    margin: 10px 0 0;
+
+    color: var(--musex-accent);
+    font-size: clamp(16px, 1.5vw, 21px);
+    font-weight: 550;
+    line-height: 1.35;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.queue-panel-album {
+    max-width: 100%;
+    margin: 5px 0 0;
+
+    color: rgb(255 255 255 / 40%);
+    font-size: 13px;
+    font-weight: 500;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* =============================================================
+   PROGRESS
+   ============================================================= */
+
+.queue-panel-progress-block {
+    width: 100%;
+    margin-top: 28px;
+}
+
+.queue-panel-progress {
+    position: relative;
+
+    width: 100%;
+    height: 6px;
+
+    overflow: hidden;
+    border-radius: 999px;
+
+    background: rgb(255 255 255 / 12%);
+    cursor: pointer;
+}
+
+.queue-panel-progress span {
+    position: absolute;
+    inset: 0 auto 0 0;
+
+    display: block;
+    border-radius: inherit;
+
+    background: var(--musex-accent);
+
+    box-shadow: 0 0 12px color-mix(in srgb, var(--musex-accent) 25%, transparent);
+    pointer-events: none;
+}
+
+.queue-panel-times {
+    display: flex;
+    justify-content: space-between;
+
+    margin-top: 11px;
+
+    color: var(--musex-accent);
+    font-family: "Courier New", Courier, monospace;
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+
+/* =============================================================
+   PLAYBACK CONTROLS
+   ============================================================= */
+
+.queue-panel-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+
+    margin-top: 22px;
+}
+
+.queue-panel-control {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+
+    background: transparent;
+    color: rgb(255 255 255 / 50%);
+
+    cursor: pointer;
+
+    transition:
+        color 150ms ease,
+        background 150ms ease,
+        transform 150ms ease;
+}
+
+.queue-panel-control svg {
+    width: 21px;
+    height: 21px;
+}
+
+.queue-panel-control:hover {
+    color: #fff;
+    background: #17191b;
+}
+
+.queue-panel-control:active {
+    transform: scale(0.92);
+}
+
+.queue-panel-play {
+    width: 56px;
+    height: 56px;
+    flex: 0 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+
+    background: var(--musex-accent);
+    color: #0d0e10;
+
+    cursor: pointer;
+
+    transition:
+        transform 150ms ease,
+        box-shadow 150ms ease;
+}
+
+.queue-panel-play svg {
+    width: 24px;
+    height: 24px;
+}
+
+.queue-panel-play:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px color-mix(in srgb, var(--musex-accent) 15%, transparent);
+}
+
+.queue-panel-play:active {
+    transform: scale(0.95);
+}
+
+
+/* =============================================================
+   EMPTY CURRENT TRACK
+   ============================================================= */
+
+.queue-panel-empty-current {
+    min-height: 0;
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+}
+
+.queue-panel-empty-icon {
+    width: 64px;
+    height: 64px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #292b30;
+    border-radius: 12px;
+
+    background: #17191b;
+    color: var(--musex-accent);
+}
+
+.queue-panel-empty-icon svg {
+    width: 29px;
+    height: 29px;
+}
+
+.queue-panel-empty-current h2 {
+    margin: 20px 0 0;
+    color: #fff;
+    font-size: 21px;
+    font-weight: 650;
+}
+
+.queue-panel-empty-current p {
+    margin: 8px 0 0;
+    color: rgb(255 255 255 / 45%);
+    font-size: 14px;
+}
+
+
+/* =============================================================
+   UPCOMING QUEUE
+   ============================================================= */
+
+.queue-panel-upcoming {
+    min-width: 0;
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    border: 1px solid #292b30;
+    border-radius: 14px;
+
+    background: #111214;
+}
+
+.queue-panel-upcoming-header {
+    position: relative;
+    z-index: 2;
+
+    flex: 0 0 92px;
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    padding: 0 24px;
+    border-bottom: 1px solid #292b30;
+}
+
+.queue-panel-upcoming-header h2 {
+    margin: 6px 0 0;
+
+    color: #fff;
+    font-size: 23px;
+    font-weight: 650;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+}
+
+.queue-panel-count {
+    min-width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 8px;
+
+    border: 1px solid color-mix(in srgb, var(--musex-accent) 25%, transparent);
+    border-radius: 8px;
+
+    background: color-mix(in srgb, var(--musex-accent) 7%, transparent);
+    color: var(--musex-accent);
+
+    font-family: "Courier New", Courier, monospace;
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.queue-panel-upcoming-body {
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 0;
+
+    padding: 10px 8px 14px 12px;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 20%) transparent;
+}
+
+.queue-panel-upcoming-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.queue-panel-upcoming-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.queue-panel-upcoming-body::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+
+    background: rgb(255 255 255 / 18%);
+    background-clip: padding-box;
+}
+
+.queue-panel-upcoming-body::-webkit-scrollbar-thumb:hover {
+    background: rgb(255 255 255 / 34%);
+    background-clip: padding-box;
+}
+
+.queue-panel-upcoming-body app-queue {
+    display: block;
+    min-width: 0;
+}
+
+
+/* =============================================================
+   PROGRESS RANGE
+   ============================================================= */
+
+.queue-panel-progress-range {
+    width: 100%;
+    height: 4px;
+
+    margin: 0;
+    padding: 0;
+
+    appearance: none;
+    -webkit-appearance: none;
+
+    border: none;
+    border-radius: 999px;
+
+    background: linear-gradient(
+        to right,
+        var(--accent-color, #9cff00) 0%,
+        var(--accent-color, #9cff00) var(--progress, 0%),
+        #34363b var(--progress, 0%),
+        #34363b 100%
+    );
+
+    cursor: pointer;
+    outline: none;
+}
+
+.queue-panel-progress-range::-webkit-slider-thumb {
+    width: 11px;
+    height: 11px;
+
+    appearance: none;
+    -webkit-appearance: none;
+
+    border: 0;
+    border-radius: 50%;
+
+    background: var(--accent-color, #9cff00);
+    opacity: 0;
+
+    transition: opacity 150ms ease;
+}
+
+.queue-panel-progress-range:hover::-webkit-slider-thumb,
+.queue-panel-progress-range:active::-webkit-slider-thumb {
+    opacity: 1;
+}
+
+.queue-panel-progress-range::-moz-range-thumb {
+    width: 11px;
+    height: 11px;
+
+    border: 0;
+    border-radius: 50%;
+
+    background: var(--accent-color, #9cff00);
+    opacity: 0;
+
+    transition: opacity 150ms ease;
+}
+
+.queue-panel-progress-range:hover::-moz-range-thumb,
+.queue-panel-progress-range:active::-moz-range-thumb {
+    opacity: 1;
+}
+
+.queue-panel-progress-range:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+
+/* =============================================================
+   DEFAULT COVER — MUSEX
+   ============================================================= */
+
+.musex-default-cover {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.full-player-cover-image.is-playing {
+    animation: disc-spin 35s linear infinite;
+}
+
+.musex-default-cover.is-playing {
+    animation: musex-disc-spin 8s linear infinite;
+}
+
+@keyframes disc-spin {
+    to {
+        transform: rotate(360deg);
     }
 }
 
-/* =============================================================
-   VERY NARROW SCREENS
-============================================================= */
+@keyframes musex-disc-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
 
-@media (max-width: 360px) {
-    .queue-panel header {
-        padding-left: 10px !important;
-        padding-right: 8px !important;
+
+/* =============================================================
+   RESPONSIVE — MEDIUM
+   ============================================================= */
+
+@media (max-width: 1100px) and (min-width: 721px) {
+    .queue-panel-layout {
+        grid-template-columns: minmax(250px, 0.8fr) minmax(0, 1.2fr);
+        gap: 16px;
+        padding: 16px;
     }
 
-    .queue-panel header > div:first-child {
+    .queue-panel-current {
+        padding: 22px;
+    }
+
+    .queue-panel-art-area {
+        width: min(100%, 300px, calc(100dvh - 320px));
+    }
+
+    .queue-panel-track-info h1 {
+        font-size: clamp(22px, 2.5vw, 30px);
+    }
+
+    .queue-panel-upcoming-header {
+        padding-inline: 18px;
+    }
+}
+
+
+/* =============================================================
+   RESPONSIVE — TABLET
+   ============================================================= */
+
+@media (max-width: 900px) and (min-width: 721px) {
+    .queue-panel-header {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .queue-panel-header-status {
+        display: none;
+    }
+
+    .queue-panel-layout {
+        grid-template-columns: minmax(230px, 0.8fr) minmax(0, 1.2fr);
+    }
+
+    .queue-panel-current {
+        padding: 18px;
+    }
+
+    .queue-panel-art-area {
+        width: min(100%, 260px, calc(100dvh - 330px));
+    }
+
+    .queue-panel-controls {
+        gap: 14px;
+    }
+}
+
+
+/* =============================================================
+   RESPONSIVE — MOBILE
+   ============================================================= */
+
+@media (max-width: 720px) {
+    .queue-panel {
+        inset: 0;
+        height: 100vh;
+        height: 100dvh;
+    }
+
+    .queue-panel.queue-panel-android {
+        inset: 0;
+
+        height: 100vh;
+        height: 100dvh;
+
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .queue-panel-header {
+        flex: 0 0 60px;
+        grid-template-columns: minmax(0, 1fr) auto;
+        padding: 0 14px;
+    }
+
+    .queue-panel-brand {
+        gap: 10px;
+    }
+
+    .queue-panel-brand-copy,
+    .queue-panel-header-status {
+        display: none;
+    }
+
+    .queue-panel-header-actions {
         gap: 8px;
     }
 
-    .queue-panel header h2 {
-        font-size: 15px;
+    .queue-panel-total {
+        font-size: 10px;
     }
 
-    .queue-panel .scroll-area > div {
-        padding-left: 8px !important;
-        padding-right: 8px !important;
+    .queue-panel-clear {
+        min-height: 35px;
+        padding-inline: 10px;
+        font-size: 11px;
     }
 
-    .queue-page-container {
-        border-radius: 12px;
+    .queue-panel-layout {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        padding: 12px;
+
+        overflow-x: hidden;
+        overflow-y: auto;
+
+        overscroll-behavior: contain;
     }
 
-    .queue-page-content {
-        padding: 4px;
+    .queue-panel-current {
+        flex: 0 0 auto;
+        padding: 18px;
+        border-radius: 11px;
+    }
+
+    .queue-panel-section-heading {
+        margin-bottom: 18px;
+    }
+
+    .queue-panel-current-content {
+        display: grid;
+        grid-template-columns: 104px minmax(0, 1fr);
+        align-items: center;
+
+        column-gap: 17px;
+        row-gap: 0;
+
+        margin: 0;
+    }
+
+    .queue-panel-art-area {
+        width: 104px;
+
+        grid-column: 1;
+        grid-row: 1 / span 2;
+
+        margin: 0;
+    }
+
+    .queue-panel-art-shadow {
+        display: none;
+    }
+
+    .queue-panel-track-info {
+        min-width: 0;
+        grid-column: 2;
+        grid-row: 1;
+        text-align: left;
+    }
+
+    .queue-panel-track-info h1 {
+        font-size: 21px;
+        line-height: 1.12;
+        letter-spacing: -0.7px;
+    }
+
+    .queue-panel-artist {
+        margin-top: 7px;
+        font-size: 16px;
+    }
+
+    .queue-panel-album {
+        font-size: 12px;
+    }
+
+    .queue-panel-progress-block {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        margin-top: 20px;
+    }
+
+    .queue-panel-times {
+        font-size: 12px;
+    }
+
+    .queue-panel-controls {
+        grid-column: 1 / -1;
+        grid-row: 4;
+
+        margin-top: 12px;
+        gap: 20px;
+    }
+
+    .queue-panel-upcoming {
+        flex: 1 1 auto;
+        min-height: 280px;
+    }
+
+    .queue-panel-upcoming-header {
+        flex-basis: 72px;
+        padding-inline: 17px;
+    }
+
+    .queue-panel-upcoming-header h2 {
+        font-size: 20px;
+    }
+
+    .queue-panel-upcoming-header .queue-panel-eyebrow {
+        font-size: 10px;
+    }
+
+    .queue-panel-upcoming-body {
+        padding: 8px 7px 12px 10px;
     }
 }
 
+
+/* =============================================================
+   RESPONSIVE — SMALL MOBILE
+   ============================================================= */
+
+@media (max-width: 420px) {
+    .queue-panel-header {
+        padding-inline: 11px;
+    }
+
+    .queue-panel-icon-button {
+        width: 35px;
+        height: 35px;
+    }
+
+    .queue-panel-total {
+        font-size: 9px;
+        letter-spacing: 0.5px;
+    }
+
+    .queue-panel-clear {
+        padding-inline: 8px;
+        font-size: 10px;
+    }
+
+    .queue-panel-layout {
+        gap: 10px;
+        padding: 9px;
+    }
+
+    .queue-panel-current {
+        padding: 14px;
+    }
+
+    .queue-panel-current-content {
+        grid-template-columns: 84px minmax(0, 1fr);
+        column-gap: 13px;
+    }
+
+    .queue-panel-art-area {
+        width: 84px;
+    }
+
+    .queue-panel-track-info h1 {
+        font-size: 18px;
+    }
+
+    .queue-panel-artist {
+        font-size: 14px;
+    }
+
+    .queue-panel-section-heading {
+        margin-bottom: 14px;
+    }
+
+    .queue-panel-live {
+        font-size: 9px;
+    }
+
+    .queue-panel-upcoming-header {
+        padding-inline: 14px;
+    }
+}
+
+
+/* =============================================================
+   RESPONSIVE — SHORT WINDOWS
+   ============================================================= */
+
+@media (max-height: 720px) and (min-width: 721px) {
+    .queue-panel-header {
+        flex-basis: 58px;
+    }
+
+    .queue-panel-layout {
+        gap: 14px;
+        padding: 14px;
+    }
+
+    .queue-panel-current {
+        padding: 18px 24px;
+    }
+
+    .queue-panel-section-heading {
+        margin-bottom: 14px;
+    }
+
+    .queue-panel-art-area {
+        width: min(100%, 280px, calc(100dvh - 310px));
+        margin-bottom: 18px;
+    }
+
+    .queue-panel-track-info h1 {
+        font-size: clamp(21px, 2vw, 29px);
+    }
+
+    .queue-panel-progress-block {
+        margin-top: 18px;
+    }
+
+    .queue-panel-controls {
+        margin-top: 12px;
+    }
+
+    .queue-panel-upcoming-header {
+        flex-basis: 74px;
+    }
+}
+
+
 /* =============================================================
    ACCESSIBILITY
-============================================================= */
+   ============================================================= */
 
-.queue-panel button:focus-visible {
+.queue-panel button:focus-visible,
+.queue-panel-progress-range:focus-visible {
     outline: 2px solid var(--musex-accent);
     outline-offset: 3px;
 }
 
-@media (hover: hover) and (pointer: fine) {
-    .queue-panel button:hover {
-        border-color: rgba(255, 255, 255, 0.18);
-        color: var(--musex-accent);
-    }
-}
-
 @media (prefers-reduced-motion: reduce) {
     .queue-panel,
-    .queue-panel.is-exiting,
-    .queue-page-container {
-        animation: none !important;
-        transition: none !important;
+    .queue-panel *,
+    .queue-panel *::before,
+    .queue-panel *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }

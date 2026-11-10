@@ -14,6 +14,9 @@ import { Track } from '../models/track.model';
 import { LibraryService } from './library.service';
 import { QueueService } from './queue.service';
 import { HistoryService } from './history.service';
+import { SettingsService } from './settings.service';
+import { AutoPickService } from './auto-pick.service';
+import { AutoPickHistoryService } from './auto-pick-history.service';
 
 /**
  * Gestiona el estado y las operaciones principales del reproductor.
@@ -57,24 +60,63 @@ export class PlayerService implements OnDestroy {
             });
         });
 
-        // Botones de la notificación de Android (anterior / play-pausa / siguiente)
-        window.__musexMediaCommand = (command: string) => {
-            switch (command) {
-                case 'toggle':
-                    void this.togglePlay();
-                    break;
+        // Los botones de la notificación de Android los gestiona
+        // AndroidMediaService (window.__musexMediaCommand). Aquí solo
+        // se atienden los eventos del <audio> del WebView.
+        window.__musexAudioEvent = event => {
 
-                case 'next':
-                    this.nextTrack();
-                    break;
+            const state = this.playerState();
 
-                case 'prev':
-                    this.previousTrack();
-                    break;
+            if (!state.currentTrackId) {
+                return;
             }
+
+            // Android devolvió el foco de audio y el <audio> se reanudó
+            // solo (p. ej. al terminar una llamada): se sincroniza.
+            if (event === 'resumed') {
+
+                if (!state.playing && !this.eqPlayback) {
+
+                    this.playerState.update(current => ({
+                        ...current,
+                        playing: true
+                    }));
+
+                    this.startPositionSync();
+                }
+
+                return;
+            }
+
+            if (!state.playing) {
+                return;
+            }
+
+            if (event === 'interrupted') {
+
+                // Otro audio tomó el foco: el audio ya se detuvo,
+                // el estado del reproductor debe reflejarlo.
+                this.playerState.update(current => ({
+                    ...current,
+                    playing: false
+                }));
+
+                this.stopPositionSync();
+
+                this.saveContinueListening();
+
+                return;
+            }
+
+            // 'ended': handleTrackEnded() ya evita duplicados
+            // con la detección por polling.
+            this.handleTrackEnded();
         };
     }
 
+    private fullPlayerCloseTimer:
+        ReturnType<typeof setTimeout> | null = null;
+    
     /**
      * Servicio encargado de administrar la biblioteca musical.
      */
@@ -202,6 +244,25 @@ export class PlayerService implements OnDestroy {
      */
     private handlingTrackEnd = false;
 
+    private readonly settingsService = inject(SettingsService);
+    private readonly autoPickService = inject(AutoPickService);
+
+    private readonly autoPickHistory = inject(AutoPickHistoryService);
+
+    /** Entrada del historial de la selección pendiente. */
+    private autoPickEntryId: string | null = null;
+
+    /**
+     * Canción elegida automáticamente que arrancará al terminar
+     * el tiempo de gracia (null cuando no hay ninguna pendiente).
+     */
+    readonly autoPickPending = signal<{
+        track: Track;
+        deadline: number;
+    } | null>(null);
+
+    private autoPickTimer: ReturnType<typeof setTimeout> | null = null;
+
     private previousVolume = 50;
 
     /**
@@ -253,6 +314,11 @@ export class PlayerService implements OnDestroy {
     readonly fullPlayerOpen = signal(false);
 
     /**
+     * Indica si el Full Player está ejecutando su animación de salida.
+     */
+    readonly fullPlayerClosing = signal(false);
+
+    /**
      * Indica si existe contenido reproducible real: una canción
      * actual cargada o una cola con canciones pendientes.
      *
@@ -264,18 +330,40 @@ export class PlayerService implements OnDestroy {
         this.playerState().queue.length > 0
     );
 
-    /**
-     * Abre o cierra el Full Player.
-     */
     toggleFullPlayer(): void {
-        this.fullPlayerOpen.update(open => !open);
+        if (this.fullPlayerClosing()) {
+            return;
+        }
+
+        if (this.fullPlayerOpen()) {
+            this.closeFullPlayer();
+            return;
+        }
+
+        this.fullPlayerOpen.set(true);
     }
 
-    /**
-     * Cierra el Full Player.
-     */
     closeFullPlayer(): void {
+        if (!this.fullPlayerOpen() || this.fullPlayerClosing()) {
+            return;
+        }
+
+        this.fullPlayerClosing.set(true);
+
+        // Respaldo por si animationend no llega a dispararse.
+        this.fullPlayerCloseTimer = setTimeout(() => {
+            this.finishFullPlayerClose();
+        }, 300);
+    }
+
+    finishFullPlayerClose(): void {
+        if (this.fullPlayerCloseTimer !== null) {
+            clearTimeout(this.fullPlayerCloseTimer);
+            this.fullPlayerCloseTimer = null;
+        }
+
         this.fullPlayerOpen.set(false);
+        this.fullPlayerClosing.set(false);
     }
 
     /**
@@ -284,7 +372,13 @@ export class PlayerService implements OnDestroy {
      * Si la canción todavía no pertenece a la cola,
      * se incorpora automáticamente.
      */
-    async playTrack(trackId: string): Promise<void> {
+    async playTrack(
+        trackId: string,
+        addToQueue = true
+    ): Promise<void> {
+
+        // Cualquier reproducción nueva cancela una selección pendiente.
+        this.clearAutoPick();
 
         /*
          * Si anteriormente estaba reproduciéndose una canción
@@ -324,7 +418,10 @@ export class PlayerService implements OnDestroy {
 
         this.loadingTrackId.set(trackId);
 
-        if (!this.queueService.getQueue().includes(track.id)) {
+        if (
+            addToQueue &&
+            !this.queueService.getQueue().includes(track.id)
+        ) {
             this.queueService.add(track.id);
         }
 
@@ -342,9 +439,24 @@ export class PlayerService implements OnDestroy {
              * Permitimos que Angular renderice el estado
              * de carga antes de iniciar la reproducción.
              */
-            await new Promise<void>(resolve => {
-                requestAnimationFrame(() => resolve());
-            });
+            // Con la app en segundo plano (pantalla apagada, otra app)
+            // el WebView no dispara requestAnimationFrame: esperar el
+            // frame dejaba el cambio de canción colgado hasta volver a
+            // abrir la app. Se omite si no está visible y, si no,
+            // se limita con un timeout.
+            if (!document.hidden) {
+                await new Promise<void>(resolve => {
+                    let done = false;
+                    const finish = () => {
+                        if (!done) {
+                            done = true;
+                            resolve();
+                        }
+                    };
+                    requestAnimationFrame(finish);
+                    setTimeout(finish, 100);
+                });
+            }
 
             await invoke('play_audio', {
                 path: track.path
@@ -1299,6 +1411,18 @@ export class PlayerService implements OnDestroy {
         }
 
         /**
+         * Selección automática: solo llega aquí cuando la canción
+         * terminó por sí sola (no al saltar con siguiente/anterior).
+         */
+        if (
+            this.settingsService.state().autoPick &&
+            !this.eqPlayback &&
+            this.beginAutoPick()
+        ) {
+            return;
+        }
+
+        /**
          * Repetición de cola o reproducción normal.
          */
         void this.playNextAfterEnd()
@@ -1306,6 +1430,128 @@ export class PlayerService implements OnDestroy {
 
                 this.handlingTrackEnd = false;
             });
+    }
+
+    // =========================================================
+    // SELECCIÓN AUTOMÁTICA
+    // =========================================================
+
+    /**
+     * Elige la siguiente canción y espera el tiempo de gracia.
+     *
+     * Devuelve false si no hay nada que elegir, para que continúe
+     * el comportamiento normal de la cola.
+     */
+    private beginAutoPick(): boolean {
+
+        const ended = this.getCurrentTrack();
+
+        const next = this.autoPickService.pick(ended);
+
+        if (!next) {
+            return false;
+        }
+
+        const graceMs =
+            Math.max(
+                0,
+                this.settingsService.state().autoPickGraceSeconds
+            ) * 1000;
+
+        // Se registra la selección en el historial del auto-picker.
+        this.autoPickEntryId = this.autoPickHistory.record(
+            next,
+            graceMs === 0 ? 'auto' : 'pending'
+        ).id;
+
+        // La canción terminó: el reproductor queda en pausa al final.
+        this.stopPositionSync();
+
+        this.playerState.update(state => ({
+            ...state,
+            playing: false,
+            currentTime: ended?.duration ?? state.currentTime
+        }));
+
+        if (graceMs === 0) {
+
+            void this.playTrack(next.id, false);
+
+            return true;
+        }
+
+        this.autoPickPending.set({
+            track: next,
+            deadline: Date.now() + graceMs
+        });
+
+        this.autoPickTimer = setTimeout(
+            () => void this.confirmAutoPick(),
+            graceMs
+        );
+
+        return true;
+    }
+
+    /** Reproduce ya la canción elegida (fin del tiempo de gracia). */
+    async confirmAutoPick(byUser = false): Promise<void> {
+
+        const pending = this.autoPickPending();
+
+        if (!pending) {
+            return;
+        }
+
+        this.autoPickHistory.resolve(
+            this.autoPickEntryId,
+            byUser ? 'now' : 'auto'
+        );
+
+        // playTrack limpia el temporizador y el estado pendiente.
+        // No se agrega a la cola: suena con prioridad.
+        await this.playTrack(pending.track.id, false);
+    }
+
+    /** Cancela la elección y sigue con la cola como siempre. */
+    cancelAutoPick(): void {
+
+        if (!this.autoPickPending()) {
+            return;
+        }
+
+        this.autoPickHistory.resolve(
+            this.autoPickEntryId,
+            'cancelled'
+        );
+
+        this.clearAutoPick();
+
+        void this.playNextAfterEnd()
+            .finally(() => {
+
+                this.handlingTrackEnd = false;
+            });
+    }
+
+    private clearAutoPick(): void {
+
+        if (this.autoPickTimer !== null) {
+
+            clearTimeout(this.autoPickTimer);
+
+            this.autoPickTimer = null;
+        }
+
+        if (this.autoPickPending()) {
+
+            // Si nadie la resolvió antes, otra reproducción la reemplazó.
+            this.autoPickHistory.resolve(
+                this.autoPickEntryId,
+                'replaced'
+            );
+
+            this.autoPickPending.set(null);
+        }
     }
 
     /**
