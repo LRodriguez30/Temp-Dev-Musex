@@ -362,26 +362,6 @@ MUSIC TABLE
 
 /* =========================================================
 MUSIC TABLE — DESKTOP SCROLL
-========================================================= */
-
-@media (min-width: 1101px) {
-
-  .music-table {
-    max-height: min(65vh, 680px);
-    overflow-y: auto;
-    overscroll-behavior-y: contain;
-  }
-
-  .music-table-head {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-
-    background: var(--eq-panel);
-  }
-
-}
-
 /* =========================================================
 TABLE STRUCTURE
 ========================================================= */
@@ -1543,6 +1523,19 @@ SEARCH
     var(--musex-accent) 36%,
     transparent
   );
+
+  background: #131518;
+
+  box-shadow:
+    0 0 0 2px color-mix(
+      in srgb,
+      var(--musex-accent) 5.5%,
+      transparent
+    );
+}
+
+/* =========================================================
+SEARCH ICON
 
   background: #131518;
 

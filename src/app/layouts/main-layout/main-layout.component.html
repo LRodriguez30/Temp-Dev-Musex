@@ -196,7 +196,6 @@
 
 <!-- ============================================================ 
      GLOBAL MODAL 
-============================================================= --> 
 
 <app-modal 
   [open]="modalService.state().open" 
@@ -1282,6 +1281,7 @@
 
             </div> 
 
+            <div class="eq-sense-orbit eq-sense-orbit-middle"></div> 
 
             <div class="eq-sense-core"> 
 
@@ -1291,6 +1291,7 @@
 
             </div> 
 
+            </div> 
 
             <div class="eq-sense-icon"> 
 
@@ -1634,6 +1635,19 @@
               " 
             /> 
 
+            <input 
+              class="eq-seek-slider" 
+              type="range" 
+              min="0" 
+              [max]="track.duration || 0" 
+              step="0.01" 
+              [value]="eqService.currentTime()" 
+              [style.--eq-progress.%]=" 
+                track.duration 
+                  ? (eqService.currentTime() / track.duration) * 100 
+                  : 0 
+              " 
+              aria-label="Progreso del ecualizador" 
 
             <span class="eq-seek-time"> 
 
@@ -1840,6 +1854,9 @@
 
                     </div> 
 
+                      <label> 
+                        Frecuencia 
+                      </label> 
 
                     <div class="eq-band-field"> 
 
@@ -1928,6 +1945,7 @@
 
               </div> 
 
+                    </div> 
 
             } @else { 
 
